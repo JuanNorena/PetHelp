@@ -1,0 +1,46 @@
+# ── Android / Gradle ─────────────────────────────────────────
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# ── Módulo app ───────────────────────────────────────────────
+app/build/
+app/release/
+
+# ── Keystore / credenciales — NUNCA subir al repositorio ─────
+*.jks
+*.keystore
+keystore.properties
+
+# ── Google Services — contiene API keys ──────────────────────
+# Agregar google-services.json manualmente o usar CI secrets.
+app/google-services.json
+
+# ── Variables de entorno y secrets ───────────────────────────
+.env
+secrets.properties
+local.defaults.properties
+
+# ── Kotlin / Java ─────────────────────────────────────────────
+*.class
+*.jar (no el wrapper)
+
+# ── macOS ─────────────────────────────────────────────────────
+.DS_Store
+.__MACOSX
+
+# ── Windows ───────────────────────────────────────────────────
+Thumbs.db
+desktop.ini

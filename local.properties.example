@@ -1,0 +1,17 @@
+# local.properties — ESTE ARCHIVO NO SE SUBE AL REPOSITORIO
+# Está ignorado por .gitignore. Cada desarrollador debe crearlo localmente.
+#
+# ── SDK de Android ───────────────────────────────────────────────────────────
+# sdk.dir=C\:\\Users\\TU_USUARIO\\AppData\\Local\\Android\\Sdk
+#
+# ── Google Maps API Key ───────────────────────────────────────────────────────
+# Obtener en: https://console.cloud.google.com → APIs y servicios → Credenciales
+# MAPS_API_KEY=AIzaSy...
+#
+# ── Cloudinary ────────────────────────────────────────────────────────────────
+# Obtener en: https://cloudinary.com → Dashboard
+# CLOUDINARY_CLOUD_NAME=tu_cloud_name
+#
+# ── OpenAI API Key (para funcionalidad de IA) ────────────────────────────────
+# Obtener en: https://platform.openai.com/api-keys
+# OPENAI_API_KEY=sk-...

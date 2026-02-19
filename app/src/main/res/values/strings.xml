@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nombre de la aplicación -->
+    <string name="app_name">PetHelp</string>
+
+    <!-- ── Autenticación ──────────────────────────────────── -->
+    <string name="login_title">Iniciar sesión</string>
+    <string name="register_title">Crear cuenta</string>
+    <string name="forgot_password_title">Recuperar contraseña</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="name_hint">Nombre completo</string>
+    <string name="btn_login">Iniciar sesión</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="btn_send_reset">Enviar enlace</string>
+    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="has_account">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <!-- ── Feed ───────────────────────────────────────────── -->
+    <string name="feed_title">PetHelp</string>
+    <string name="btn_new_post">Nueva publicación</string>
+    <string name="view_list">Vista lista</string>
+    <string name="view_map">Vista mapa</string>
+    <string name="filter_category">Filtrar por categoría</string>
+    <string name="filter_location">Filtrar por ubicación</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_nearby">Cercanos</string>
+    <string name="filter_city">En mi ciudad</string>
+
+    <!-- ── Categorías ─────────────────────────────────────── -->
+    <string name="category_adoption">Adopción</string>
+    <string name="category_lost">Perdidos</string>
+    <string name="category_found">Encontrados</string>
+    <string name="category_temp_home">Hogar temporal</string>
+    <string name="category_vet_event">Eventos veterinarios</string>
+
+    <!-- ── Estados ────────────────────────────────────────── -->
+    <string name="status_pending">Pendiente de verificación</string>
+    <string name="status_verified">Verificada</string>
+    <string name="status_rejected">Rechazada</string>
+    <string name="status_resolved">Resuelta/Finalizada</string>
+
+    <!-- ── Publicación ────────────────────────────────────── -->
+    <string name="post_title_hint">Título de la publicación</string>
+    <string name="post_desc_hint">Descripción</string>
+    <string name="post_animal_type_hint">Tipo de animal (ej. perro, gato)</string>
+    <string name="post_breed_hint">Raza aproximada</string>
+    <string name="post_size">Tamaño</string>
+    <string name="post_vaccinated">¿Tiene vacunas?</string>
+    <string name="post_location">Ubicación</string>
+    <string name="post_pick_location">Seleccionar en el mapa</string>
+    <string name="post_add_images">Agregar imágenes</string>
+    <string name="btn_publish">Publicar</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_mark_resolved">Marcar como resuelta</string>
+    <string name="btn_interested">Me interesa</string>
+    <string name="btn_adopt">Me interesa adoptar</string>
+
+    <!-- ── Moderación ─────────────────────────────────────── -->
+    <string name="moderation_panel_title">Panel de Moderación</string>
+    <string name="btn_approve">Aprobar</string>
+    <string name="btn_reject">Rechazar</string>
+    <string name="reject_reason_hint">Motivo del rechazo (obligatorio)</string>
+
+    <!-- ── Perfil ──────────────────────────────────────────── -->
+    <string name="profile_title">Mi Perfil</string>
+    <string name="edit_profile_title">Editar perfil</string>
+    <string name="btn_logout">Cerrar sesión</string>
+    <string name="btn_delete_account">Eliminar cuenta</string>
+    <string name="delete_account_confirm">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.</string>
+
+    <!-- ── Estadísticas ────────────────────────────────────── -->
+    <string name="stats_title">Mis Estadísticas</string>
+    <string name="stats_active">Publicaciones activas</string>
+    <string name="stats_finished">Publicaciones finalizadas</string>
+    <string name="stats_pending">Pendientes de verificación</string>
+
+    <!-- ── Reputación ─────────────────────────────────────── -->
+    <string name="reputation_title">Mi Reputación</string>
+    <string name="level_friend">Amigo Animal</string>
+    <string name="level_protector">Protector</string>
+    <string name="level_guardian">Guardián</string>
+    <string name="level_hero">Héroe de las Mascotas</string>
+
+    <!-- ── Notificaciones ────────────────────────────────────-->
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notification_channel_name">PetHelp Alertas</string>
+
+    <!-- ── Errores generales ──────────────────────────────── -->
+    <string name="error_generic">Ocurrió un error. Por favor intenta de nuevo.</string>
+    <string name="error_no_internet">Sin conexión a internet.</string>
+    <string name="error_field_required">Este campo es obligatorio.</string>
+    <string name="error_invalid_email">El correo electrónico no es válido.</string>
+    <string name="error_password_short">La contraseña debe tener al menos 6 caracteres.</string>
+</resources>

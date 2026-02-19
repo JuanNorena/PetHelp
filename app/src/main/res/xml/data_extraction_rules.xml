@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Reglas de extracción de datos para Android 12+ (API 31+).
+    Controla qué datos se incluyen en backups por nube (cloud) y por USB (device).
+    Referencia: https://developer.android.com/about/versions/12/backup-restore
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Excluir toda la base de datos local (Room) y preferencias sensibles -->
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+    </cloud-backup>
+
+    <device-transfer>
+        <!-- Excluir todo al transferir entre dispositivos por seguridad -->
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="." />
+    </device-transfer>
+</data-extraction-rules>
