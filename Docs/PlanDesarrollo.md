@@ -421,23 +421,6 @@ class GetPostsUseCase @Inject constructor(
 }
 ```
 
-### 6.4 Commits y ramas (Git Flow simplificado)
-
-| Rama | Propósito |
-|---|---|
-| `main` | Código estable entregable |
-| `develop` | Integración continua del trabajo del equipo |
-| `feature/nombre-feature` | Desarrollo de cada feature |
-| `fix/descripcion-bug` | Corrección de errores |
-
-**Formato de commit:**
-```
-<tipo>(<scope>): <descripción corta>
-
-Ejemplos:
-feat(auth): implementar pantalla de registro con validaciones
-fix(feed): corregir filtro por categoría que no resetea paginación
-chore(deps): actualizar Firebase BOM a 33.7.0
 ```
 
 ---
