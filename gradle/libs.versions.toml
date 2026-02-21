@@ -6,7 +6,7 @@
 
 [versions]
 # ── Core ─────────────────────────────────────────────────────
-agp                     = "8.6.0"
+agp                     = "8.13.2"
 kotlin                  = "2.0.21"
 ksp                     = "2.0.21-1.0.27"
 
@@ -50,7 +50,8 @@ room                    = "2.6.1"
 datastore               = "1.1.1"
 
 # ── Image Upload ─────────────────────────────────────────────
-cloudinary              = "2.6.0"
+# cloudinary-android 3.x consolida todos los sub-módulos en un solo artefacto.
+cloudinary              = "3.0.2"
 
 # ── Permissions ──────────────────────────────────────────────
 accompanistPermissions  = "0.36.0"
@@ -97,12 +98,14 @@ hilt-android-compiler           = { group = "com.google.dagger",        name = "
 hilt-navigation-compose         = { group = "androidx.hilt",            name = "hilt-navigation-compose",   version.ref = "hiltNavigationCompose" }
 
 # ── Firebase ─────────────────────────────────────────────────
+# A partir de BoM 32.0.0 los artefactos -ktx se fusionaron en los principales.
+# Usar los nombres SIN sufijo -ktx (los -ktx ya no se publican en BoM 34+).
 firebase-bom                    = { group = "com.google.firebase",      name = "firebase-bom",              version.ref = "firebaseBom" }
-firebase-auth                   = { group = "com.google.firebase",      name = "firebase-auth-ktx" }
-firebase-firestore              = { group = "com.google.firebase",      name = "firebase-firestore-ktx" }
-firebase-storage                = { group = "com.google.firebase",      name = "firebase-storage-ktx" }
-firebase-messaging              = { group = "com.google.firebase",      name = "firebase-messaging-ktx" }
-firebase-analytics              = { group = "com.google.firebase",      name = "firebase-analytics-ktx" }
+firebase-auth                   = { group = "com.google.firebase",      name = "firebase-auth" }
+firebase-firestore              = { group = "com.google.firebase",      name = "firebase-firestore" }
+firebase-storage                = { group = "com.google.firebase",      name = "firebase-storage" }
+firebase-messaging              = { group = "com.google.firebase",      name = "firebase-messaging" }
+firebase-analytics              = { group = "com.google.firebase",      name = "firebase-analytics" }
 
 # ── Networking ───────────────────────────────────────────────
 retrofit                        = { group = "com.squareup.retrofit2",   name = "retrofit",                  version.ref = "retrofit" }

@@ -2,8 +2,8 @@ package com.pethelp.app.features.feed.presentation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -40,7 +40,7 @@ fun FeedScreen(navController: NavController) {
                     // Toggle lista/mapa
                     IconButton(onClick = { isMapView = !isMapView }) {
                         Icon(
-                            imageVector = if (isMapView) Icons.Default.List else Icons.Default.Map,
+                            imageVector = if (isMapView) Icons.AutoMirrored.Filled.List else Icons.Default.Map,
                             contentDescription = if (isMapView) "Vista lista" else "Vista mapa"
                         )
                     }

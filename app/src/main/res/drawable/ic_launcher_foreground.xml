@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#FFFFFF">
+    <!-- Simple paw/pet icon placeholder -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34c-3.3,0 -6,2.7 -6,6s2.7,6 6,6 6,-2.7 6,-6 -2.7,-6 -6,-6zM40,42c-2.8,0 -5,2.2 -5,5s2.2,5 5,5 5,-2.2 5,-5 -2.2,-5 -5,-5zM68,42c-2.8,0 -5,2.2 -5,5s2.2,5 5,5 5,-2.2 5,-5 -2.2,-5 -5,-5zM44,56c-2.8,0 -5,2.2 -5,5s2.2,5 5,5 5,-2.2 5,-5 -2.2,-5 -5,-5zM64,56c-2.8,0 -5,2.2 -5,5s2.2,5 5,5 5,-2.2 5,-5 -2.2,-5 -5,-5zM54,64c-4.4,0 -8,3.6 -8,8s3.6,8 8,8 8,-3.6 8,-8 -3.6,-8 -8,-8z" />
+</vector>
+
