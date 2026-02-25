@@ -254,7 +254,7 @@ PetHelp/
 | Tarea | Descripción |
 |---|---|
 | F1-01 | Definir paleta de colores, tipografía, espaciado y componentes en Figma |
-| F1-02 | Mockup: Splash screen ✅ (implementación en Compose completada) |
+| F1-02 | Mockup: Splash screen|
 | F1-03 | Mockup: Login + Registro + Recuperar contraseña |
 | F1-04 | Mockup: Feed (lista) con filtros de categoría y ubicación |
 | F1-05 | Mockup: Feed (mapa) con marcadores |
