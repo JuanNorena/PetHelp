@@ -221,7 +221,7 @@ PetHelp/
 |---|---|---|
 | Jetpack Compose BOM | 2024.12.01 | BOM garantiza compatibilidad entre todos los artefactos Compose |
 | Material3 | (BOM) | Sistema de diseño Material You requerido por el enunciado |
-| Hilt | 2.51.1 | Inyección de dependencias oficial de Android + integración Compose |
+| Hilt | 2.52 | Inyección de dependencias oficial de Android + integración Compose |
 | Navigation Compose | 2.8.4 | Navegación type-safe en Single-Activity Architecture |
 | Firebase Auth | (BOM 33.7.0) | Autenticación + recuperación de contraseña por email |
 | Firebase Firestore | (BOM) | Base de datos NoSQL en tiempo real — publicaciones, usuarios, comentarios |

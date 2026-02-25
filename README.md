@@ -132,7 +132,7 @@ En Fase 2 el enunciado exige "datos en memoria". Room actúa como base de datos 
 | Kotlin | 2.0.21 | Lenguaje principal |
 | Jetpack Compose BOM | 2024.12.01 | UI declarativa — requerida por el enunciado |
 | Material3 | BOM | Sistema de diseño Material You |
-| Hilt | 2.51.1 | Inyección de dependencias oficial de Android |
+| Hilt | 2.52 | Inyección de dependencias oficial de Android |
 | Navigation Compose | 2.8.4 | Navegación type-safe en arquitectura Single-Activity |
 | Firebase BOM | 33.7.0 | Auth, Firestore, FCM |
 | Retrofit + OkHttp | 2.11.0 / 4.12.0 | Llamadas HTTP a la API del LLM |

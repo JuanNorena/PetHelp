@@ -23,7 +23,7 @@ composeBom              = "2024.12.01"
 navigationCompose       = "2.8.4"
 
 # ── Dependency Injection ─────────────────────────────────────
-hilt                    = "2.51.1"
+hilt                    = "2.52"
 hiltNavigationCompose   = "1.2.0"
 
 # ── Firebase ─────────────────────────────────────────────────
