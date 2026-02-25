@@ -10,26 +10,39 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // ── Esquema de colores claro ──────────────────────────────────────────────────
+// Esquema claro adaptado a la paleta Figma
+// Nota: los valores primario/secundario/terciario derivan del documento
+// PromptsFigma.md (verde salvia, coral, púrpura). Los contenedores son
+// versiones pálidas usadas en superficies y chips.
 private val LightColorScheme = lightColorScheme(
-    primary        = PetHelpGreen,
+    primary        = PetHelpGreen,           // verde salvia
     onPrimary      = White,
     primaryContainer    = LightGreenContainer,
     onPrimaryContainer  = DarkGreen,
-    secondary      = WarmOrange,
+    secondary      = WarmOrange,             // coral suave
     onSecondary    = White,
-    tertiary       = SoftBlue,
+    secondaryContainer  = Color(0xFFFFCCBC), // coral claro para fondos de botones/chips
+    onSecondaryContainer= DarkSurface,
+    tertiary       = SoftBlue,               // púrpura IA
+    onTertiary     = White,
+    tertiaryContainer= Color(0xFFE1BEE7),    // púrpura pastel para superficies
     background     = BackgroundLight,
     surface        = SurfaceLight,
     error          = ErrorRed,
-)
+)   
 
 // ── Esquema de colores oscuro ─────────────────────────────────────────────────
+// Esquema oscuro inspirado en Figma
+// Mantiene los tonos primario/secundario/terciario, pero con variantes
+// apropiadas para baja luminosidad. Los contenedores son versiones
+// más saturadas o atenuadas de los colores base.
 private val DarkColorScheme = darkColorScheme(
     primary        = PetHelpGreenDark,
     onPrimary      = DarkSurface,
@@ -37,7 +50,11 @@ private val DarkColorScheme = darkColorScheme(
     onPrimaryContainer  = LightGreenContainer,
     secondary      = WarmOrangeDark,
     onSecondary    = DarkSurface,
+    secondaryContainer  = Color(0xFFBF360C), // coral oscuro atenuado
+    onSecondaryContainer= White,
     tertiary       = SoftBlueDark,
+    onTertiary     = DarkSurface,
+    tertiaryContainer  = Color(0xFF7E57C2), // púrpura oscuro
     background     = BackgroundDark,
     surface        = SurfaceDark,
     error          = ErrorRedDark,
