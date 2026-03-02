@@ -99,13 +99,36 @@ fun FeedScreen(navController: NavController) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Mock data - In Phase 3 this will come from Firestore
-            items(10) { index ->
-                PetCardMock(
-                    name = if (index % 2 == 0) "Max" else "Luna",
-                    breed = if (index % 2 == 0) "Golden Retriever" else "Gato mestizo",
-                    distance = "${index + 1}.2 km"
-                )
+            // TODO Fase 3: reemplazar con publicaciones reales de Firestore
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 60.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "🐾",
+                            fontSize = 48.sp
+                        )
+                        Text(
+                            text = "No hay publicaciones aún",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF101828)
+                        )
+                        Text(
+                            text = "Sé el primero en publicar\nuna mascota",
+                            fontSize = 14.sp,
+                            color = Color(0xFF99A1AF),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     }

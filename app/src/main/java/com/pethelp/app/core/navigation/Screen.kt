@@ -24,6 +24,8 @@ sealed class Screen(val route: String) {
         fun createRoute(postId: String) = "edit_post/$postId"
     }
     data object Notifications : Screen("notifications")
+    data object Map           : Screen("map")
+    data object Chat          : Screen("chat")
     data object Profile      : Screen("profile")
     data object EditProfile  : Screen("edit_profile")
     data object Statistics   : Screen("statistics")
