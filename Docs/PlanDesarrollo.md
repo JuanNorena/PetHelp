@@ -223,7 +223,7 @@ PetHelp/
 | Material3 | (BOM) | Sistema de diseño Material You requerido por el enunciado |
 | Hilt | 2.52 | Inyección de dependencias oficial de Android + integración Compose |
 | Navigation Compose | 2.8.4 | Navegación type-safe en Single-Activity Architecture |
-| Firebase Auth | (BOM 33.7.0) | Autenticación + recuperación de contraseña por email |
+| Firebase Auth | (BOM 34.9.0) | Autenticación + recuperación de contraseña por email |
 | Firebase Firestore | (BOM) | Base de datos NoSQL en tiempo real — publicaciones, usuarios, comentarios |
 | Firebase Storage | (BOM) | Almacenamiento alternativo de archivos (respaldo) |
 | Firebase Messaging | (BOM) | Notificaciones push en tiempo real (FCM) |
@@ -302,9 +302,11 @@ PetHelp/
 
 | Tarea | Épica | Descripción |
 |---|---|---|
-| F3-01 | EP-01 | Integrar Firebase Auth: registro, login, logout, recuperación de contraseña |
-| F3-02 | EP-01 | Persistir y leer datos de usuario en Firestore |
+| F3-01 | EP-01 | ✅ Integrar Firebase Auth: registro, login, logout, recuperación de contraseña |
+| F3-02 | EP-01 | ✅ Persistir y leer datos de usuario en Firestore |
 | F3-03 | EP-01 | Precarga de cuentas moderador en Firestore (script o seed manual) |
+
+> **Nota F3-01/F3-02 (completadas):** Login, registro y recuperación de contraseña implementados con Firebase Auth + Firestore. Validación en dos capas (ViewModel + Repository), mensajes de error en español, Snackbar para feedback Material Design, términos y condiciones conformes a legislación colombiana (Ley 1581/2012), protección contra enumeración de usuarios en reset de contraseña, e indicador de fortaleza de contraseña en el registro.
 
 #### 3.2 Publicaciones y comentarios
 

@@ -36,6 +36,12 @@
     <string name="error_passwords_weak">La contraseña debe tener al menos 6 caracteres.</string>
     <string name="error_terms_not_accepted">Debes aceptar los términos y condiciones.</string>
 
+    <!-- ── Términos y Condiciones (Normativa colombiana Ley 1581/2012) ─── -->
+    <string name="terms_dialog_title">Términos y Condiciones de Uso</string>
+    <string name="terms_dialog_accept">Aceptar</string>
+    <string name="terms_dialog_close">Cerrar</string>
+    <string name="terms_dialog_content"><![CDATA[<b>TÉRMINOS Y CONDICIONES DE USO — PetHelp</b>\n\nÚltima actualización: Marzo 2026\n\n<b>1. ACEPTACIÓN DE TÉRMINOS</b>\nAl registrarte y utilizar la aplicación PetHelp, aceptas estos Términos y Condiciones de acuerdo con la legislación colombiana vigente, incluyendo la Ley 1581 de 2012 (Protección de Datos Personales), el Decreto 1377 de 2013 y la Ley 1273 de 2009 (Delitos informáticos).\n\n<b>2. DESCRIPCIÓN DEL SERVICIO</b>\nPetHelp es una plataforma móvil académica desarrollada en la Universidad del Quindío que conecta personas interesadas en la adopción, reporte y cuidado de animales de compañía. El servicio incluye:\n• Publicación de mascotas en adopción, perdidas o encontradas.\n• Ofrecimiento de hogares temporales.\n• Información sobre eventos veterinarios gratuitos.\n• Sistema de moderación y reputación comunitaria.\n\n<b>3. REGISTRO Y CUENTA DE USUARIO</b>\n• Debes ser mayor de edad (18 años) o contar con autorización de un tutor legal.\n• La información proporcionada debe ser veraz, completa y actualizada.\n• Eres responsable de mantener la confidencialidad de tu contraseña.\n• Una cuenta por persona; no se permiten cuentas compartidas.\n\n<b>4. PROTECCIÓN DE DATOS PERSONALES (Ley 1581 de 2012)</b>\nComo responsable del tratamiento de tus datos personales, PetHelp informa:\n\n<b>4.1 Datos recolectados:</b>\n• Nombre completo y correo electrónico (al registrarte).\n• Ubicación geográfica aproximada (al usar funciones de mapa).\n• Contenido publicado (texto, imágenes de mascotas).\n\n<b>4.2 Finalidad del tratamiento:</b>\n• Gestionar tu cuenta y autenticación.\n• Facilitar la adopción y reporte de mascotas.\n• Enviar notificaciones relevantes (nuevas publicaciones, comentarios).\n• Generar estadísticas de uso anónimas.\n\n<b>4.3 Derechos del titular (Art. 8, Ley 1581/2012):</b>\nTienes derecho a:\n• Conocer, actualizar y rectificar tus datos personales.\n• Solicitar prueba de la autorización otorgada.\n• Ser informado sobre el uso dado a tus datos.\n• Revocar la autorización y solicitar la supresión de tus datos.\n• Acceder gratuitamente a tus datos.\n• Presentar quejas ante la Superintendencia de Industria y Comercio (SIC).\n\nPara ejercer estos derechos, escribe a: pethelp.soporte@udq.edu.co\n\n<b>4.4 Seguridad:</b>\nLos datos se almacenan en Firebase (Google Cloud) con cifrado en tránsito y en reposo, cumpliendo estándares internacionales de seguridad ISO 27001.\n\n<b>5. USO ACEPTABLE</b>\nEl usuario se compromete a:\n• No publicar contenido falso, ofensivo, violento o que promueva el maltrato animal.\n• No utilizar la plataforma con fines comerciales o de lucro.\n• Respetar la Ley 84 de 1989 (Estatuto Nacional de Protección de los Animales) y la Ley 1774 de 2016 (los animales son seres sintientes).\n• No suplantar la identidad de otros usuarios.\n• No intentar vulnerar la seguridad de la aplicación.\n\n<b>6. CONTENIDO PUBLICADO</b>\n• Conservas los derechos sobre las imágenes y textos que publicas.\n• Otorgas a PetHelp una licencia no exclusiva para mostrar el contenido dentro de la plataforma.\n• El equipo de moderación puede eliminar contenido que incumpla estos términos.\n\n<b>7. MODERACIÓN</b>\nLas publicaciones son revisadas por moderadores designados. PetHelp se reserva el derecho de aprobar, rechazar o eliminar contenido sin previo aviso cuando se detecte incumplimiento de las normas.\n\n<b>8. LIMITACIÓN DE RESPONSABILIDAD</b>\n• PetHelp es un proyecto académico y no garantiza la veracidad de las publicaciones de terceros.\n• No nos hacemos responsables de acuerdos de adopción entre usuarios.\n• Recomendamos verificar la identidad y condiciones antes de cualquier entrega o adopción.\n\n<b>9. PROPIEDAD INTELECTUAL</b>\nEl código fuente, diseño y marca PetHelp son propiedad del equipo de desarrollo de la Universidad del Quindío. Queda prohibida su reproducción sin autorización.\n\n<b>10. MODIFICACIONES</b>\nNos reservamos el derecho de modificar estos términos. Los cambios serán notificados a través de la aplicación.\n\n<b>11. LEY APLICABLE Y JURISDICCIÓN</b>\nEstos términos se rigen por las leyes de la República de Colombia. Cualquier controversia será resuelta ante los tribunales competentes de la ciudad de Armenia, Quindío.\n\n<b>12. CONTACTO</b>\nUniversidad del Quindío — Programa de Ingeniería de Sistemas\nCorreo: pethelp.soporte@udq.edu.co\n\nAl hacer clic en "Aceptar", confirmas que has leído, comprendido y aceptado estos Términos y Condiciones y la Política de Tratamiento de Datos Personales.]]></string>
+
     <!-- ── Feed ───────────────────────────────────────────── -->
     <string name="feed_title">PetHelp</string>
     <string name="btn_new_post">Nueva publicación</string>
@@ -115,5 +121,29 @@
     <string name="error_password_short">La contraseña debe tener al menos 6 caracteres.</string>
     <!-- Botones genéricos -->
     <string name="btn_start">Comenzar</string>
+    <string name="btn_save_changes">Guardar Cambios</string>
     <string name="splash_tagline">Encuentra, cuida, adopta</string>
+    
+    <!-- ── Nuevos Strings de Profile y Nav ───────────────── -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_create">Crear</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_profile">Perfil</string>
+    
+    <string name="profile_username_prefix">@</string>
+    <string name="profile_my_posts">Mis publicaciones</string>
+    <string name="profile_favorites">Favoritos</string>
+    <string name="profile_settings">Configuración</string>
+    
+    <string name="edit_profile_change_photo">Cambiar foto de perfil</string>
+    <string name="edit_profile_bio_hint">Biografía</string>
+    <string name="edit_profile_city_hint">Ciudad</string>
+    <string name="edit_profile_pet_preferences">Preferencias de mascotas</string>
+    <string name="edit_profile_alerts_near_me">Alertas cerca de mí</string>
+    <string name="preference_dog">Perro</string>
+    <string name="preference_cat">Gato</string>
+    <string name="preference_rabbit">Conejo</string>
+    <string name="preference_bird">Ave</string>
+    
 </resources>

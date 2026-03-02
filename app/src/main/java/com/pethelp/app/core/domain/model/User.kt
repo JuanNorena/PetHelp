@@ -6,12 +6,17 @@ package com.pethelp.app.core.domain.model
 data class User(
     val id: String          = "",
     val name: String        = "",
+    val username: String    = "",
     val email: String       = "",
     val photoUrl: String    = "",
+    val bio: String         = "",
+    val city: String        = "",
     val role: UserRole      = UserRole.USER,
     val points: Int         = 0,
     val level: UserLevel    = UserLevel.FRIEND,
     val badges: List<Badge> = emptyList(),
+    val petPreferences: List<String> = emptyList(),
+    val alertsNearMe: Boolean = true,
     val notificationRadiusKm: Double = 10.0,
     val createdAt: Long     = System.currentTimeMillis()
 )

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ══════════════════════════════════════════════════
          PERMISOS
@@ -15,7 +16,12 @@
 
     <!-- Cámara y galería (subida de imágenes) -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" required="false" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Si en el futuro se necesita video se puede ampliar el permiso -->
+    <!-- El acceso amplio a fotos/videos se justifica porque la aplicación
+         permite subir imágenes de mascotas de forma persistente/frecuente. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <!-- Para Android < 13 -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -37,7 +43,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PetHelp"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="33">
 
         <!-- Actividad principal -->
         <activity

@@ -5,9 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -46,6 +49,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -55,6 +60,7 @@ import com.pethelp.app.core.ui.theme.DarkGreen
 import com.pethelp.app.core.ui.theme.PetHelpGreen
 import com.pethelp.app.core.ui.theme.SoftBlue
 import com.pethelp.app.core.ui.theme.WarmOrange
+import kotlinx.coroutines.flow.collectLatest
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 @Composable
@@ -261,6 +267,17 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    // ── Snackbar (Material Design best practice para mensajes de error) ──
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
     // Navegar al Feed cuando el login sea exitoso
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Authenticated) {
@@ -464,16 +481,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // ── Error message ──
-            if (uiState is AuthUiState.Error) {
-                Text(
-                    text = (uiState as AuthUiState.Error).message,
-                    color = Color(0xFFE57373),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
             // ── Botón Iniciar Sesión ──
             Button(
                 onClick = {
@@ -544,6 +551,21 @@ fun LoginScreen(
                 )
             }
         }
+
+        // ── Snackbar anclado en la parte inferior ──
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Color(0xFF323232),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
     }
 }
 
@@ -560,6 +582,18 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+
+    // ── Snackbar ──
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     // Navegar al Feed cuando el registro sea exitoso
     LaunchedEffect(uiState) {
@@ -568,6 +602,17 @@ fun RegisterScreen(
                 popUpTo(Screen.Splash.route) { inclusive = true }
             }
         }
+    }
+
+    // ── Modal de Términos y Condiciones ──
+    if (showTermsDialog) {
+        TermsAndConditionsDialog(
+            onDismiss = { showTermsDialog = false },
+            onAccept = {
+                termsAccepted = true
+                showTermsDialog = false
+            }
+        )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -698,21 +743,12 @@ fun RegisterScreen(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         ),
-                        color = PetHelpGreen
+                        color = PetHelpGreen,
+                        modifier = Modifier.clickable { showTermsDialog = true }
                     )
                 }
 
                 Spacer(Modifier.height(32.dp))
-
-                // ── Error message ──
-                if (uiState is AuthUiState.Error) {
-                    Text(
-                        text = (uiState as AuthUiState.Error).message,
-                        color = Color(0xFFE57373),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
 
                 // ── Botón Registrarme ──
                 val isFormValid = name.isNotBlank() && email.isNotBlank()
@@ -755,6 +791,21 @@ fun RegisterScreen(
                 }
             }
         }
+
+        // ── Snackbar anclado en la parte inferior ──
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Color(0xFF323232),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
     }
 }
 
@@ -768,6 +819,17 @@ fun ForgotPasswordScreen(
     val resetEmailSent by viewModel.resetEmailSent.collectAsStateWithLifecycle()
 
     var email by remember { mutableStateOf("") }
+
+    // ── Snackbar ──
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // fondo
@@ -855,16 +917,6 @@ fun ForgotPasswordScreen(
                 if (!resetEmailSent) {
                     // ── Estado: formulario de correo ──
 
-                    // ── Error message ──
-                    if (uiState is AuthUiState.Error) {
-                        Text(
-                            text = (uiState as AuthUiState.Error).message,
-                            color = Color(0xFFE57373),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-
                     // ── Campo Correo ──
                     AuthTextField(
                         value = email,
@@ -929,6 +981,21 @@ fun ForgotPasswordScreen(
 
                 Spacer(Modifier.weight(1f))
             }
+        }
+
+        // ── Snackbar host ──
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Color(0xFF323232),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
         }
     }
 }
@@ -1205,6 +1272,86 @@ private fun PasswordStrengthIndicator(password: String) {
                 color = strengthColor,
                 trackColor = Color(0xFFF3F4F6),
             )
+        }
+    }
+}
+
+// ─── Terms & Conditions Dialog ────────────────────────────────────────────────
+@Composable
+private fun TermsAndConditionsDialog(
+    onDismiss: () -> Unit,
+    onAccept: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .fillMaxHeight(0.85f)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // ── Header ──
+                Text(
+                    text = stringResource(R.string.terms_dialog_title),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = Color(0xFF1A1A2E),
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 12.dp)
+                )
+
+                HorizontalDivider(color = Color(0xFFE5E7EB))
+
+                // ── Scrollable content ──
+                Text(
+                    text = stringResource(R.string.terms_dialog_content),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        lineHeight = 22.sp
+                    ),
+                    color = Color(0xFF4B5563),
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                )
+
+                HorizontalDivider(color = Color(0xFFE5E7EB))
+
+                // ── Buttons ──
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(50),
+                        border = BorderStroke(1.dp, Color(0xFFD1D5DB))
+                    ) {
+                        Text(
+                            text = stringResource(R.string.terms_dialog_close),
+                            color = Color(0xFF6B7280)
+                        )
+                    }
+                    Button(
+                        onClick = onAccept,
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.terms_dialog_accept),
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
         }
     }
 }

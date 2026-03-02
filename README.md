@@ -134,7 +134,7 @@ En Fase 2 el enunciado exige "datos en memoria". Room actúa como base de datos 
 | Material3 | BOM | Sistema de diseño Material You |
 | Hilt | 2.52 | Inyección de dependencias oficial de Android |
 | Navigation Compose | 2.8.4 | Navegación type-safe en arquitectura Single-Activity |
-| Firebase BOM | 33.7.0 | Auth, Firestore, FCM |
+| Firebase BOM | 34.9.0 | Auth, Firestore, FCM |
 | Retrofit + OkHttp | 2.11.0 / 4.12.0 | Llamadas HTTP a la API del LLM |
 | Coroutines | 1.9.0 | Programación asíncrona |
 | Coil | 2.7.0 | Carga de imágenes optimizada para Compose |
@@ -250,7 +250,7 @@ OPENAI_API_KEY=sk-...
 ```
 feat(auth): implementar pantalla de registro con validaciones
 fix(feed): corregir filtro por categoría
-chore(deps): actualizar Firebase BOM a 33.7.0
+chore(deps): actualizar Firebase BOM a 34.9.0
 ```
 
 ---
@@ -261,7 +261,28 @@ chore(deps): actualizar Firebase BOM a 33.7.0
 |---|---|---|
 | Fase 1 — Diseño | Mockups en Figma (Material You) | ⏳ Pendiente |
 | Fase 2 — Básico | App funcional con datos en memoria | ⏳ Pendiente |
-| Fase 3 — Completo | Firebase, mapas, IA, i18n, imágenes | ⏳ Pendiente |
+| Fase 3 — Completo | Firebase, mapas, IA, i18n, imágenes | 🔨 En progreso |
+
+---
+
+## ✅ Funcionalidades implementadas
+
+### Autenticación (Firebase Auth)
+
+- **Splash screen** con navegación automática según estado de sesión.
+- **Inicio de sesión** (email + contraseña) con validaciones locales y errores de Firebase mapeados a español.
+- **Registro** con nombre, correo, contraseña y confirmación de contraseña. Incluye indicador de fortaleza de contraseña.
+- **Recuperación de contraseña** por email — protegida contra enumeración de usuarios.
+- **Términos y Condiciones** con modal scrollable que cumple legislación colombiana (Ley 1581/2012, Ley 1273/2009, Ley 84/1989, Ley 1774/2016). Checkbox obligatorio para registrarse.
+- **Persistencia de usuario** en Firestore al registrarse (nombre, email, rol, fecha de creación).
+
+### Patrones de UX y calidad
+
+- **Snackbar** (Material Design) para mensajes de error — patrón de evento único con `SharedFlow` (reemplaza `Toast` y `Text` inline).
+- **Validación en dos capas**: ViewModel (validaciones de formato) + Repository (validaciones de Firebase).
+- **Mensajes de error en español** para: credenciales inválidas, email en uso, contraseña débil, sin conexión, demasiados intentos, errores internos.
+- **Deshabilitación de reCAPTCHA** en builds de debug (evita error `CONFIGURATION_NOT_FOUND` sin necesidad de App Check).
+- **Idioma de Firebase Auth** configurado a español (`setLanguageCode("es")`).
 
 ---
 
