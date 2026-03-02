@@ -1,27 +1,53 @@
 package com.pethelp.app.features.auth.presentation
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
@@ -32,10 +58,20 @@ import com.pethelp.app.core.ui.theme.WarmOrange
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 @Composable
-fun SplashScreen(navController: NavController) {
-    // TODO (Fase 2): verificar sesión activa en Firebase Auth
-    //   → autenticado: navegar a Screen.Feed
-    //   → no autenticado: navegar a Screen.Login
+fun SplashScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Si ya está autenticado, ir directo al Feed
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Authenticated) {
+            navController.navigate(Screen.Feed.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // fondo degradado vertical crema → verde claro
@@ -215,34 +251,962 @@ private fun BlurredCircle(
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 @Composable
-fun LoginScreen(navController: NavController) {
-    // TODO (Fase 2): implementar formulario de login
-    //   → Firebase Auth email/password
-    //   → Detección de rol (USER/MODERATOR) y redirección
-    PlaceholderScreen(
-        title = "Iniciar sesión",
-        onNavigate = { navController.navigate(Screen.Feed.route) }
-    )
+fun LoginScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    // Navegar al Feed cuando el login sea exitoso
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Authenticated) {
+            navController.navigate(Screen.Feed.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // fondo degradado igual que splash
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                    )
+                )
+        )
+
+        // manchas desenfocadas
+        BlurredCircle(
+            color = PetHelpGreen.copy(alpha = 0.1f),
+            size = 256.dp,
+            offsetX = (-80).dp,
+            offsetY = (-80).dp
+        )
+        BlurredCircle(
+            color = WarmOrange.copy(alpha = 0.1f),
+            size = 288.dp,
+            offsetX = 185.dp,
+            offsetY = 160.dp
+        )
+
+        // contenido principal centrado
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // ── Foto circular del perrito ──
+            Box(
+                modifier = Modifier
+                    .size(160.dp)
+                    .shadow(
+                        elevation = 20.dp,
+                        shape = CircleShape,
+                        ambientColor = Color(0xFFF3F4F6),
+                        spotColor = Color(0xFFF3F4F6)
+                    )
+                    .clip(CircleShape)
+                    .background(Color.White)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.img_happy_puppy),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // ── Título ──
+            Text(
+                text = stringResource(R.string.login_greeting),
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    letterSpacing = (-0.75).sp
+                ),
+                color = Color(0xFF101828)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // ── Subtítulo ──
+            Text(
+                text = stringResource(R.string.login_subtitle),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                ),
+                color = Color(0xFF6A7282)
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            // ── Campo Correo electrónico ──
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.email_hint),
+                        color = Color(0xFF99A1AF),
+                        fontSize = 16.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Email,
+                        contentDescription = null,
+                        tint = Color(0xFF99A1AF),
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = PetHelpGreen,
+                    unfocusedBorderColor = Color(0xFFE5E7EB),
+                    cursorColor = PetHelpGreen
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 3.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        ambientColor = Color.Black.copy(alpha = 0.1f),
+                        spotColor = Color.Black.copy(alpha = 0.1f)
+                    )
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // ── Campo Contraseña ──
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.password_hint),
+                        color = Color(0xFF99A1AF),
+                        fontSize = 16.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF99A1AF),
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility
+                            else Icons.Filled.VisibilityOff,
+                            contentDescription = null,
+                            tint = Color(0xFF99A1AF)
+                        )
+                    }
+                },
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None
+                else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = PetHelpGreen,
+                    unfocusedBorderColor = Color(0xFFE5E7EB),
+                    cursorColor = PetHelpGreen
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 3.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        ambientColor = Color.Black.copy(alpha = 0.1f),
+                        spotColor = Color.Black.copy(alpha = 0.1f)
+                    )
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── ¿Olvidaste tu contraseña? ──
+            Text(
+                text = stringResource(R.string.forgot_password_link),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp
+                ),
+                color = PetHelpGreen,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .clickable { navController.navigate(Screen.ForgotPassword.route) }
+                    .padding(vertical = 4.dp)
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            // ── Error message ──
+            if (uiState is AuthUiState.Error) {
+                Text(
+                    text = (uiState as AuthUiState.Error).message,
+                    color = Color(0xFFE57373),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            // ── Botón Iniciar Sesión ──
+            Button(
+                onClick = {
+                    viewModel.login(email.trim(), password)
+                },
+                enabled = email.isNotBlank() && password.isNotBlank()
+                        && uiState !is AuthUiState.Loading,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 10.dp,
+                    pressedElevation = 4.dp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = RoundedCornerShape(50),
+                        ambientColor = PetHelpGreen.copy(alpha = 0.3f),
+                        spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                    )
+            ) {
+                if (uiState is AuthUiState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.btn_login),
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            letterSpacing = 0.45.sp
+                        )
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // ── ¿No tienes cuenta? Regístrate ──
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.no_account_prompt),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    ),
+                    color = Color(0xFF6A7282)
+                )
+                Text(
+                    text = stringResource(R.string.no_account_action),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    color = PetHelpGreen,
+                    modifier = Modifier.clickable {
+                        navController.navigate(Screen.Register.route)
+                    }
+                )
+            }
+        }
+    }
 }
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 @Composable
-fun RegisterScreen(navController: NavController) {
-    // TODO (Fase 2): implementar formulario de registro
-    PlaceholderScreen(
-        title = "Crear cuenta",
-        onNavigate = { navController.navigate(Screen.Feed.route) }
-    )
+fun RegisterScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var termsAccepted by remember { mutableStateOf(false) }
+
+    // Navegar al Feed cuando el registro sea exitoso
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Authenticated) {
+            navController.navigate(Screen.Feed.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // fondo
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                    )
+                )
+        )
+
+        // manchas desenfocadas
+        BlurredCircle(
+            color = PetHelpGreen.copy(alpha = 0.05f),
+            size = 320.dp,
+            offsetX = 153.dp,
+            offsetY = (-80).dp
+        )
+        BlurredCircle(
+            color = WarmOrange.copy(alpha = 0.05f),
+            size = 256.dp,
+            offsetX = (-80).dp,
+            offsetY = 597.dp
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // ── Header con botón atrás ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(96.dp)
+                    .padding(start = 24.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                BackButton(onClick = { navController.popBackStack() })
+            }
+
+            // ── Contenido principal ──
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                // ── Título ──
+                Text(
+                    text = stringResource(R.string.register_heading),
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 36.sp,
+                        lineHeight = 40.sp,
+                        letterSpacing = (-0.9).sp
+                    ),
+                    color = Color(0xFF101828)
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                // ── Campo Nombre completo ──
+                AuthTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = stringResource(R.string.name_hint),
+                    leadingIcon = Icons.Filled.Person,
+                    keyboardType = KeyboardType.Text
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // ── Campo Correo electrónico ──
+                AuthTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = stringResource(R.string.email_hint),
+                    leadingIcon = Icons.Filled.Email,
+                    keyboardType = KeyboardType.Email
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // ── Campo Contraseña ──
+                AuthTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = stringResource(R.string.password_hint),
+                    leadingIcon = Icons.Filled.Lock,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true,
+                    passwordVisible = passwordVisible,
+                    onTogglePassword = { passwordVisible = !passwordVisible }
+                )
+
+                // ── Indicador de fortaleza ──
+                Spacer(Modifier.height(8.dp))
+                PasswordStrengthIndicator(password)
+
+                Spacer(Modifier.height(24.dp))
+
+                // ── Checkbox términos ──
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = termsAccepted,
+                        onCheckedChange = { termsAccepted = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = PetHelpGreen,
+                            uncheckedColor = Color(0xFFD1D5DC)
+                        )
+                    )
+                    Text(
+                        text = stringResource(R.string.terms_prefix),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = Color(0xFF4A5565)
+                    )
+                    Text(
+                        text = stringResource(R.string.terms_link),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = PetHelpGreen
+                    )
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // ── Error message ──
+                if (uiState is AuthUiState.Error) {
+                    Text(
+                        text = (uiState as AuthUiState.Error).message,
+                        color = Color(0xFFE57373),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                // ── Botón Registrarme ──
+                val isFormValid = name.isNotBlank() && email.isNotBlank()
+                        && password.length >= 6 && termsAccepted
+                Button(
+                    onClick = {
+                        viewModel.register(name.trim(), email.trim(), password)
+                    },
+                    enabled = isFormValid && uiState !is AuthUiState.Loading,
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PetHelpGreen,
+                        disabledContainerColor = Color(0xFFD1D5DC).copy(alpha = 0.5f)
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = if (isFormValid) 10.dp else 0.dp,
+                        pressedElevation = 4.dp
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    if (uiState is AuthUiState.Loading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.btn_register_me),
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                letterSpacing = 0.45.sp
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ─── Forgot Password ──────────────────────────────────────────────────────────
 @Composable
-fun ForgotPasswordScreen(navController: NavController) {
-    // TODO (Fase 3): Firebase Auth sendPasswordResetEmail
-    PlaceholderScreen(
-        title = "Recuperar contraseña",
-        onNavigate = { navController.popBackStack() }
+fun ForgotPasswordScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val resetEmailSent by viewModel.resetEmailSent.collectAsStateWithLifecycle()
+
+    var email by remember { mutableStateOf("") }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // fondo
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                    )
+                )
+        )
+
+        // manchas desenfocadas
+        BlurredCircle(
+            color = PetHelpGreen.copy(alpha = 0.1f),
+            size = 256.dp,
+            offsetX = (-80).dp,
+            offsetY = (-80).dp
+        )
+        BlurredCircle(
+            color = WarmOrange.copy(alpha = 0.1f),
+            size = 288.dp,
+            offsetX = 185.dp,
+            offsetY = 160.dp
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // ── Header con botón atrás ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, top = 24.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                BackButton(onClick = { navController.popBackStack() })
+            }
+
+            // ── Contenido ──
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Spacer(Modifier.weight(0.15f))
+
+                // ── Icono llave + pata ──
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ForgotPasswordIcon()
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // ── Título ──
+                Text(
+                    text = stringResource(R.string.forgot_password_heading),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp,
+                        letterSpacing = (-0.75).sp
+                    ),
+                    color = Color(0xFF101828)
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // ── Descripción ──
+                Text(
+                    text = stringResource(R.string.forgot_password_body),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 16.sp,
+                        lineHeight = 26.sp
+                    ),
+                    color = Color(0xFF6A7282)
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                if (!resetEmailSent) {
+                    // ── Estado: formulario de correo ──
+
+                    // ── Error message ──
+                    if (uiState is AuthUiState.Error) {
+                        Text(
+                            text = (uiState as AuthUiState.Error).message,
+                            color = Color(0xFFE57373),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    // ── Campo Correo ──
+                    AuthTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = stringResource(R.string.email_hint),
+                        leadingIcon = Icons.Filled.Email,
+                        keyboardType = KeyboardType.Email
+                    )
+
+                    Spacer(Modifier.height(32.dp))
+
+                    // ── Botón Enviar enlace ──
+                    Button(
+                        onClick = { viewModel.sendPasswordReset(email.trim()) },
+                        enabled = email.isNotBlank() && uiState !is AuthUiState.Loading,
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 10.dp,
+                            pressedElevation = 4.dp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(
+                                elevation = 15.dp,
+                                shape = RoundedCornerShape(50),
+                                ambientColor = PetHelpGreen.copy(alpha = 0.3f),
+                                spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                            )
+                    ) {
+                        if (uiState is AuthUiState.Loading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.btn_send_reset),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    letterSpacing = 0.45.sp
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    // ── Estado: enlace enviado ──
+                    Spacer(Modifier.height(16.dp))
+                    LinkSentCard(
+                        email = email,
+                        onBackToStart = {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Splash.route) { inclusive = false }
+                            }
+                        }
+                    )
+                }
+
+                Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+// ─── Tarjeta "¡Enlace enviado!" ───────────────────────────────────────────────
+@Composable
+private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // icono de correo
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = Color(0xFFC8E6C9),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Email,
+                    contentDescription = null,
+                    tint = DarkGreen,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.link_sent_title),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                ),
+                color = DarkGreen
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = buildAnnotatedString {
+                    append(stringResource(R.string.link_sent_body_prefix))
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(email)
+                    }
+                    append(stringResource(R.string.link_sent_body_suffix))
+                },
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 16.sp,
+                    lineHeight = 24.sp
+                ),
+                color = Color(0xFF388E3C),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            // Botón "Volver al inicio"
+            OutlinedButton(
+                onClick = onBackToStart,
+                shape = RoundedCornerShape(50),
+                border = BorderStroke(1.dp, DarkGreen),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.btn_back_to_start),
+                    color = DarkGreen,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+// ─── Icono "Llave + Pata" para Forgot Password ──────────────────────────────
+@Composable
+private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.size(160.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Círculo de fondo teal claro
+        Box(
+            modifier = Modifier
+                .size(160.dp)
+                .background(
+                    color = Color(0xFFE0F2F1),
+                    shape = CircleShape
+                )
+        )
+        // Borde blanco semi-transparente
+        Box(
+            modifier = Modifier
+                .size(160.dp)
+                .background(
+                    color = Color.Transparent,
+                    shape = CircleShape
+                )
+                .then(
+                    Modifier.drawWithContent {
+                        drawContent()
+                        drawCircle(
+                            color = Color.White.copy(alpha = 0.5f),
+                            radius = size.minDimension / 2,
+                            style = Stroke(width = 3.5.dp.toPx())
+                        )
+                    }
+                )
+        )
+        // Icono de llave
+        Icon(
+            imageVector = Icons.Filled.VpnKey,
+            contentDescription = null,
+            tint = Color(0xFF78909C),
+            modifier = Modifier.size(64.dp)
+        )
+        // Pata pequeña con fondo blanco (esquina inferior derecha)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = (-20).dp, y = (-20).dp)
+                .size(40.dp)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = CircleShape,
+                    ambientColor = Color.Black.copy(alpha = 0.1f),
+                    spotColor = Color.Black.copy(alpha = 0.1f)
+                )
+                .background(Color.White, CircleShape)
+                .rotate(12f),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Pets,
+                contentDescription = null,
+                tint = WarmOrange,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+// ─── Componentes reutilizables ────────────────────────────────────────────────
+
+/** Botón circular blanco "atrás" — igual que en Figma */
+@Composable
+private fun BackButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(48.dp)
+            .shadow(
+                elevation = 3.dp,
+                shape = CircleShape,
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.1f)
+            )
+            .background(
+                color = Color.White,
+                shape = CircleShape
+            )
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Atrás",
+            tint = Color(0xFF101828),
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+/** Campo de texto estilizado según Figma (white fill, 16dp corners, shadow) */
+@Composable
+private fun AuthTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    leadingIcon: ImageVector,
+    keyboardType: KeyboardType,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onTogglePassword: (() -> Unit)? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = {
+            Text(text = placeholder, color = Color(0xFF99A1AF), fontSize = 16.sp)
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                tint = Color(0xFF99A1AF),
+                modifier = Modifier.size(20.dp)
+            )
+        },
+        trailingIcon = if (isPassword && onTogglePassword != null) {
+            {
+                IconButton(onClick = onTogglePassword) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility
+                        else Icons.Filled.VisibilityOff,
+                        contentDescription = null,
+                        tint = Color(0xFF99A1AF)
+                    )
+                }
+            }
+        } else null,
+        singleLine = true,
+        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation()
+        else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        shape = RoundedCornerShape(14.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = PetHelpGreen,
+            unfocusedBorderColor = Color(0xFFE5E7EB),
+            cursorColor = PetHelpGreen
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(14.dp),
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.1f)
+            )
     )
+}
+
+/** Indicador visual de fortaleza de contraseña (barra de progreso) */
+@Composable
+private fun PasswordStrengthIndicator(password: String) {
+    val strength = when {
+        password.length < 4  -> 0f
+        password.length < 6  -> 0.25f
+        password.length < 8  -> 0.5f
+        password.length < 12 -> 0.75f
+        else                 -> 1f
+    }
+    val strengthColor = when {
+        strength <= 0.25f -> Color(0xFFE57373)
+        strength <= 0.5f  -> WarmOrange
+        strength <= 0.75f -> Color(0xFFFFD54F)
+        else              -> PetHelpGreen
+    }
+
+    if (password.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LinearProgressIndicator(
+                progress = { strength },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50)),
+                color = strengthColor,
+                trackColor = Color(0xFFF3F4F6),
+            )
+        }
+    }
 }
 
 // ─── Helper placeholder ───────────────────────────────────────────────────────

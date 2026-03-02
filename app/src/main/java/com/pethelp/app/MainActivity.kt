@@ -13,7 +13,8 @@ import com.pethelp.app.core.ui.theme.PetHelpTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * Única Activity de la aplicación (arquitectura Single-Activity).
+ * Única Activity de la aplicación (arquitectura Implement this design from Figma.
+ * @https://www.figma.com/design/ycJwGybKvspYBQbnGWmR64/PetHelp?node-id=4-2&m=devSingle-Activity).
  *
  * - @AndroidEntryPoint habilita la inyección de dependencias via Hilt.
  * - Toda la navegación se gestiona dentro del NavGraph de Compose.

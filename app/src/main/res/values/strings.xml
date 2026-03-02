@@ -10,11 +10,31 @@
     <string name="email_hint">Correo electrónico</string>
     <string name="password_hint">Contraseña</string>
     <string name="name_hint">Nombre completo</string>
-    <string name="btn_login">Iniciar sesión</string>
+    <string name="btn_login">Iniciar Sesión</string>
     <string name="btn_register">Registrarse</string>
     <string name="btn_send_reset">Enviar enlace</string>
-    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="no_account_prompt">¿No tienes cuenta?\u0020</string>
+    <string name="no_account_action">Regístrate</string>
     <string name="has_account">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="login_greeting">¡Hola de nuevo!</string>
+    <string name="login_subtitle">Bienvenido, te echamos de menos.</string>
+    <string name="forgot_password_link">¿Olvidaste tu contraseña?</string>
+    <string name="register_heading">Crea tu\ncuenta</string>
+    <string name="btn_register_me">Registrarme</string>
+    <string name="terms_prefix">Acepto los\u0020</string>
+    <string name="terms_link">términos y condiciones</string>
+    <string name="forgot_password_heading">¿Olvidaste tu contraseña?</string>
+    <string name="forgot_password_body">No te preocupes. Ingresa tu correo electrónico y te enviaremos un enlace para recuperar el acceso a tu cuenta.</string>
+    <string name="link_sent_title">¡Enlace enviado!</string>
+    <string name="link_sent_body_prefix">Hemos enviado un enlace de recuperación a\u0020</string>
+    <string name="link_sent_body_suffix">. Revisa tu bandeja de entrada.</string>
+    <string name="btn_back_to_start">Volver al inicio</string>
+    <string name="error_login_failed">Correo o contraseña incorrectos.</string>
+    <string name="error_register_failed">No se pudo crear la cuenta. Verifica tus datos.</string>
+    <string name="error_reset_failed">No se pudo enviar el enlace de recuperación.</string>
+    <string name="error_empty_fields">Por favor completa todos los campos.</string>
+    <string name="error_passwords_weak">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="error_terms_not_accepted">Debes aceptar los términos y condiciones.</string>
 
     <!-- ── Feed ───────────────────────────────────────────── -->
     <string name="feed_title">PetHelp</string>
