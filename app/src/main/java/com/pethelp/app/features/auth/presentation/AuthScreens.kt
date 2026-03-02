@@ -3,26 +3,32 @@ package com.pethelp.app.features.auth.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.theme.DarkGreen
 import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.WarmOrange
 import com.pethelp.app.core.ui.theme.SoftBlue
+import com.pethelp.app.core.ui.theme.WarmOrange
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 @Composable
@@ -71,28 +77,35 @@ fun SplashScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // logo — reemplazar por Image(painterResource(R.drawable.ic_pethelp_logo))
-            Icon(
-                imageVector = Icons.Default.Pets,
-                contentDescription = null,
-                tint = PetHelpGreen,
-                modifier = Modifier.size(120.dp)
-            )
+            // ── Logo: contenedor glassmorphism con iconos compuestos ──
+            PetHelpLogo()
+
             Spacer(Modifier.height(24.dp))
+
+            // título "PetHelp" en verde oscuro (#2E7D32) según Figma
             Text(
                 text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = PetHelpGreen
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-1.2).sp
+                ),
+                color = DarkGreen
             )
-            Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(12.dp))
+
+            // lema
             Text(
                 text = stringResource(R.string.splash_tagline),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                ),
+                color = Color(0xFF6A7282)
             )
         }
 
-        // botón inferior
+        // botón inferior "Comenzar"
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,16 +116,83 @@ fun SplashScreen(navController: NavController) {
                 onClick = { navController.navigate(Screen.Login.route) },
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 10.dp,
+                    pressedElevation = 4.dp
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = RoundedCornerShape(50),
+                        ambientColor = PetHelpGreen.copy(alpha = 0.3f),
+                        spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                    )
             ) {
                 Text(
                     text = stringResource(R.string.btn_start),
                     color = Color.White,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
                 )
             }
+        }
+    }
+}
+
+// ─── Logo compuesto: pata + corazón + mano ────────────────────────────────────
+@Composable
+private fun PetHelpLogo(modifier: Modifier = Modifier) {
+    // Contenedor glassmorphism (blanco 40 % + sombra suave + esquinas 24 dp)
+    Box(
+        modifier = modifier
+            .size(160.dp)
+            .shadow(
+                elevation = 20.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = Color.Black.copy(alpha = 0.10f),
+                spotColor = Color.Black.copy(alpha = 0.10f)
+            )
+            .background(
+                color = Color.White.copy(alpha = 0.40f),
+                shape = RoundedCornerShape(24.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(modifier = Modifier.size(96.dp)) {
+            // Pata principal — verde (64 dp, centrada)
+            Icon(
+                imageVector = Icons.Filled.Pets,
+                contentDescription = null,
+                tint = PetHelpGreen,
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.Center)
+            )
+            // Corazón — coral (36 dp, arriba-izquierda)
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = WarmOrange,
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = (-4).dp, y = (-8).dp)
+            )
+            // Mano interactiva — púrpura (36 dp, abajo-derecha, rotada −15°)
+            Icon(
+                imageVector = Icons.Filled.TouchApp,
+                contentDescription = null,
+                tint = SoftBlue,
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 8.dp, y = 8.dp)
+                    .rotate(-15f)
+            )
         }
     }
 }

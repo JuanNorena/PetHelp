@@ -17,47 +17,43 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // ── Esquema de colores claro ──────────────────────────────────────────────────
-// Esquema claro adaptado a la paleta Figma
-// Nota: los valores primario/secundario/terciario derivan del documento
-// PromptsFigma.md (verde salvia, coral, púrpura). Los contenedores son
-// versiones pálidas usadas en superficies y chips.
 private val LightColorScheme = lightColorScheme(
-    primary        = PetHelpGreen,           // verde salvia
-    onPrimary      = White,
+    primary             = PetHelpGreen,
+    onPrimary           = White,
     primaryContainer    = LightGreenContainer,
     onPrimaryContainer  = DarkGreen,
-    secondary      = WarmOrange,             // coral suave
-    onSecondary    = White,
-    secondaryContainer  = Color(0xFFFFCCBC), // coral claro para fondos de botones/chips
+    secondary           = WarmOrange,
+    onSecondary         = White,
+    secondaryContainer  = Color(0xFFFFCCBC),
     onSecondaryContainer= DarkSurface,
-    tertiary       = SoftBlue,               // púrpura IA
-    onTertiary     = White,
-    tertiaryContainer= Color(0xFFE1BEE7),    // púrpura pastel para superficies
-    background     = BackgroundLight,
-    surface        = SurfaceLight,
-    error          = ErrorRed,
-)   
+    tertiary            = SoftBlue,
+    onTertiary          = White,
+    tertiaryContainer   = Color(0xFFE1BEE7),
+    background          = BackgroundLight,
+    surface             = SurfaceLight,
+    error               = ErrorRed,
+    onBackground        = Color(0xFF1C1B1F),
+    onSurface           = Color(0xFF1C1B1F),
+)
 
 // ── Esquema de colores oscuro ─────────────────────────────────────────────────
-// Esquema oscuro inspirado en Figma
-// Mantiene los tonos primario/secundario/terciario, pero con variantes
-// apropiadas para baja luminosidad. Los contenedores son versiones
-// más saturadas o atenuadas de los colores base.
 private val DarkColorScheme = darkColorScheme(
-    primary        = PetHelpGreenDark,
-    onPrimary      = DarkSurface,
+    primary             = PetHelpGreenDark,
+    onPrimary           = DarkSurface,
     primaryContainer    = DarkGreenContainer,
     onPrimaryContainer  = LightGreenContainer,
-    secondary      = WarmOrangeDark,
-    onSecondary    = DarkSurface,
-    secondaryContainer  = Color(0xFFBF360C), // coral oscuro atenuado
+    secondary           = WarmOrangeDark,
+    onSecondary         = DarkSurface,
+    secondaryContainer  = Color(0xFFBF360C),
     onSecondaryContainer= White,
-    tertiary       = SoftBlueDark,
-    onTertiary     = DarkSurface,
-    tertiaryContainer  = Color(0xFF7E57C2), // púrpura oscuro
-    background     = BackgroundDark,
-    surface        = SurfaceDark,
-    error          = ErrorRedDark,
+    tertiary            = SoftBlueDark,
+    onTertiary          = DarkSurface,
+    tertiaryContainer   = Color(0xFF7E57C2),
+    background          = BackgroundDark,
+    surface             = SurfaceDark,
+    error               = ErrorRedDark,
+    onBackground        = White,
+    onSurface           = White,
 )
 
 /**
@@ -67,11 +63,12 @@ private val DarkColorScheme = darkColorScheme(
  * - Soporte de Dynamic Color (Android 12+).
  * - Colores estáticos como fallback en versiones anteriores.
  * - Status bar con color coordinado con el tema.
+ * - Formas muy redondeadas según la guía de diseño.
  */
 @Composable
 fun PetHelpTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,   // Dynamic Color disponible desde Android 12
+    dynamicColor: Boolean = false, // Desactivado por defecto para mantener la identidad de marca de Figma
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -84,12 +81,10 @@ fun PetHelpTheme(
         else      -> LightColorScheme
     }
 
-    // Ajustar color y estilo de la barra de estado
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            @Suppress("DEPRECATION")
             window.statusBarColor = colorScheme.primary.toArgb()
             WindowCompat.getInsetsController(window, view)
                 .isAppearanceLightStatusBars = !darkTheme
@@ -99,6 +94,7 @@ fun PetHelpTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography  = PetHelpTypography,
+        shapes      = PetHelpShapes,
         content     = content
     )
 }
