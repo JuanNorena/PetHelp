@@ -802,7 +802,10 @@ Box(Modifier.fillMaxSize().background(Color(0xFFE8F5E9)), contentAlignment = Cen
 
 ## Pantalla 7 — Detalle de publicación
 
-**Archivo:** `features/post/presentation/PostDetailScreen.kt`  
+> ✅ **IMPLEMENTADA** — `PostDetailScreen` + `PostDetailViewModel` con datos reales de Firestore (listeners en tiempo real, votos atómicos, comentarios, solicitudes de adopción).
+
+**Archivo:** `features/post/presentation/PostScreens.kt` (`PostDetailScreen`)  
+**ViewModel:** `features/post/presentation/PostDetailViewModel.kt`  
 **Ruta:** `Screen.PostDetail`  
 **Figma:** Pantalla 7 (§3.3)
 
@@ -954,7 +957,10 @@ fun PostDetailScreen(
 
 ## Pantalla 8 — Crear publicación
 
-**Archivo:** `features/post/presentation/CreatePostScreen.kt`  
+> ✅ **IMPLEMENTADA** — `CreatePostScreen` + `CreatePostViewModel` con selector de fotos (hasta 5), sugerencia IA de categoría, chips de tipo animal y tamaño, validación de formulario y creación en Firestore.
+
+**Archivo:** `features/post/presentation/PostScreens.kt` (`CreatePostScreen`)  
+**ViewModel:** `features/post/presentation/CreatePostViewModel.kt`  
 **Ruta:** `Screen.CreatePost`  
 **Figma:** Pantalla 8 (§3.4)
 

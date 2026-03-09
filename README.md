@@ -169,7 +169,11 @@ PetHelp/
 │   └── features/
 │       ├── auth/                     ← Registro, login, recuperar contraseña
 │       ├── feed/                     ← Feed lista/mapa, filtros por categoría
-│       ├── post/                     ← Crear, editar, ver detalle de publicación
+│       ├── post/                     ← Crear, ver detalle, editar publicación
+│       │   ├── data/repository/      ← FirebasePostRepository (Firestore)
+│       │   ├── di/                   ← PostModule (Hilt binding)
+│       │   ├── domain/repository/    ← PostRepository (interfaz)
+│       │   └── presentation/         ← Screens + ViewModels
 │       ├── moderation/               ← Panel del moderador (aprobar/rechazar)
 │       ├── notifications/            ← Lista de notificaciones
 │       ├── profile/                  ← Perfil y edición de datos
@@ -259,8 +263,8 @@ chore(deps): actualizar Firebase BOM a 34.9.0
 
 | Fase | Entregable | Estado |
 |---|---|---|
-| Fase 1 — Diseño | Mockups en Figma (Material You) | ⏳ Pendiente |
-| Fase 2 — Básico | App funcional con datos en memoria | ⏳ Pendiente |
+| Fase 1 — Diseño | Mockups en Figma (Material You) | ✅ Completada |
+| Fase 2 — Básico | App funcional con datos en memoria | ✅ Completada |
 | Fase 3 — Completo | Firebase, mapas, IA, i18n, imágenes | 🔨 En progreso |
 
 ---
@@ -276,6 +280,35 @@ chore(deps): actualizar Firebase BOM a 34.9.0
 - **Términos y Condiciones** con modal scrollable que cumple legislación colombiana (Ley 1581/2012, Ley 1273/2009, Ley 84/1989, Ley 1774/2016). Checkbox obligatorio para registrarse.
 - **Persistencia de usuario** en Firestore al registrarse (nombre, email, rol, fecha de creación).
 
+### Publicaciones — Detalle (`PostDetailScreen`)
+
+- **Imagen principal** con `AsyncImage` (Coil) y gradiente overlay para legibilidad.
+- **Tarjeta informativa** con título, chip de autor, y 4 chips de información (raza, sexo, tamaño, vacunación) en grid 2×2 con colores diferenciados.
+- **Sección "Sobre [mascota]"** con descripción completa.
+- **Sistema de votos** — botón corazón con contador, toggle en tiempo real contra Firestore con transacciones atómicas.
+- **Solicitud de adopción** — botón condicional (solo en categoría Adopción) que persiste en colección `adoptionRequests`.
+- **Sección de ubicación** con placeholder para mapa.
+- **Comentarios en tiempo real** — lista de comentarios con avatar de iniciales, campo de texto + botón "Publicar", persistencia en Firestore con actualización atómica del contador.
+- **Navegación**: botón de retroceso y compartir en la cabecera.
+
+### Publicaciones — Crear (`CreatePostScreen`)
+
+- **Selector de fotos** — hasta 5 imágenes con `PickVisualMedia`, thumbnails con botón de eliminar e indicador de posición ("1/5").
+- **Campos del formulario**: título y descripción con `OutlinedTextField` estilizado.
+- **Sugerencia de categoría con IA** — sección visual con icono de sparkles y fondo degradado, dropdown con todas las categorías (`PostCategory`).
+- **Chips de tipo de animal** — Perro, Gato, Otro con iconos.
+- **Chips de tamaño** — Pequeño, Mediano, Grande.
+- **Barra inferior** con botón teal "Siguiente: Ubicación".
+- **Diseño fiel a Figma** — colores TealAccent (#00BCB4), tipografía y espaciado exactos.
+
+### Infraestructura de publicaciones (Clean Architecture)
+
+- **`PostRepository`** (interfaz de dominio) — 10 operaciones: `getPostById`, `getPosts`, `createPost`, `updatePost`, `votePost`, `unvotePost`, `hasUserVoted`, `getComments`, `addComment`, `requestAdoption`.
+- **`FirebasePostRepository`** (implementación) — listeners en tiempo real via `callbackFlow`, transacciones atómicas para votos y contadores, mapeo manual de snapshots.
+- **`PostModule`** (Hilt DI) — binding `@Singleton` de la interfaz a la implementación.
+- **`PostDetailViewModel`** — carga post, comentarios y estado de voto; acciones: `toggleVote()`, `addComment()`, `requestAdoption()`.
+- **`CreatePostViewModel`** — gestión de formulario con validación, límite de imágenes, creación de publicación.
+
 ### Patrones de UX y calidad
 
 - **Snackbar** (Material Design) para mensajes de error — patrón de evento único con `SharedFlow` (reemplaza `Toast` y `Text` inline).
@@ -283,6 +316,7 @@ chore(deps): actualizar Firebase BOM a 34.9.0
 - **Mensajes de error en español** para: credenciales inválidas, email en uso, contraseña débil, sin conexión, demasiados intentos, errores internos.
 - **Deshabilitación de reCAPTCHA** en builds de debug (evita error `CONFIGURATION_NOT_FOUND` sin necesidad de App Check).
 - **Idioma de Firebase Auth** configurado a español (`setLanguageCode("es")`).
+- **Datos en tiempo real** — Firestore listeners con `callbackFlow` para actualización automática de publicaciones, comentarios y votos.
 
 ---
 

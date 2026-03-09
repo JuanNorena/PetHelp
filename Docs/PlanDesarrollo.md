@@ -135,14 +135,15 @@ PetHelp/
 │   │   │   │       │
 │   │   │   │       ├── post/
 │   │   │   │       │   ├── data/
-│   │   │   │       │   │   ├── dto/              ← PostDto
-│   │   │   │       │   │   └── repository/       ← PostRepositoryImpl
+│   │   │   │       │   │   └── repository/       ← FirebasePostRepository
+│   │   │   │       │   ├── di/
+│   │   │   │       │   │   └── PostModule.kt      ← Hilt binding
 │   │   │   │       │   ├── domain/
-│   │   │   │       │   │   ├── repository/       ← PostRepository (interface)
-│   │   │   │       │   │   └── usecase/          ← CreatePostUseCase, VotePostUseCase...
+│   │   │   │       │   │   └── repository/       ← PostRepository (interface)
 │   │   │   │       │   └── presentation/
-│   │   │   │       │       ├── PostScreens.kt
-│   │   │   │       │       └── PostViewModel.kt
+│   │   │   │       │       ├── PostScreens.kt     ← Detail, Create, Edit
+│   │   │   │       │       ├── PostDetailViewModel.kt
+│   │   │   │       │       └── CreatePostViewModel.kt
 │   │   │   │       │
 │   │   │   │       ├── moderation/
 │   │   │   │       │   ├── data/repository/
@@ -312,9 +313,17 @@ PetHelp/
 
 | Tarea | Épica | Descripción |
 |---|---|---|
-| F3-04 | EP-02 | CRUD de publicaciones en Firestore |
-| F3-05 | EP-05 | Comentarios persistidos en Firestore; notificación al autor al comentar |
-| F3-06 | EP-05 | Votos y solicitudes de adopción persistidos en Firestore |
+| F3-04 | EP-02 | ✅ CRUD de publicaciones en Firestore |
+| F3-05 | EP-05 | ✅ Comentarios persistidos en Firestore; notificación al autor al comentar |
+| F3-06 | EP-05 | ✅ Votos y solicitudes de adopción persistidos en Firestore |
+
+> **Nota F3-04/F3-05/F3-06 (completadas):** Infraestructura completa de publicaciones implementada con Clean Architecture:
+> - **`PostRepository`** (interfaz de dominio) con 10 operaciones: `getPostById`, `getPosts`, `createPost`, `updatePost`, `votePost`, `unvotePost`, `hasUserVoted`, `getComments`, `addComment`, `requestAdoption`.
+> - **`FirebasePostRepository`** con listeners en tiempo real (`callbackFlow`), transacciones atómicas para votos/contadores, mapeo manual de snapshots Firestore.
+> - **`PostDetailViewModel`** y **`CreatePostViewModel`** con gestión de estado reactivo (`StateFlow`).
+> - **`PostDetailScreen`** fiel al diseño Figma: imagen hero, chips informativos 2×2, votos con corazón, solicitud de adopción condicional, comentarios en tiempo real.
+> - **`CreatePostScreen`** fiel al diseño Figma: selector de hasta 5 fotos, sugerencia IA de categoría, chips de tipo animal y tamaño, barra inferior con botón de ubicación.
+> - **`PostModule`** (Hilt DI) con binding `@Singleton`.
 
 #### 3.3 Imágenes
 
