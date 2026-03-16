@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
@@ -34,9 +35,10 @@ import com.pethelp.app.core.ui.theme.WarmOrange
 @Composable
 fun PetHelpBottomNavBar(navController: NavController) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry.value?.destination?.route
+    val currentDestination = navBackStackEntry.value?.destination
 
     // ── Contenedor principal ─────────────────────────────────────────────────
+
     // El Box exterior NO usa offset negativo para el FAB — en su lugar el Row
     // tiene padding(top = 24.dp) para ceder espacio, y el FAB se posiciona con
     // Alignment.TopCenter dentro del mismo Box sin salir de sus límites.
@@ -74,12 +76,12 @@ fun PetHelpBottomNavBar(navController: NavController) {
             NavBarItem(
                 icon = Icons.Filled.Home,
                 label = stringResource(R.string.nav_home),
-                selected = currentRoute == Screen.Feed.route,
+                selected = currentDestination?.hasRoute<Screen.Feed>() == true,
                 badgeCount = 0,
                 onClick = {
-                    if (currentRoute != Screen.Feed.route) {
-                        navController.navigate(Screen.Feed.route) {
-                            popUpTo(Screen.Feed.route) { inclusive = false }
+                    if (currentDestination?.hasRoute<Screen.Feed>() != true) {
+                        navController.navigate(Screen.Feed) {
+                            popUpTo<Screen.Feed>() { inclusive = false }
                             launchSingleTop = true
                         }
                     }
@@ -90,7 +92,7 @@ fun PetHelpBottomNavBar(navController: NavController) {
             NavBarItem(
                 icon = Icons.Filled.LocationOn,
                 label = stringResource(R.string.nav_map),
-                selected = currentRoute == Screen.Map.route,
+                selected = currentDestination?.hasRoute<Screen.Map>() == true,
                 badgeCount = 0,
                 onClick = { /* TODO Fase 3 */ }
             )
@@ -111,12 +113,12 @@ fun PetHelpBottomNavBar(navController: NavController) {
             NavBarItem(
                 icon = Icons.Filled.Person,
                 label = stringResource(R.string.nav_profile),
-                selected = currentRoute == Screen.Profile.route,
+                selected = currentDestination?.hasRoute<Screen.Profile>() == true,
                 badgeCount = 0,
                 onClick = {
-                    if (currentRoute != Screen.Profile.route) {
-                        navController.navigate(Screen.Profile.route) {
-                            popUpTo(Screen.Feed.route) { inclusive = false }
+                    if (currentDestination?.hasRoute<Screen.Profile>() != true) {
+                        navController.navigate(Screen.Profile) {
+                            popUpTo<Screen.Feed>() { inclusive = false }
                             launchSingleTop = true
                         }
                     }
@@ -140,7 +142,7 @@ fun PetHelpBottomNavBar(navController: NavController) {
                     ambientColor = WarmOrange.copy(alpha = 0.4f)
                 )
                 .background(color = WarmOrange, shape = RoundedCornerShape(16.dp))
-                .clickable { navController.navigate(Screen.CreatePost.route) },
+                .clickable { navController.navigate(Screen.CreatePost) },
             contentAlignment = Alignment.Center
         ) {
             Icon(

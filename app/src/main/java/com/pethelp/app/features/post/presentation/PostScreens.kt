@@ -53,14 +53,6 @@ import java.util.Date
 import java.util.Locale
 
 // ── Colores de diseño (Figma) ────────────────────────────────────────────────
-private val TealAccent = Color(0xFF00BCB4)
-private val TextPrimary = Color(0xFF101828)
-private val TextSecondary = Color(0xFF4A5565)
-private val TextTertiary = Color(0xFF6A7282)
-private val TextMuted = Color(0xFF99A1AF)
-private val BorderLight = Color(0xFFF3F4F6)
-private val BorderMedium = Color(0xFFE5E7EB)
-private val SurfaceGray = Color(0xFFF9FAFB)
 private val ChipGreenBg = Color(0xFF4CAF50).copy(alpha = 0.1f)
 private val ChipGreenBorder = Color(0xFF4CAF50).copy(alpha = 0.2f)
 private val ChipBlueBg = Color(0xFFEFF6FF)
@@ -260,7 +252,7 @@ private fun PostDetailContent(
                     Modifier
                         .width(48.dp)
                         .height(6.dp)
-                        .background(BorderMedium, RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
                         .align(Alignment.CenterHorizontally)
                 )
 
@@ -275,16 +267,16 @@ private fun PostDetailContent(
                         text = post.title,
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         letterSpacing = (-0.9).sp
                     )
 
                     // Chip del autor
                     Surface(
                         shape = RoundedCornerShape(50),
-                        color = SurfaceGray,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = Brush.linearGradient(listOf(BorderLight, BorderLight))
+                            brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.colorScheme.outlineVariant))
                         )
                     ) {
                         Row(
@@ -312,14 +304,14 @@ private fun PostDetailContent(
                                     text = "PUBLICADO POR",
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextMuted,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                     letterSpacing = 0.5.sp
                                 )
                                 Text(
                                     text = post.authorName.ifBlank { "Usuario" },
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -380,13 +372,13 @@ private fun PostDetailContent(
                     text = "Sobre ${post.title}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = post.description,
                     fontSize = 15.sp,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 24.sp,
                     letterSpacing = 0.375.sp
                 )
@@ -407,7 +399,7 @@ private fun PostDetailContent(
                             .clip(RoundedCornerShape(50))
                             .clickable { onVoteClick() }
                             .background(
-                                if (hasVoted) WarmOrange.copy(alpha = 0.1f) else SurfaceGray,
+                                if (hasVoted) WarmOrange.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(50)
                             )
                             .padding(horizontal = 16.dp, vertical = 10.dp)
@@ -422,7 +414,7 @@ private fun PostDetailContent(
                             text = "${post.votes}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (hasVoted) WarmOrange else TextSecondary
+                            color = if (hasVoted) WarmOrange else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -467,7 +459,7 @@ private fun PostDetailContent(
                             "Ubicación",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -476,13 +468,13 @@ private fun PostDetailContent(
                             Icon(
                                 Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = TextTertiary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
                                 text = post.locationName,
                                 fontSize = 14.sp,
-                                color = TextTertiary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -495,8 +487,8 @@ private fun PostDetailContent(
                             .fillMaxWidth()
                             .height(128.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, BorderLight, RoundedCornerShape(16.dp))
-                            .background(SurfaceGray),
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -517,7 +509,7 @@ private fun PostDetailContent(
                                     text = post.locationName,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = TextPrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
@@ -532,7 +524,7 @@ private fun PostDetailContent(
                     "Comentarios",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(12.dp))
 
@@ -540,8 +532,8 @@ private fun PostDetailContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(SurfaceGray, RoundedCornerShape(16.dp))
-                        .border(1.dp, BorderLight, RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                         .padding(horizontal = 13.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -551,7 +543,7 @@ private fun PostDetailContent(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(BorderMedium),
+                            .background(MaterialTheme.colorScheme.outline),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -567,7 +559,7 @@ private fun PostDetailContent(
                         placeholder = {
                             Text(
                                 "Escribe un comentario...",
-                                color = TextMuted,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 fontSize = 14.sp
                             )
                         },
@@ -617,7 +609,7 @@ private fun PostDetailContent(
             item {
                 Text(
                     text = "Aún no hay comentarios. ¡Sé el primero!",
-                    color = TextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -712,19 +704,19 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
                     text = comment.authorName.ifBlank { "Usuario" },
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = dateFormat.format(Date(comment.createdAt)),
                     fontSize = 11.sp,
-                    color = TextMuted
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
             Spacer(Modifier.height(2.dp))
             Text(
                 text = comment.text,
                 fontSize = 14.sp,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
         }
@@ -773,7 +765,7 @@ fun CreatePostScreen(
                 shadowElevation = 0.dp,
                 modifier = Modifier.border(
                     width = 1.dp,
-                    color = BorderLight,
+                    color = MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(0.dp)
                 )
             ) {
@@ -793,14 +785,14 @@ fun CreatePostScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
                             modifier = Modifier.size(22.dp),
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Text(
                         text = "Ayuda a un peludo",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Medium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         letterSpacing = (-0.5).sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
@@ -808,7 +800,7 @@ fun CreatePostScreen(
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = TealAccent.copy(alpha = 0.6f),
+                        tint = PetHelpGreen.copy(alpha = 0.6f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -819,7 +811,7 @@ fun CreatePostScreen(
                 color = Color.White.copy(alpha = 0.95f),
                 modifier = Modifier.border(
                     width = 1.dp,
-                    color = BorderLight,
+                    color = MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(0.dp)
                 )
             ) {
@@ -835,7 +827,7 @@ fun CreatePostScreen(
                             .height(64.dp),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = TealAccent
+                            containerColor = PetHelpGreen
                         ),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 10.dp
@@ -878,10 +870,10 @@ fun CreatePostScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = TealAccent.copy(alpha = 0.05f),
+                    color = PetHelpGreen.copy(alpha = 0.05f),
                     border = ButtonDefaults.outlinedButtonBorder.copy(
                         brush = Brush.linearGradient(
-                            listOf(TealAccent.copy(alpha = 0.4f), TealAccent.copy(alpha = 0.4f))
+                            listOf(PetHelpGreen.copy(alpha = 0.4f), PetHelpGreen.copy(alpha = 0.4f))
                         )
                     )
                 ) {
@@ -906,27 +898,27 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(64.dp)
-                                        .background(TealAccent.copy(alpha = 0.15f), CircleShape),
+                                        .background(PetHelpGreen.copy(alpha = 0.15f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.CameraAlt,
                                         contentDescription = "Agregar fotos",
                                         modifier = Modifier.size(30.dp),
-                                        tint = TealAccent
+                                        tint = PetHelpGreen
                                     )
                                 }
                                 Row {
                                     Text(
                                         "Toca para agregar hasta ",
                                         fontSize = 14.sp,
-                                        color = TextTertiary
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                     )
                                     Text(
                                         "5 fotos",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = TealAccent
+                                        color = PetHelpGreen
                                     )
                                 }
                             }
@@ -1000,7 +992,7 @@ fun CreatePostScreen(
                                                 .clip(RoundedCornerShape(16.dp))
                                                 .border(
                                                     1.dp,
-                                                    TealAccent.copy(alpha = 0.4f),
+                                                    PetHelpGreen.copy(alpha = 0.4f),
                                                     RoundedCornerShape(16.dp)
                                                 )
                                                 .background(Color.White)
@@ -1014,7 +1006,7 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.Add,
                                                 contentDescription = "Agregar más",
-                                                tint = TealAccent,
+                                                tint = PetHelpGreen,
                                                 modifier = Modifier.size(28.dp)
                                             )
                                         }
@@ -1035,7 +1027,7 @@ fun CreatePostScreen(
                             "Título de publicación",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextTertiary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             letterSpacing = 0.35.sp
                         )
                         OutlinedTextField(
@@ -1044,14 +1036,14 @@ fun CreatePostScreen(
                             placeholder = {
                                 Text(
                                     "Ej: Perrito encontrado en la Condesa",
-                                    color = TextMuted
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = TealAccent,
-                                unfocusedBorderColor = BorderMedium,
+                                focusedBorderColor = PetHelpGreen,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White
                             ),
@@ -1065,7 +1057,7 @@ fun CreatePostScreen(
                             "Descripción de la situación",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextTertiary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             letterSpacing = 0.35.sp
                         )
                         OutlinedTextField(
@@ -1074,7 +1066,7 @@ fun CreatePostScreen(
                             placeholder = {
                                 Text(
                                     "Describe cómo encontraste a este peludo, su estado de salud, comportamiento, etc.",
-                                    color = TextMuted
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
                             modifier = Modifier
@@ -1082,8 +1074,8 @@ fun CreatePostScreen(
                                 .height(154.dp),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = TealAccent,
-                                unfocusedBorderColor = BorderMedium,
+                                focusedBorderColor = PetHelpGreen,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White
                             )
@@ -1098,7 +1090,7 @@ fun CreatePostScreen(
                     shape = RoundedCornerShape(24.dp),
                     border = ButtonDefaults.outlinedButtonBorder.copy(
                         brush = Brush.linearGradient(
-                            listOf(TealAccent.copy(alpha = 0.2f), TealAccent.copy(alpha = 0.2f))
+                            listOf(PetHelpGreen.copy(alpha = 0.2f), PetHelpGreen.copy(alpha = 0.2f))
                         )
                     ),
                     color = Color.Transparent
@@ -1109,7 +1101,7 @@ fun CreatePostScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        TealAccent.copy(alpha = 0.1f),
+                                        PetHelpGreen.copy(alpha = 0.1f),
                                         Color.Transparent
                                     )
                                 )
@@ -1126,13 +1118,13 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(TealAccent.copy(alpha = 0.2f), CircleShape),
+                                        .background(PetHelpGreen.copy(alpha = 0.2f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.AutoAwesome,
                                         contentDescription = null,
-                                        tint = TealAccent,
+                                        tint = PetHelpGreen,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -1140,18 +1132,18 @@ fun CreatePostScreen(
                                     Text(
                                         "Categoría sugerida por IA",
                                         fontSize = 14.sp,
-                                        color = TextPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         "Analizamos tu foto y texto automáticamente",
                                         fontSize = 11.sp,
-                                        color = TealAccent.copy(alpha = 0.8f)
+                                        color = PetHelpGreen.copy(alpha = 0.8f)
                                     )
                                 }
                                 Icon(
                                     Icons.Default.AutoAwesome,
                                     contentDescription = null,
-                                    tint = TealAccent.copy(alpha = 0.6f),
+                                    tint = PetHelpGreen.copy(alpha = 0.6f),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -1164,7 +1156,7 @@ fun CreatePostScreen(
                                     color = Color.White,
                                     border = ButtonDefaults.outlinedButtonBorder.copy(
                                         brush = Brush.linearGradient(
-                                            listOf(TealAccent.copy(alpha = 0.2f), TealAccent.copy(alpha = 0.2f))
+                                            listOf(PetHelpGreen.copy(alpha = 0.2f), PetHelpGreen.copy(alpha = 0.2f))
                                         )
                                     ),
                                     modifier = Modifier
@@ -1186,20 +1178,20 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.AutoAwesome,
                                                 contentDescription = null,
-                                                tint = TealAccent,
+                                                tint = PetHelpGreen,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                             Text(
                                                 uiState.category.displayName,
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Medium,
-                                                color = TextPrimary
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                         Icon(
                                             Icons.Default.KeyboardArrowDown,
                                             contentDescription = null,
-                                            tint = TextTertiary
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                         )
                                     }
                                 }
@@ -1230,7 +1222,7 @@ fun CreatePostScreen(
                         "Tipo de mascota",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = TextTertiary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         letterSpacing = 0.35.sp
                     )
                     Row(
@@ -1246,7 +1238,7 @@ fun CreatePostScreen(
                                 label = label,
                                 icon = icon,
                                 selected = selected,
-                                accentColor = TealAccent,
+                                accentColor = PetHelpGreen,
                                 onClick = { viewModel.updateAnimalType(label) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -1262,7 +1254,7 @@ fun CreatePostScreen(
                         "Tamaño",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = TextTertiary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         letterSpacing = 0.35.sp
                     )
                     Row(
@@ -1273,7 +1265,7 @@ fun CreatePostScreen(
                             SelectableChip(
                                 label = size.displayName,
                                 selected = uiState.size == size,
-                                accentColor = TealAccent,
+                                accentColor = PetHelpGreen,
                                 onClick = { viewModel.updateSize(size) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -1303,8 +1295,8 @@ private fun SelectableChip(
         border = ButtonDefaults.outlinedButtonBorder.copy(
             brush = Brush.linearGradient(
                 listOf(
-                    if (selected) accentColor else BorderMedium,
-                    if (selected) accentColor else BorderMedium
+                    if (selected) accentColor else MaterialTheme.colorScheme.outline,
+                    if (selected) accentColor else MaterialTheme.colorScheme.outline
                 )
             )
         ),
@@ -1320,7 +1312,7 @@ private fun SelectableChip(
                     Icon(
                         icon,
                         contentDescription = null,
-                        tint = if (selected) accentColor else TextTertiary,
+                        tint = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
@@ -1329,7 +1321,7 @@ private fun SelectableChip(
                     text = label,
                     fontSize = 14.sp,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                    color = if (selected) accentColor else TextTertiary,
+                    color = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
                 )
         }

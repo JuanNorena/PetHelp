@@ -164,7 +164,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable { navController.navigate(Screen.EditProfile.route) },
+                        .clickable { navController.navigate(Screen.EditProfile) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Filled.Settings, null, tint = Color(0xFF6A7282), modifier = Modifier.size(22.dp))
@@ -458,9 +458,9 @@ private fun QuickAccessSection(navController: NavController) {
                 QuickAccessRow(Icons.AutoMirrored.Filled.List, PetHelpGreen.copy(alpha = 0.1f), PetHelpGreen, "Mis publicaciones", {}, true)
                 QuickAccessRow(Icons.Filled.Favorite, WarmOrange.copy(alpha = 0.1f), WarmOrange, "Favoritos", {}, true)
                 QuickAccessRow(Icons.Filled.Shield, PetHelpGreen.copy(alpha = 0.1f), PetHelpGreen, "Panel de Moderación",
-                    { navController.navigate(Screen.ModeratorPanel.route) }, true)
+                    { navController.navigate(Screen.ModeratorPanel) }, true)
                 QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), "Configuración",
-                    { navController.navigate(Screen.EditProfile.route) }, false)
+                    { navController.navigate(Screen.EditProfile) }, false)
             }
         }
     }
@@ -498,8 +498,8 @@ private fun LogoutSection(navController: NavController, viewModel: ProfileViewMo
     OutlinedButton(
         onClick = {
             viewModel.logout()
-            navController.navigate(Screen.Login.route) {
-                popUpTo(Screen.Feed.route) { inclusive = true }
+            navController.navigate(Screen.Login) {
+                popUpTo<Screen.Feed>() { inclusive = true }
             }
         },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),

@@ -2,11 +2,10 @@ package com.pethelp.app.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.pethelp.app.features.auth.presentation.ForgotPasswordScreen
 import com.pethelp.app.features.auth.presentation.LoginScreen
 import com.pethelp.app.features.auth.presentation.RegisterScreen
@@ -27,7 +26,7 @@ import com.pethelp.app.features.stats.presentation.StatisticsScreen
  * Grafo de navegación principal de PetHelp.
  *
  * Single-Activity Architecture: toda la navegación se gestiona aquí
- * mediante Jetpack Compose Navigation.
+ * mediante Jetpack Compose Navigation con Type Safety (Kotlin Serialization).
  *
  * Flujo:
  *   Splash → (autenticado) → Feed
@@ -39,84 +38,75 @@ fun PetHelpNavGraph(
 ) {
     NavHost(
         navController    = navController,
-        startDestination = Screen.Splash.route
+        startDestination = Screen.Splash
     ) {
 
         // ── Splash ────────────────────────────────────────────────────────────
-        composable(Screen.Splash.route) {
+        composable<Screen.Splash> {
             SplashScreen(navController = navController)
         }
 
         // ── Autenticación ─────────────────────────────────────────────────────
-        composable(Screen.Login.route) {
+        composable<Screen.Login> {
             LoginScreen(navController = navController)
         }
-        composable(Screen.Register.route) {
+        composable<Screen.Register> {
             RegisterScreen(navController = navController)
         }
-        composable(Screen.ForgotPassword.route) {
+        composable<Screen.ForgotPassword> {
             ForgotPasswordScreen(navController = navController)
         }
 
         // ── Feed principal ────────────────────────────────────────────────────
-        composable(Screen.Feed.route) {
+        composable<Screen.Feed> {
             FeedScreen(navController = navController)
         }
 
         // ── Detalle de publicación ────────────────────────────────────────────
-        composable(
-            route = Screen.PostDetail.route,
-            arguments = listOf(navArgument("postId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
-            PostDetailScreen(postId = postId, navController = navController)
+        composable<Screen.PostDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.PostDetail>()
+            PostDetailScreen(postId = route.postId, navController = navController)
         }
 
         // ── Crear / Editar publicación ────────────────────────────────────────
-        composable(Screen.CreatePost.route) {
+        composable<Screen.CreatePost> {
             CreatePostScreen(navController = navController)
         }
-        composable(
-            route = Screen.EditPost.route,
-            arguments = listOf(navArgument("postId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
-            EditPostScreen(postId = postId, navController = navController)
+        composable<Screen.EditPost> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.EditPost>()
+            EditPostScreen(postId = route.postId, navController = navController)
         }
 
         // ── Notificaciones ────────────────────────────────────────────────────
-        composable(Screen.Notifications.route) {
+        composable<Screen.Notifications> {
             NotificationsScreen(navController = navController)
         }
 
         // ── Perfil ────────────────────────────────────────────────────────────
-        composable(Screen.Profile.route) {
+        composable<Screen.Profile> {
             ProfileScreen(navController = navController)
         }
-        composable(Screen.EditProfile.route) {
+        composable<Screen.EditProfile> {
             EditProfileScreen(navController = navController)
         }
 
         // ── Estadísticas ──────────────────────────────────────────────────────
-        composable(Screen.Statistics.route) {
+        composable<Screen.Statistics> {
             StatisticsScreen(navController = navController)
         }
 
         // ── Reputación ────────────────────────────────────────────────────────
-        composable(Screen.Reputation.route) {
+        composable<Screen.Reputation> {
             ReputationScreen(navController = navController)
         }
 
         // ── Panel de moderación ───────────────────────────────────────────────
-        composable(Screen.ModeratorPanel.route) {
+        composable<Screen.ModeratorPanel> {
             ModeratorPanelScreen(navController = navController)
         }
-        composable(
-            route = Screen.ModeratorDetail.route,
-            arguments = listOf(navArgument("postId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
-            ModeratorDetailScreen(postId = postId, navController = navController)
+        composable<Screen.ModeratorDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.ModeratorDetail>()
+            ModeratorDetailScreen(postId = route.postId, navController = navController)
         }
     }
 }
