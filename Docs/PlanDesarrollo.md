@@ -329,8 +329,14 @@ PetHelp/
 
 | Tarea | Épica | Descripción |
 |---|---|---|
-| F3-07 | EP-08 | Integrar Cloudinary: subida de imágenes y almacenamiento de URLs en Firestore |
-| F3-08 | EP-08 | Carga de imágenes con Coil (caché + placeholder + error) |
+| F3-07 | EP-08 | ✅ Integrar Cloudinary: subida de imágenes y almacenamiento de URLs en Firestore |
+| F3-08 | EP-08 | ✅ Carga de imágenes con Coil (caché + placeholder + error) |
+
+> **Nota F3-07/F3-08 (completadas):**
+> - Se creó la abstracción `ImageUploader` y la implementación `CloudinaryImageUploader` con inicialización segura de `MediaManager`.
+> - `CreatePostViewModel` ahora sube las imágenes seleccionadas a Cloudinary antes de persistir la publicación.
+> - Las URLs seguras (`secure_url`) retornadas por Cloudinary se guardan en `imageUrls` del `Post` y se persisten en Firestore.
+> - Se agregó `CLOUDINARY_UPLOAD_PRESET` a `BuildConfig` y `local.properties.example`.
 
 #### 3.4 Mapas y geolocalización
 

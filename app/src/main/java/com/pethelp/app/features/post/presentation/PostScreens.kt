@@ -1,3 +1,14 @@
+/**
+ * Pantallas relacionadas con las publicaciones (Posts) de PetHelp.
+ *
+ * Este archivo contiene:
+ * - `PostDetailScreen`: muestra la información completa de una publicación, comentarios, votos y solicitud de adopción.
+ * - `CreatePostScreen`: permite crear una publicación nueva con fotos, texto y categoría.
+ * - Componentes reutilizables usados en ambas pantallas (chips, tarjetas, comentarios).
+ *
+ * Todas las funciones usan Material 3 y se apoyan en `ViewModel` para manejar el estado
+ * y la lógica de negocio (la UI solo renderiza el estado que recibe).
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -45,6 +56,8 @@ import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
+import com.pethelp.app.core.ui.theme.BackgroundLight
+import com.pethelp.app.core.ui.theme.ErrorRed
 import com.pethelp.app.core.ui.theme.PetHelpGreen
 import com.pethelp.app.core.ui.theme.WarmOrange
 import kotlinx.coroutines.launch
@@ -66,6 +79,21 @@ private val ChipPurpleText = Color(0xFF8200DB)
 // ─── DETALLE DE PUBLICACIÓN ──────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Pantalla de detalle de una publicación.
+ *
+ * Muestra toda la información de un post:
+ * - Imagen principal (carousel simple, if available)
+ * - Datos clave (raza, tipo, tamaño, vacunación) en chips
+ * - Descripción y estado de votos
+ * - Comentarios en tiempo real con campo de entrada
+ * - Posibilidad de solicitar adopción si la categoría es 
+ *   `ADOPTION`.
+ *
+ * Esta pantalla se conecta con el ViewModel para:
+ * - Obtener el estado del post en Firestore en tiempo real.
+ * - Manejar votos / comentarios / solicitudes de adopción.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(
@@ -104,7 +132,7 @@ fun PostDetailScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = uiState.error ?: "Error desconocido",
-                            color = Color(0xFFE57373),
+                            color = ErrorRed,
                             fontSize = 16.sp
                         )
                         Spacer(Modifier.height(16.dp))
@@ -498,7 +526,7 @@ private fun PostDetailContent(
                             Icon(
                                 Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = Color(0xFFFB2C36),
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(32.dp)
                             )
                             Surface(
@@ -630,6 +658,13 @@ private fun PostDetailContent(
     }
 }
 
+/**
+ * Tarjeta simple con icono + texto, usada para mostrar atributos del post
+ * como "raza", "tamaño" o "vacunada".
+ *
+ * Está diseñada para ser compacta y con estilo de chip (bordes redondeados).
+ * Se parametriza con colores para poder reutilizar con diferentes paletas.
+ */
 @Composable
 private fun InfoChipCard(
     icon: ImageVector,
@@ -672,6 +707,16 @@ private fun InfoChipCard(
     }
 }
 
+/**
+ * Mostrar un comentario dentro de la lista de comentarios.
+ *
+ * Contiene:
+ * - Avatar circular con inicial del autor.
+ * - Nombre del autor y fecha de creación.
+ * - Texto del comentario.
+ *
+ * Esto se usa en el `LazyColumn` que muestra la lista de comentarios.
+ */
 @Composable
 private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yy HH:mm", Locale("es", "CO")) }
@@ -728,6 +773,21 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
 // ─── CREAR PUBLICACIÓN ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Pantalla de creación de publicaciones.
+ *
+ * Permite al usuario seleccionar hasta 5 fotos, completar datos de la mascota
+ * (título, descripción, categoría, tipo y tamaño), y enviar una publicación.
+ *
+ * El flujo principal es:
+ * 1) El usuario selecciona fotos (se agregan a `CreatePostUiState.imageUris`).
+ * 2) Al dar clic en "Siguiente: Ubicación", se crea la publicación:
+ *    - Se suben las imágenes a Cloudinary (a través de ImageUploader).
+ *    - Se crea un objeto `Post` con las URLs de Cloudinary.
+ *    - Se persiste en Firestore vía `PostRepository`.
+ *
+ * El ViewModel emite estados de carga y mensajes de snackbar para retroalimentación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
@@ -758,10 +818,10 @@ fun CreatePostScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFFAFAFA),
+        containerColor = BackgroundLight,
         topBar = {
             Surface(
-                color = Color(0xFFFAFAFA).copy(alpha = 0.9f),
+                color = BackgroundLight.copy(alpha = 0.9f),
                 shadowElevation = 0.dp,
                 modifier = Modifier.border(
                     width = 1.dp,
@@ -1279,6 +1339,13 @@ fun CreatePostScreen(
     }
 }
 
+/**
+ * Chip seleccionable usado para elegir opciones (tipo de mascota, tamaño, etc.).
+ *
+ * - `selected` controla el estado visual (color de fondo/borde).
+ * - `accentColor` define el color principal del chip en estado activo.
+ * - Usa `onClick` para notificar al ViewModel que cambió la selección.
+ */
 @Composable
 private fun SelectableChip(
     label: String,

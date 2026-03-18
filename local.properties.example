@@ -11,6 +11,7 @@
 # ── Cloudinary ────────────────────────────────────────────────────────────────
 # Obtener en: https://cloudinary.com → Dashboard
 # CLOUDINARY_CLOUD_NAME=tu_cloud_name
+# CLOUDINARY_UPLOAD_PRESET=tu_unsigned_upload_preset
 #
 # ── OpenAI API Key (para funcionalidad de IA) ────────────────────────────────
 # Obtener en: https://platform.openai.com/api-keys

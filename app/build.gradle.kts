@@ -32,6 +32,8 @@ android {
 
         buildConfigField("String", "CLOUDINARY_CLOUD_NAME",
             "\"${project.findProperty("CLOUDINARY_CLOUD_NAME") ?: ""}\"")
+        buildConfigField("String", "CLOUDINARY_UPLOAD_PRESET",
+            "\"${project.findProperty("CLOUDINARY_UPLOAD_PRESET") ?: ""}\"")
         buildConfigField("String", "OPENAI_API_KEY",
             "\"${project.findProperty("OPENAI_API_KEY") ?: ""}\"")
     }

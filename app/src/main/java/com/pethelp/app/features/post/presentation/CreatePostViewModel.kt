@@ -9,6 +9,7 @@ import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
+import com.pethelp.app.core.domain.upload.ImageUploader
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,10 +39,29 @@ data class CreatePostUiState(
     val error: String? = null
 )
 
+/**
+ * ViewModel para la pantalla de creación de publicaciones.
+ *
+ * Esta clase se encarga de:
+ * 1. Mantener el estado de la UI (`CreatePostUiState`).
+ * 2. Validar los datos ingresados por el usuario.
+ * 3. Subir las imágenes seleccionadas a Cloudinary (a través de [ImageUploader]).
+ * 4. Crear la publicación en Firestore usando [PostRepository].
+ * 5. Emitir mensajes de snacks y cambios de estado de carga.
+ *
+ * El flujo típico es:
+ * - El ViewModel recibe actualizaciones de UI (título, descripción, imágenes, etc.).
+ * - Al invocar `createPost()`, valida los campos y luego sube las imágenes.
+ * - Una vez obtenidas las URLs de Cloudinary, crea el `Post` y lo persiste en Firestore.
+ *
+ * Esta clase no conoce detalles de la UI (Compose). Solo expone `StateFlow` y
+ * `SharedFlow`, que las pantallas observan para renderizar y mostrar mensajes.
+ */
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val imageUploader: ImageUploader
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreatePostUiState())
@@ -124,38 +144,59 @@ class CreatePostViewModel @Inject constructor(
             return
         }
 
-        val post = Post(
-            authorId = currentUser.uid,
-            authorName = currentUser.displayName ?: "Usuario",
-            title = state.title.trim(),
-            description = state.description.trim(),
-            category = state.category,
-            animalType = state.animalType,
-            breed = state.breed.trim(),
-            size = state.size,
-            vaccinated = state.vaccinated,
-            imageUrls = state.imageUrls,
-            latitude = state.latitude,
-            longitude = state.longitude,
-            locationName = state.locationName
-        )
-
         viewModelScope.launch {
-            postRepository.createPost(post).collect { resource ->
-                when (resource) {
-                    is Resource.Loading -> _uiState.value = _uiState.value.copy(isLoading = true)
-                    is Resource.Success -> {
-                        _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                        _snackbarMessage.emit("¡Publicación creada exitosamente!")
-                    }
-                    is Resource.Error -> {
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            error = resource.message
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            try {
+                val uploadedUrls = if (state.imageUris.isNotEmpty()) {
+                    val total = state.imageUris.size
+                    state.imageUris.mapIndexed { index, uri ->
+                        _snackbarMessage.emit("Subiendo foto ${index + 1} de $total...")
+                        imageUploader.uploadImage(
+                            localUri = uri.toString(),
+                            folder = Constants.CLOUDINARY_FOLDER_POSTS
                         )
-                        _snackbarMessage.emit(resource.message ?: "Error al crear la publicación.")
+                    }
+                } else {
+                    emptyList()
+                }
+
+                val post = Post(
+                    authorId = currentUser.uid,
+                    authorName = currentUser.displayName ?: "Usuario",
+                    title = state.title.trim(),
+                    description = state.description.trim(),
+                    category = state.category,
+                    animalType = state.animalType,
+                    breed = state.breed.trim(),
+                    size = state.size,
+                    vaccinated = state.vaccinated,
+                    imageUrls = uploadedUrls,
+                    latitude = state.latitude,
+                    longitude = state.longitude,
+                    locationName = state.locationName
+                )
+
+                postRepository.createPost(post).collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> _uiState.value = _uiState.value.copy(isLoading = true)
+                        is Resource.Success -> {
+                            _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
+                            _snackbarMessage.emit("¡Publicación creada exitosamente!")
+                        }
+                        is Resource.Error -> {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = resource.message
+                            )
+                            _snackbarMessage.emit(resource.message ?: "Error al crear la publicación.")
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                val message = e.localizedMessage ?: "No se pudieron subir las imágenes."
+                _uiState.value = _uiState.value.copy(isLoading = false, error = message)
+                _snackbarMessage.emit(message)
             }
         }
     }
