@@ -40,8 +40,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            // Se quita el applicationIdSuffix para que coincida con google-services.json
             isDebuggable = true
             buildConfigField("String", "BASE_URL", "\"https://api.openai.com/v1/\"")
         }
