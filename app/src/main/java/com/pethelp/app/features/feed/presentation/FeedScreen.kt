@@ -51,7 +51,7 @@ fun FeedScreen(navController: NavController) {
                         )
                     },
                     actions = {
-                        IconButton(onClick = { navController.navigate(Screen.Notifications.route) }) {
+                        IconButton(onClick = { navController.navigate(Screen.Notifications) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
                                 contentDescription = "Notificaciones",
@@ -65,7 +65,7 @@ fun FeedScreen(navController: NavController) {
                                 .size(32.dp)
                                 .clip(CircleShape)
                                 .background(Color.LightGray)
-                                .clickable { navController.navigate(Screen.Profile.route) }
+                                .clickable { navController.navigate(Screen.Profile) }
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -158,4 +158,5 @@ kotlin-android          = { id = "org.jetbrains.kotlin.android",       version.r
 kotlin-compose          = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt                    = { id = "com.google.dagger.hilt.android",     version.ref = "hilt" }
 ksp                     = { id = "com.google.devtools.ksp",            version.ref = "ksp" }
+kotlin-serialization    = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-services         = { id = "com.google.gms.google-services",     version = "4.4.4" }

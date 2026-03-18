@@ -73,8 +73,8 @@ fun SplashScreen(
     // Si ya está autenticado, ir directo al Feed
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+            navController.navigate(Screen.Feed) {
+                popUpTo<Screen.Splash>() { inclusive = true }
             }
         }
     }
@@ -155,7 +155,7 @@ fun SplashScreen(
             contentAlignment = Alignment.BottomCenter
         ) {
             Button(
-                onClick = { navController.navigate(Screen.Login.route) },
+                onClick = { navController.navigate(Screen.Login) },
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
                 elevation = ButtonDefaults.buttonElevation(
@@ -281,8 +281,8 @@ fun LoginScreen(
     // Navegar al Feed cuando el login sea exitoso
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+            navController.navigate(Screen.Feed) {
+                popUpTo<Screen.Splash>() { inclusive = true }
             }
         }
     }
@@ -475,7 +475,7 @@ fun LoginScreen(
                 color = PetHelpGreen,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .clickable { navController.navigate(Screen.ForgotPassword.route) }
+                    .clickable { navController.navigate(Screen.ForgotPassword) }
                     .padding(vertical = 4.dp)
             )
 
@@ -546,7 +546,7 @@ fun LoginScreen(
                     ),
                     color = PetHelpGreen,
                     modifier = Modifier.clickable {
-                        navController.navigate(Screen.Register.route)
+                        navController.navigate(Screen.Register)
                     }
                 )
             }
@@ -598,8 +598,8 @@ fun RegisterScreen(
     // Navegar al Feed cuando el registro sea exitoso
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+            navController.navigate(Screen.Feed) {
+                popUpTo<Screen.Splash>() { inclusive = true }
             }
         }
     }
@@ -972,8 +972,8 @@ fun ForgotPasswordScreen(
                     LinkSentCard(
                         email = email,
                         onBackToStart = {
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(Screen.Splash.route) { inclusive = false }
+                            navController.navigate(Screen.Login) {
+                                popUpTo<Screen.Splash>() { inclusive = false }
                             }
                         }
                     )

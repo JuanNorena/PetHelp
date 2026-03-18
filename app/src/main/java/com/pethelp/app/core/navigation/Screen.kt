@@ -1,39 +1,43 @@
 package com.pethelp.app.core.navigation
 
+import kotlinx.serialization.Serializable
+
 /**
- * Define todas las rutas de navegación de la aplicación.
+ * Define todas las rutas de navegación de la aplicación usando Kotlin Serialization.
  *
- * Patrón recomendado: objetos sellados para type-safety.
- * Los parámetros de ruta se declaran con llaves: {param}.
+ * Patrón recomendado: objetos sellados o clases de datos serializables para type-safety
+ * con Navigation Compose 2.8+.
  */
-sealed class Screen(val route: String) {
+sealed class Screen {
 
     // ── Autenticación ─────────────────────────────────────────────────────────
-    data object Splash       : Screen("splash")
-    data object Login        : Screen("login")
-    data object Register     : Screen("register")
-    data object ForgotPassword : Screen("forgot_password")
+    @Serializable data object Splash : Screen()
+    @Serializable data object Login : Screen()
+    @Serializable data object Register : Screen()
+    @Serializable data object ForgotPassword : Screen()
 
     // ── Aplicación principal (usuario) ────────────────────────────────────────
-    data object Feed         : Screen("feed")
-    data object PostDetail   : Screen("post_detail/{postId}") {
-        fun createRoute(postId: String) = "post_detail/$postId"
-    }
-    data object CreatePost   : Screen("create_post")
-    data object EditPost     : Screen("edit_post/{postId}") {
-        fun createRoute(postId: String) = "edit_post/$postId"
-    }
-    data object Notifications : Screen("notifications")
-    data object Map           : Screen("map")
-    data object Chat          : Screen("chat")
-    data object Profile      : Screen("profile")
-    data object EditProfile  : Screen("edit_profile")
-    data object Statistics   : Screen("statistics")
-    data object Reputation   : Screen("reputation")
+    @Serializable data object Feed : Screen()
+    
+    @Serializable 
+    data class PostDetail(val postId: String) : Screen()
+    
+    @Serializable data object CreatePost : Screen()
+    
+    @Serializable 
+    data class EditPost(val postId: String) : Screen()
+    
+    @Serializable data object Notifications : Screen()
+    @Serializable data object Map : Screen()
+    @Serializable data object Chat : Screen()
+    @Serializable data object Profile : Screen()
+    @Serializable data object EditProfile : Screen()
+    @Serializable data object Statistics : Screen()
+    @Serializable data object Reputation : Screen()
 
     // ── Moderación ────────────────────────────────────────────────────────────
-    data object ModeratorPanel   : Screen("moderator_panel")
-    data object ModeratorDetail  : Screen("moderator_detail/{postId}") {
-        fun createRoute(postId: String) = "moderator_detail/$postId"
-    }
+    @Serializable data object ModeratorPanel : Screen()
+    
+    @Serializable 
+    data class ModeratorDetail(val postId: String) : Screen()
 }
