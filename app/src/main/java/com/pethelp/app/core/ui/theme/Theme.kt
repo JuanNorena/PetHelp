@@ -18,40 +18,40 @@ import androidx.core.view.WindowCompat
 
 // ── Esquema de colores claro ──────────────────────────────────────────────────
 private val LightColorScheme = lightColorScheme(
-    primary             = PetHelpGreen,
+    primary             = PetHelpPrimary,
     onPrimary           = White,
-    primaryContainer    = LightGreenContainer,
-    onPrimaryContainer  = DarkGreen,
-    secondary           = WarmOrange,
+    primaryContainer    = PrimaryLightContainer,
+    onPrimaryContainer  = OnPrimaryContainer,
+    secondary           = PetHelpSecondary,
     onSecondary         = White,
-    secondaryContainer  = Color(0xFFFFCCBC),
+    secondaryContainer  = Color(0xFFFFEDD5), // Naranja muy suave equivalente al Tint 10%
     onSecondaryContainer= DarkSurface,
-    tertiary            = SoftBlue,
+    tertiary            = PetHelpTertiary,
     onTertiary          = White,
-    tertiaryContainer   = Color(0xFFE1BEE7),
+    tertiaryContainer   = Color(0xFFF3E8FF), // Púrpura muy suave
     background          = BackgroundLight,
     surface             = SurfaceLight,
-    error               = ErrorRed,
-    onBackground        = Color(0xFF1C1B1F),
-    onSurface           = Color(0xFF1C1B1F),
+    error               = PetHelpDestructive,
+    onBackground        = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
+    onSurface           = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
 )
 
 // ── Esquema de colores oscuro ─────────────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
-    primary             = PetHelpGreenDark,
+    primary             = PetHelpPrimaryDark,
     onPrimary           = DarkSurface,
-    primaryContainer    = DarkGreenContainer,
-    onPrimaryContainer  = LightGreenContainer,
-    secondary           = WarmOrangeDark,
+    primaryContainer    = PrimaryDarkContainer,
+    onPrimaryContainer  = PrimaryLightContainer,
+    secondary           = PetHelpSecondaryDark,
     onSecondary         = DarkSurface,
-    secondaryContainer  = Color(0xFFBF360C),
+    secondaryContainer  = Color(0xFFCC9138),
     onSecondaryContainer= White,
-    tertiary            = SoftBlueDark,
+    tertiary            = PetHelpTertiaryDark,
     onTertiary          = DarkSurface,
     tertiaryContainer   = Color(0xFF7E57C2),
     background          = BackgroundDark,
     surface             = SurfaceDark,
-    error               = ErrorRedDark,
+    error               = PetHelpDestructiveDark,
     onBackground        = White,
     onSurface           = White,
 )

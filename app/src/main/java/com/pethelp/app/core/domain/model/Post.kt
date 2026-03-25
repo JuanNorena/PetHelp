@@ -9,6 +9,7 @@ data class Post(
     val id: String           = "",
     val authorId: String     = "",
     val authorName: String   = "",
+    val authorPhotoUrl: String = "",
     val title: String        = "",
     val description: String  = "",
     val category: PostCategory = PostCategory.ADOPTION,

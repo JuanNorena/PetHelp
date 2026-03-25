@@ -4,6 +4,10 @@ import com.pethelp.app.core.domain.model.User
 
 sealed class ProfileUiState {
     data object Loading : ProfileUiState()
-    data class Success(val user: User) : ProfileUiState()
+    data class Success(
+        val user: User,
+        val isUploadingPhoto: Boolean = false,
+        val photoUploadError: String? = null
+    ) : ProfileUiState()
     data class Error(val message: String) : ProfileUiState()
 }

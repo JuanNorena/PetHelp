@@ -30,14 +30,14 @@ import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
-import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.WarmOrange
+import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.PetHelpSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(navController: NavController) {
     Scaffold(
-        containerColor = Color(0xFFFAFAFA),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column(modifier = Modifier.background(Color.White)) {
                 // Top App Bar
@@ -45,7 +45,7 @@ fun FeedScreen(navController: NavController) {
                     title = {
                         Text(
                             text = "PetHelp",
-                            color = PetHelpGreen,
+                            color = PetHelpPrimary,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp
                         )
@@ -55,7 +55,7 @@ fun FeedScreen(navController: NavController) {
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
                                 contentDescription = "Notificaciones",
-                                tint = Color(0xFF6A7282)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         // Avatar placeholder
@@ -70,7 +70,7 @@ fun FeedScreen(navController: NavController) {
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.White,
-                        titleContentColor = PetHelpGreen
+                        titleContentColor = PetHelpPrimary
                     )
                 )
 
@@ -87,7 +87,7 @@ fun FeedScreen(navController: NavController) {
                     item { FilterChipUI("Encontrados", false) }
                 }
                 
-                HorizontalDivider(color = Color(0xFFF3F4F6))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         },
         bottomBar = { PetHelpBottomNavBar(navController) }
@@ -119,12 +119,12 @@ fun FeedScreen(navController: NavController) {
                             text = "No hay publicaciones aún",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = Color(0xFF101828)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Sé el primero en publicar\nuna mascota",
                             fontSize = 14.sp,
-                            color = Color(0xFF99A1AF),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
@@ -140,11 +140,11 @@ fun FilterChipUI(label: String, selected: Boolean) {
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = if (selected) PetHelpGreen else Color(0xFFE5E7EB),
+                color = if (selected) PetHelpPrimary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(20.dp)
             )
             .background(
-                color = if (selected) PetHelpGreen.copy(alpha = 0.1f) else Color.White,
+                color = if (selected) PetHelpPrimary.copy(alpha = 0.1f) else Color.White,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -152,7 +152,7 @@ fun FilterChipUI(label: String, selected: Boolean) {
     ) {
         Text(
             text = label,
-            color = if (selected) PetHelpGreen else Color(0xFF4A5565),
+            color = if (selected) PetHelpPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 14.sp
         )
@@ -194,9 +194,9 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = PetHelpGreen, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = PetHelpPrimary, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(text = distance, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF101828))
+                            Text(text = distance, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                     
@@ -206,17 +206,17 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                             .align(Alignment.TopEnd)
                             .padding(16.dp)
                             .size(40.dp)
-                            .background(Color(0xFFFFF7ED), CircleShape),
+                            .background(PetHelpSecondary.copy(alpha=0.1f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                         Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = WarmOrange, modifier = Modifier.size(24.dp))
+                         Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = PetHelpSecondary, modifier = Modifier.size(24.dp))
                     }
                 }
                 
                 // Info section
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = name, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color(0xFF101828))
-                    Text(text = breed, color = Color(0xFF6A7282), fontSize = 14.sp)
+                    Text(text = name, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = breed, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     
                     Spacer(Modifier.height(12.dp))
                     
@@ -235,9 +235,9 @@ fun PetCardMock(name: String, breed: String, distance: String) {
 fun TagChip(label: String) {
     Box(
         modifier = Modifier
-            .background(Color(0xFFF3F4F6), RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
-        Text(text = label, color = Color(0xFF4A5565), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }

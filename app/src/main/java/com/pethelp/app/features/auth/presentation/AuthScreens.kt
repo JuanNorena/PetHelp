@@ -56,10 +56,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.DarkGreen
-import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.SoftBlue
-import com.pethelp.app.core.ui.theme.WarmOrange
+import com.pethelp.app.core.ui.theme.PetHelpPrimaryDark
+import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.PetHelpTertiary
+import com.pethelp.app.core.ui.theme.PetHelpSecondary
 import kotlinx.coroutines.flow.collectLatest
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
@@ -93,19 +93,19 @@ fun SplashScreen(
 
         // manchas desenfocadas de colores primario/secundario/terciario
         BlurredCircle(
-            color = PetHelpGreen.copy(alpha = 0.1f),
+            color = PetHelpPrimary.copy(alpha = 0.1f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = WarmOrange.copy(alpha = 0.1f),
+            color = PetHelpSecondary.copy(alpha = 0.1f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
         )
         BlurredCircle(
-            color = SoftBlue.copy(alpha = 0.1f),
+            color = PetHelpTertiary.copy(alpha = 0.1f),
             size = 224.dp,
             offsetX = 80.dp,
             offsetY = 629.dp
@@ -131,7 +131,7 @@ fun SplashScreen(
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = (-1.2).sp
                 ),
-                color = DarkGreen
+                color = PetHelpPrimaryDark
             )
 
             Spacer(Modifier.height(12.dp))
@@ -157,7 +157,7 @@ fun SplashScreen(
             Button(
                 onClick = { navController.navigate(Screen.Login) },
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 10.dp,
                     pressedElevation = 4.dp
@@ -168,8 +168,8 @@ fun SplashScreen(
                     .shadow(
                         elevation = 15.dp,
                         shape = RoundedCornerShape(50),
-                        ambientColor = PetHelpGreen.copy(alpha = 0.3f),
-                        spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                        ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
+                        spotColor = PetHelpPrimary.copy(alpha = 0.3f)
                     )
             ) {
                 Text(
@@ -209,7 +209,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.Pets,
                 contentDescription = null,
-                tint = PetHelpGreen,
+                tint = PetHelpPrimary,
                 modifier = Modifier
                     .size(64.dp)
                     .align(Alignment.Center)
@@ -218,7 +218,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
-                tint = WarmOrange,
+                tint = PetHelpSecondary,
                 modifier = Modifier
                     .size(36.dp)
                     .align(Alignment.TopStart)
@@ -228,7 +228,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.TouchApp,
                 contentDescription = null,
-                tint = SoftBlue,
+                tint = PetHelpTertiary,
                 modifier = Modifier
                     .size(36.dp)
                     .align(Alignment.BottomEnd)
@@ -301,13 +301,13 @@ fun LoginScreen(
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpGreen.copy(alpha = 0.1f),
+            color = PetHelpPrimary.copy(alpha = 0.1f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = WarmOrange.copy(alpha = 0.1f),
+            color = PetHelpSecondary.copy(alpha = 0.1f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
@@ -396,9 +396,9 @@ fun LoginScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
-                    focusedBorderColor = PetHelpGreen,
+                    focusedBorderColor = PetHelpPrimary,
                     unfocusedBorderColor = Color(0xFFE5E7EB),
-                    cursorColor = PetHelpGreen
+                    cursorColor = PetHelpPrimary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -449,9 +449,9 @@ fun LoginScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
-                    focusedBorderColor = PetHelpGreen,
+                    focusedBorderColor = PetHelpPrimary,
                     unfocusedBorderColor = Color(0xFFE5E7EB),
-                    cursorColor = PetHelpGreen
+                    cursorColor = PetHelpPrimary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -472,7 +472,7 @@ fun LoginScreen(
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
                 ),
-                color = PetHelpGreen,
+                color = PetHelpPrimary,
                 modifier = Modifier
                     .align(Alignment.End)
                     .clickable { navController.navigate(Screen.ForgotPassword) }
@@ -489,7 +489,7 @@ fun LoginScreen(
                 enabled = email.isNotBlank() && password.isNotBlank()
                         && uiState !is AuthUiState.Loading,
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 10.dp,
                     pressedElevation = 4.dp
@@ -500,8 +500,8 @@ fun LoginScreen(
                     .shadow(
                         elevation = 15.dp,
                         shape = RoundedCornerShape(50),
-                        ambientColor = PetHelpGreen.copy(alpha = 0.3f),
-                        spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                        ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
+                        spotColor = PetHelpPrimary.copy(alpha = 0.3f)
                     )
             ) {
                 if (uiState is AuthUiState.Loading) {
@@ -544,7 +544,7 @@ fun LoginScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     ),
-                    color = PetHelpGreen,
+                    color = PetHelpPrimary,
                     modifier = Modifier.clickable {
                         navController.navigate(Screen.Register)
                     }
@@ -629,13 +629,13 @@ fun RegisterScreen(
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpGreen.copy(alpha = 0.05f),
+            color = PetHelpPrimary.copy(alpha = 0.05f),
             size = 320.dp,
             offsetX = 153.dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = WarmOrange.copy(alpha = 0.05f),
+            color = PetHelpSecondary.copy(alpha = 0.05f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = 597.dp
@@ -725,7 +725,7 @@ fun RegisterScreen(
                         checked = termsAccepted,
                         onCheckedChange = { termsAccepted = it },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = PetHelpGreen,
+                            checkedColor = PetHelpPrimary,
                             uncheckedColor = Color(0xFFD1D5DC)
                         )
                     )
@@ -743,7 +743,7 @@ fun RegisterScreen(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         ),
-                        color = PetHelpGreen,
+                        color = PetHelpPrimary,
                         modifier = Modifier.clickable { showTermsDialog = true }
                     )
                 }
@@ -760,7 +760,7 @@ fun RegisterScreen(
                     enabled = isFormValid && uiState !is AuthUiState.Loading,
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PetHelpGreen,
+                        containerColor = PetHelpPrimary,
                         disabledContainerColor = Color(0xFFD1D5DC).copy(alpha = 0.5f)
                     ),
                     elevation = ButtonDefaults.buttonElevation(
@@ -845,13 +845,13 @@ fun ForgotPasswordScreen(
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpGreen.copy(alpha = 0.1f),
+            color = PetHelpPrimary.copy(alpha = 0.1f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = WarmOrange.copy(alpha = 0.1f),
+            color = PetHelpSecondary.copy(alpha = 0.1f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
@@ -933,7 +933,7 @@ fun ForgotPasswordScreen(
                         onClick = { viewModel.sendPasswordReset(email.trim()) },
                         enabled = email.isNotBlank() && uiState !is AuthUiState.Loading,
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 10.dp,
                             pressedElevation = 4.dp
@@ -944,8 +944,8 @@ fun ForgotPasswordScreen(
                             .shadow(
                                 elevation = 15.dp,
                                 shape = RoundedCornerShape(50),
-                                ambientColor = PetHelpGreen.copy(alpha = 0.3f),
-                                spotColor = PetHelpGreen.copy(alpha = 0.3f)
+                                ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
+                                spotColor = PetHelpPrimary.copy(alpha = 0.3f)
                             )
                     ) {
                         if (uiState is AuthUiState.Loading) {
@@ -1025,7 +1025,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.Email,
                     contentDescription = null,
-                    tint = DarkGreen,
+                    tint = PetHelpPrimaryDark,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -1038,7 +1038,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 ),
-                color = DarkGreen
+                color = PetHelpPrimaryDark
             )
 
             Spacer(Modifier.height(8.dp))
@@ -1065,12 +1065,12 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
             OutlinedButton(
                 onClick = onBackToStart,
                 shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, DarkGreen),
+                border = BorderStroke(1.dp, PetHelpPrimaryDark),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = stringResource(R.string.btn_back_to_start),
-                    color = DarkGreen,
+                    color = PetHelpPrimaryDark,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
@@ -1142,7 +1142,7 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.Pets,
                 contentDescription = null,
-                tint = WarmOrange,
+                tint = PetHelpSecondary,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -1224,9 +1224,9 @@ private fun AuthTextField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
-            focusedBorderColor = PetHelpGreen,
+            focusedBorderColor = PetHelpPrimary,
             unfocusedBorderColor = Color(0xFFE5E7EB),
-            cursorColor = PetHelpGreen
+            cursorColor = PetHelpPrimary
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -1251,9 +1251,9 @@ private fun PasswordStrengthIndicator(password: String) {
     }
     val strengthColor = when {
         strength <= 0.25f -> Color(0xFFE57373)
-        strength <= 0.5f  -> WarmOrange
+        strength <= 0.5f  -> PetHelpSecondary
         strength <= 0.75f -> Color(0xFFFFD54F)
-        else              -> PetHelpGreen
+        else              -> PetHelpPrimary
     }
 
     if (password.isNotEmpty()) {
@@ -1342,7 +1342,7 @@ private fun TermsAndConditionsDialog(
                     Button(
                         onClick = onAccept,
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary)
                     ) {
                         Text(
                             text = stringResource(R.string.terms_dialog_accept),

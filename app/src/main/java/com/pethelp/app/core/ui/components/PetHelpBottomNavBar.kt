@@ -29,8 +29,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.WarmOrange
+import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.PetHelpSecondary
 
 @Composable
 fun PetHelpBottomNavBar(navController: NavController) {
@@ -138,10 +138,10 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 .shadow(
                     elevation = 10.dp,
                     shape = RoundedCornerShape(16.dp),
-                    spotColor = WarmOrange.copy(alpha = 0.4f),
-                    ambientColor = WarmOrange.copy(alpha = 0.4f)
+                    spotColor = PetHelpSecondary.copy(alpha = 0.4f),
+                    ambientColor = PetHelpSecondary.copy(alpha = 0.4f)
                 )
-                .background(color = WarmOrange, shape = RoundedCornerShape(16.dp))
+                .background(color = PetHelpSecondary, shape = RoundedCornerShape(16.dp))
                 .clickable { navController.navigate(Screen.CreatePost) },
             contentAlignment = Alignment.Center
         ) {
@@ -190,14 +190,14 @@ private fun NavBarItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(PetHelpGreen.copy(alpha = 0.1f), CircleShape)
+                        .background(PetHelpPrimary.copy(alpha = 0.1f), CircleShape)
                 )
             }
 
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = if (selected) PetHelpGreen else Color(0xFF9CA3AF),
+                tint = if (selected) PetHelpPrimary else Color(0xFF9CA3AF),
                 modifier = Modifier.size(22.dp)
             )
 
@@ -226,7 +226,7 @@ private fun NavBarItem(
         if (selected) {
             Text(
                 text = label,
-                color = PetHelpGreen,
+                color = PetHelpPrimary,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(top = 2.dp)

@@ -5,8 +5,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
+import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.User
+import com.pethelp.app.core.domain.upload.ImageUploader
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +21,8 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseProfileRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val imageUploader: ImageUploader
 ) : ProfileRepository {
 
     companion object {
@@ -85,6 +88,12 @@ class FirebaseProfileRepository @Inject constructor(
                 .update(userMap)
                 .await()
 
+            propagateAuthorDataChanges(
+                userId = firebaseUser.uid,
+                newAuthorName = user.name.ifBlank { null },
+                newAuthorPhotoUrl = user.photoUrl.ifBlank { null }
+            )
+
             emit(Resource.Success(user))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al actualizar el perfil."))
@@ -92,7 +101,6 @@ class FirebaseProfileRepository @Inject constructor(
     }
 
     override fun updateProfilePhoto(imageUri: String): Flow<Resource<String>> = flow {
-        // Placeholder hasta integrar Cloudinary
         emit(Resource.Loading())
         try {
             val firebaseUser = firebaseAuth.currentUser
@@ -100,16 +108,28 @@ class FirebaseProfileRepository @Inject constructor(
                 emit(Resource.Error("No hay sesión activa."))
                 return@flow
             }
-            
-            // Simular subida a Cloudinary
-            val fakeUrl = "https://fake.url.com/photo.jpg"
-            
+
+            if (imageUri.isBlank()) {
+                emit(Resource.Error("Selecciona una imagen válida."))
+                return@flow
+            }
+
+            val uploadedPhotoUrl = imageUploader.uploadImage(
+                localUri = imageUri,
+                folder = Constants.CLOUDINARY_FOLDER_AVATARS
+            )
+
             firestore.collection(USERS_COLLECTION)
                 .document(firebaseUser.uid)
-                .update("photoUrl", fakeUrl)
+                .update("photoUrl", uploadedPhotoUrl)
                 .await()
-                
-            emit(Resource.Success(fakeUrl))
+
+            propagateAuthorDataChanges(
+                userId = firebaseUser.uid,
+                newAuthorPhotoUrl = uploadedPhotoUrl
+            )
+
+            emit(Resource.Success(uploadedPhotoUrl))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al subir la foto."))
         }
@@ -161,6 +181,63 @@ class FirebaseProfileRepository @Inject constructor(
             emit(Resource.Error("Debes volver a iniciar sesión para eliminar la cuenta."))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al eliminar la cuenta."))
+        }
+    }
+
+    /**
+     * Propaga cambios de metadatos denormalizados del autor en publicaciones y comentarios.
+     *
+     * Esto permite que cambios en perfil (nombre/foto) se reflejen también en contenido
+     * histórico sin depender de joins en cliente al renderizar.
+     */
+    private suspend fun propagateAuthorDataChanges(
+        userId: String,
+        newAuthorName: String? = null,
+        newAuthorPhotoUrl: String? = null
+    ) {
+        if (userId.isBlank()) return
+
+        val postUpdates = mutableMapOf<String, Any>()
+        val commentUpdates = mutableMapOf<String, Any>()
+
+        newAuthorName?.let {
+            postUpdates["authorName"] = it
+            commentUpdates["authorName"] = it
+        }
+
+        newAuthorPhotoUrl?.let {
+            postUpdates["authorPhotoUrl"] = it
+            commentUpdates["authorPhotoUrl"] = it
+        }
+
+        if (postUpdates.isEmpty() && commentUpdates.isEmpty()) return
+
+        val postsDocs = firestore.collection(Constants.COLLECTION_POSTS)
+            .whereEqualTo("authorId", userId)
+            .get()
+            .await()
+            .documents
+
+        val commentDocs = firestore.collection(Constants.COLLECTION_COMMENTS)
+            .whereEqualTo("authorId", userId)
+            .get()
+            .await()
+            .documents
+
+        postsDocs.chunked(400).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { doc ->
+                batch.update(doc.reference, postUpdates)
+            }
+            batch.commit().await()
+        }
+
+        commentDocs.chunked(400).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { doc ->
+                batch.update(doc.reference, commentUpdates)
+            }
+            batch.commit().await()
         }
     }
 }

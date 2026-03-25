@@ -66,6 +66,53 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    fun uploadProfilePhoto(imageUri: String) {
+        val currentState = _uiState.value as? ProfileUiState.Success ?: return
+
+        if (imageUri.isBlank()) {
+            viewModelScope.launch {
+                _snackbarMessage.emit("Selecciona una imagen válida.")
+            }
+            return
+        }
+
+        _uiState.value = currentState.copy(
+            isUploadingPhoto = true,
+            photoUploadError = null
+        )
+
+        profileRepository.updateProfilePhoto(imageUri).onEach { resource ->
+            when (resource) {
+                is Resource.Loading -> Unit
+                is Resource.Success -> {
+                    val latest = _uiState.value as? ProfileUiState.Success ?: currentState
+                    val uploadedPhotoUrl = resource.data.orEmpty()
+                    _uiState.value = latest.copy(
+                        user = latest.user.copy(
+                            photoUrl = uploadedPhotoUrl.ifBlank { latest.user.photoUrl }
+                        ),
+                        isUploadingPhoto = false,
+                        photoUploadError = null
+                    )
+                    viewModelScope.launch {
+                        _snackbarMessage.emit("Foto de perfil actualizada correctamente.")
+                    }
+                }
+                is Resource.Error -> {
+                    val message = resource.message ?: "Error al subir la foto de perfil."
+                    val latest = _uiState.value as? ProfileUiState.Success ?: currentState
+                    _uiState.value = latest.copy(
+                        isUploadingPhoto = false,
+                        photoUploadError = message
+                    )
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(message)
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
     fun logout() {
         authRepository.logout()
     }

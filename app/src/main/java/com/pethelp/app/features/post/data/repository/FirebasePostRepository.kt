@@ -271,6 +271,7 @@ class FirebasePostRepository @Inject constructor(
                 id = doc.id,
                 authorId = doc.getString("authorId") ?: "",
                 authorName = doc.getString("authorName") ?: "",
+                authorPhotoUrl = doc.getString("authorPhotoUrl") ?: "",
                 title = doc.getString("title") ?: "",
                 description = doc.getString("description") ?: "",
                 category = try {
@@ -301,6 +302,7 @@ class FirebasePostRepository @Inject constructor(
     private fun postToMap(post: Post): Map<String, Any?> = mapOf(
         "authorId" to post.authorId,
         "authorName" to post.authorName,
+        "authorPhotoUrl" to post.authorPhotoUrl,
         "title" to post.title,
         "description" to post.description,
         "category" to post.category.name,

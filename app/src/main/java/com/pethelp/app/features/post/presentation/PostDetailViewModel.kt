@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.DocumentSnapshot
+import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.Post
@@ -16,6 +19,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class PostDetailUiState(
@@ -30,6 +34,7 @@ data class PostDetailUiState(
 class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -127,20 +132,35 @@ class PostDetailViewModel @Inject constructor(
         }
         if (text.isBlank()) return
 
-        val comment = Comment(
-            postId = postId,
-            authorId = userId,
-            authorName = currentUserName.ifBlank { "Usuario" },
-            text = text.trim()
-        )
-
         viewModelScope.launch {
+            val userDoc = getCurrentUserDoc(userId)
+            val comment = Comment(
+                postId = postId,
+                authorId = userId,
+                authorName = userDoc?.getString("name")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: currentUserName.ifBlank { "Usuario" },
+                authorPhotoUrl = userDoc?.getString("photoUrl")?.orEmpty() ?: "",
+                text = text.trim()
+            )
+
             postRepository.addComment(comment).collect { resource ->
                 when (resource) {
                     is Resource.Error -> _snackbarMessage.emit(resource.message ?: "Error al comentar.")
                     else -> { /* success handled by live listener */ }
                 }
             }
+        }
+    }
+
+    private suspend fun getCurrentUserDoc(userId: String): DocumentSnapshot? {
+        return try {
+            firestore.collection(Constants.COLLECTION_USERS)
+                .document(userId)
+                .get()
+                .await()
+        } catch (_: Exception) {
+            null
         }
     }
 

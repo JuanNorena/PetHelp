@@ -15,6 +15,14 @@
 .cxx
 local.properties
 
+# CMake
+cmake-build-debug/
+cmake-build-release/
+
+# Temporary logs and caches
+*.log
+.kotlin/
+
 # ── Módulo app ───────────────────────────────────────────────
 app/build/
 app/release/

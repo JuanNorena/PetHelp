@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.AnimalSize
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class CreatePostUiState(
@@ -61,6 +63,7 @@ data class CreatePostUiState(
 class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore,
     private val imageUploader: ImageUploader
 ) : ViewModel() {
 
@@ -143,6 +146,14 @@ class CreatePostViewModel @Inject constructor(
             viewModelScope.launch { _snackbarMessage.emit("Ingresa una descripción.") }
             return
         }
+        if (state.imageUris.isEmpty()) {
+            viewModelScope.launch { _snackbarMessage.emit("Agrega al menos una foto para continuar.") }
+            return
+        }
+        if (state.latitude == 0.0 && state.longitude == 0.0) {
+            viewModelScope.launch { _snackbarMessage.emit("Selecciona una ubicación en el mapa.") }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -163,7 +174,8 @@ class CreatePostViewModel @Inject constructor(
 
                 val post = Post(
                     authorId = currentUser.uid,
-                    authorName = currentUser.displayName ?: "Usuario",
+                    authorName = getCurrentAuthorName(currentUser.uid, currentUser.displayName),
+                    authorPhotoUrl = getCurrentAuthorPhotoUrl(currentUser.uid),
                     title = state.title.trim(),
                     description = state.description.trim(),
                     category = state.category,
@@ -199,5 +211,31 @@ class CreatePostViewModel @Inject constructor(
                 _snackbarMessage.emit(message)
             }
         }
+    }
+
+    private suspend fun getCurrentAuthorName(userId: String, fallback: String?): String {
+        val fromFirestore = firestore.collection(Constants.COLLECTION_USERS)
+            .document(userId)
+            .get()
+            .await()
+            .getString("name")
+            ?.trim()
+            .orEmpty()
+
+        return when {
+            fromFirestore.isNotBlank() -> fromFirestore
+            !fallback.isNullOrBlank() -> fallback
+            else -> "Usuario"
+        }
+    }
+
+    private suspend fun getCurrentAuthorPhotoUrl(userId: String): String {
+        return firestore.collection(Constants.COLLECTION_USERS)
+            .document(userId)
+            .get()
+            .await()
+            .getString("photoUrl")
+            ?.trim()
+            .orEmpty()
     }
 }

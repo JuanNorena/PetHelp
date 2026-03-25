@@ -8,6 +8,29 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+fun localProperty(name: String): String =
+    (localProperties.getProperty(name) ?: "").trim()
+
+fun cloudNameFromUrl(url: String): String {
+    val trimmed = url.trim()
+    if (trimmed.isBlank()) return ""
+    val atIndex = trimmed.lastIndexOf('@')
+    return if (atIndex in 1 until trimmed.length - 1) {
+        trimmed.substring(atIndex + 1)
+    } else {
+        ""
+    }
+}
+
 android {
     namespace = "com.pethelp.app"
     compileSdk = 35
@@ -27,15 +50,19 @@ android {
         //   MAPS_API_KEY=tu_clave_aquí
         //   CLOUDINARY_CLOUD_NAME=tu_cloud_name
         //   OPENAI_API_KEY=tu_openai_key (opcional)
-        val mapsApiKey = project.findProperty("MAPS_API_KEY") as String? ?: ""
+        val mapsApiKey = localProperty("MAPS_API_KEY")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
+        val cloudinaryUrl = localProperty("CLOUDINARY_URL")
+        val cloudinaryCloudName = localProperty("CLOUDINARY_CLOUD_NAME")
+            .ifBlank { cloudNameFromUrl(cloudinaryUrl) }
+
         buildConfigField("String", "CLOUDINARY_CLOUD_NAME",
-            "\"${project.findProperty("CLOUDINARY_CLOUD_NAME") ?: ""}\"")
+            "\"$cloudinaryCloudName\"")
         buildConfigField("String", "CLOUDINARY_UPLOAD_PRESET",
-            "\"${project.findProperty("CLOUDINARY_UPLOAD_PRESET") ?: ""}\"")
+            "\"${localProperty("CLOUDINARY_UPLOAD_PRESET")}\"")
         buildConfigField("String", "OPENAI_API_KEY",
-            "\"${project.findProperty("OPENAI_API_KEY") ?: ""}\"")
+            "\"${localProperty("OPENAI_API_KEY")}\"")
     }
 
     buildTypes {

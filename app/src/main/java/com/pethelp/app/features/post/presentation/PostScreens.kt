@@ -52,28 +52,38 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.ui.theme.BackgroundLight
-import com.pethelp.app.core.ui.theme.ErrorRed
-import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.WarmOrange
+import com.pethelp.app.core.ui.theme.PetHelpDestructive
+import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.PetHelpSecondary
+import com.pethelp.app.core.ui.theme.PetHelpTertiary
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 // ── Colores de diseño (Figma) ────────────────────────────────────────────────
-private val ChipGreenBg = Color(0xFF4CAF50).copy(alpha = 0.1f)
-private val ChipGreenBorder = Color(0xFF4CAF50).copy(alpha = 0.2f)
-private val ChipBlueBg = Color(0xFFEFF6FF)
-private val ChipBlueBorder = Color(0xFFDBEAFE)
-private val ChipBlueText = Color(0xFF1447E6)
-private val ChipPurpleBg = Color(0xFFFAF5FF)
-private val ChipPurpleBorder = Color(0xFFF3E8FF)
-private val ChipPurpleText = Color(0xFF8200DB)
+private val ChipGreenBg = PetHelpPrimary.copy(alpha = 0.1f)
+private val ChipGreenBorder = PetHelpPrimary.copy(alpha = 0.2f)
+private val ChipBlueBg = PetHelpTertiary.copy(alpha=0.1f)
+private val ChipBlueBorder = PetHelpTertiary.copy(alpha=0.2f)
+private val ChipBlueText = PetHelpTertiary
+private val ChipPurpleBg = PetHelpTertiary.copy(alpha=0.1f)
+private val ChipPurpleBorder = PetHelpTertiary.copy(alpha=0.3f)
+private val ChipPurpleText = PetHelpTertiary
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── DETALLE DE PUBLICACIÓN ──────────────────────────────────────────────────
@@ -121,7 +131,7 @@ fun PostDetailScreen(
                     Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = PetHelpGreen)
+                    CircularProgressIndicator(color = PetHelpPrimary)
                 }
             }
             uiState.error != null && uiState.post == null -> {
@@ -132,7 +142,7 @@ fun PostDetailScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = uiState.error ?: "Error desconocido",
-                            color = ErrorRed,
+                            color = PetHelpDestructive,
                             fontSize = 16.sp
                         )
                         Spacer(Modifier.height(16.dp))
@@ -303,7 +313,7 @@ private fun PostDetailContent(
                     Surface(
                         shape = RoundedCornerShape(50),
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                             brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.colorScheme.outlineVariant))
                         )
                     ) {
@@ -320,12 +330,21 @@ private fun PostDetailContent(
                                     .border(1.dp, Color.White, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                if (post.authorPhotoUrl.isNotBlank()) {
+                                    AsyncImage(
+                                        model = post.authorPhotoUrl,
+                                        contentDescription = "Foto del autor",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                             Column {
                                 Text(
@@ -358,7 +377,7 @@ private fun PostDetailContent(
                         label = post.breed.ifBlank { post.animalType.ifBlank { "Mascota" } },
                         backgroundColor = ChipGreenBg,
                         borderColor = ChipGreenBorder,
-                        textColor = PetHelpGreen,
+                        textColor = PetHelpPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     InfoChipCard(
@@ -388,7 +407,7 @@ private fun PostDetailContent(
                         label = if (post.vaccinated) "Vacunada" else "Sin vacunas",
                         backgroundColor = ChipGreenBg,
                         borderColor = ChipGreenBorder,
-                        textColor = PetHelpGreen,
+                        textColor = PetHelpPrimary,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -427,7 +446,7 @@ private fun PostDetailContent(
                             .clip(RoundedCornerShape(50))
                             .clickable { onVoteClick() }
                             .background(
-                                if (hasVoted) WarmOrange.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
+                                if (hasVoted) PetHelpSecondary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(50)
                             )
                             .padding(horizontal = 16.dp, vertical = 10.dp)
@@ -435,14 +454,14 @@ private fun PostDetailContent(
                         Icon(
                             imageVector = if (hasVoted) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Votar",
-                            tint = WarmOrange,
+                            tint = PetHelpSecondary,
                             modifier = Modifier.size(22.dp)
                         )
                         Text(
                             text = "${post.votes}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (hasVoted) WarmOrange else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (hasVoted) PetHelpSecondary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -451,7 +470,7 @@ private fun PostDetailContent(
                         Button(
                             onClick = onAdoptClick,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PetHelpGreen
+                                containerColor = PetHelpPrimary
                             ),
                             shape = RoundedCornerShape(50),
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
@@ -621,7 +640,7 @@ private fun PostDetailContent(
                     ) {
                         Text(
                             "Publicar",
-                            color = WarmOrange,
+                            color = PetHelpSecondary,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp
                         )
@@ -678,7 +697,7 @@ private fun InfoChipCard(
         modifier = modifier.height(64.dp),
         shape = RoundedCornerShape(16.dp),
         color = backgroundColor,
-        border = ButtonDefaults.outlinedButtonBorder.copy(
+        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
             brush = Brush.linearGradient(listOf(borderColor, borderColor))
         )
     ) {
@@ -730,15 +749,24 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(PetHelpGreen.copy(alpha = 0.15f)),
+                .background(PetHelpPrimary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = comment.authorName.firstOrNull()?.uppercase() ?: "U",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = PetHelpGreen
-            )
+            if (comment.authorPhotoUrl.isNotBlank()) {
+                AsyncImage(
+                    model = comment.authorPhotoUrl,
+                    contentDescription = "Foto del autor del comentario",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = comment.authorName.firstOrNull()?.uppercase() ?: "U",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PetHelpPrimary
+                )
+            }
         }
         Column(modifier = Modifier.weight(1f)) {
             Row(
@@ -816,6 +844,24 @@ fun CreatePostScreen(
         }
     }
 
+    val defaultLatLng = remember {
+        LatLng(4.535, -75.675) // Armenia, Quindio (fallback inicial)
+    }
+    val selectedLatLng = remember(uiState.latitude, uiState.longitude) {
+        if (uiState.latitude != 0.0 || uiState.longitude != 0.0) {
+            LatLng(uiState.latitude, uiState.longitude)
+        } else {
+            defaultLatLng
+        }
+    }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(selectedLatLng, 13f)
+    }
+
+    LaunchedEffect(selectedLatLng.latitude, selectedLatLng.longitude) {
+        cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 13f))
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = BackgroundLight,
@@ -860,7 +906,7 @@ fun CreatePostScreen(
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = PetHelpGreen.copy(alpha = 0.6f),
+                        tint = PetHelpPrimary.copy(alpha = 0.6f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -887,7 +933,7 @@ fun CreatePostScreen(
                             .height(64.dp),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpGreen
+                            containerColor = PetHelpPrimary
                         ),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 10.dp
@@ -902,13 +948,13 @@ fun CreatePostScreen(
                             )
                         } else {
                             Icon(
-                                Icons.Default.LocationOn,
+                                Icons.Default.Check,
                                 contentDescription = null,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                "Siguiente: Ubicación",
+                                "Publicar",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
                                 letterSpacing = 0.45.sp
@@ -930,10 +976,10 @@ fun CreatePostScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = PetHelpGreen.copy(alpha = 0.05f),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                    color = PetHelpPrimary.copy(alpha = 0.05f),
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         brush = Brush.linearGradient(
-                            listOf(PetHelpGreen.copy(alpha = 0.4f), PetHelpGreen.copy(alpha = 0.4f))
+                            listOf(PetHelpPrimary.copy(alpha = 0.4f), PetHelpPrimary.copy(alpha = 0.4f))
                         )
                     )
                 ) {
@@ -958,14 +1004,14 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(64.dp)
-                                        .background(PetHelpGreen.copy(alpha = 0.15f), CircleShape),
+                                        .background(PetHelpPrimary.copy(alpha = 0.15f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.CameraAlt,
                                         contentDescription = "Agregar fotos",
                                         modifier = Modifier.size(30.dp),
-                                        tint = PetHelpGreen
+                                        tint = PetHelpPrimary
                                     )
                                 }
                                 Row {
@@ -978,7 +1024,7 @@ fun CreatePostScreen(
                                         "5 fotos",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = PetHelpGreen
+                                        color = PetHelpPrimary
                                     )
                                 }
                             }
@@ -1052,7 +1098,7 @@ fun CreatePostScreen(
                                                 .clip(RoundedCornerShape(16.dp))
                                                 .border(
                                                     1.dp,
-                                                    PetHelpGreen.copy(alpha = 0.4f),
+                                                    PetHelpPrimary.copy(alpha = 0.4f),
                                                     RoundedCornerShape(16.dp)
                                                 )
                                                 .background(Color.White)
@@ -1066,7 +1112,7 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.Add,
                                                 contentDescription = "Agregar más",
-                                                tint = PetHelpGreen,
+                                                tint = PetHelpPrimary,
                                                 modifier = Modifier.size(28.dp)
                                             )
                                         }
@@ -1102,7 +1148,7 @@ fun CreatePostScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PetHelpGreen,
+                                focusedBorderColor = PetHelpPrimary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White
@@ -1134,7 +1180,7 @@ fun CreatePostScreen(
                                 .height(154.dp),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PetHelpGreen,
+                                focusedBorderColor = PetHelpPrimary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White
@@ -1148,9 +1194,9 @@ fun CreatePostScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         brush = Brush.linearGradient(
-                            listOf(PetHelpGreen.copy(alpha = 0.2f), PetHelpGreen.copy(alpha = 0.2f))
+                            listOf(PetHelpPrimary.copy(alpha = 0.2f), PetHelpPrimary.copy(alpha = 0.2f))
                         )
                     ),
                     color = Color.Transparent
@@ -1161,7 +1207,7 @@ fun CreatePostScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        PetHelpGreen.copy(alpha = 0.1f),
+                                        PetHelpPrimary.copy(alpha = 0.1f),
                                         Color.Transparent
                                     )
                                 )
@@ -1178,13 +1224,13 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(PetHelpGreen.copy(alpha = 0.2f), CircleShape),
+                                        .background(PetHelpPrimary.copy(alpha = 0.2f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.AutoAwesome,
                                         contentDescription = null,
-                                        tint = PetHelpGreen,
+                                        tint = PetHelpPrimary,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -1197,13 +1243,13 @@ fun CreatePostScreen(
                                     Text(
                                         "Analizamos tu foto y texto automáticamente",
                                         fontSize = 11.sp,
-                                        color = PetHelpGreen.copy(alpha = 0.8f)
+                                        color = PetHelpPrimary.copy(alpha = 0.8f)
                                     )
                                 }
                                 Icon(
                                     Icons.Default.AutoAwesome,
                                     contentDescription = null,
-                                    tint = PetHelpGreen.copy(alpha = 0.6f),
+                                    tint = PetHelpPrimary.copy(alpha = 0.6f),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -1214,9 +1260,9 @@ fun CreatePostScreen(
                                 Surface(
                                     shape = RoundedCornerShape(24.dp),
                                     color = Color.White,
-                                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                                         brush = Brush.linearGradient(
-                                            listOf(PetHelpGreen.copy(alpha = 0.2f), PetHelpGreen.copy(alpha = 0.2f))
+                                            listOf(PetHelpPrimary.copy(alpha = 0.2f), PetHelpPrimary.copy(alpha = 0.2f))
                                         )
                                     ),
                                     modifier = Modifier
@@ -1238,7 +1284,7 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.AutoAwesome,
                                                 contentDescription = null,
-                                                tint = PetHelpGreen,
+                                                tint = PetHelpPrimary,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                             Text(
@@ -1298,7 +1344,7 @@ fun CreatePostScreen(
                                 label = label,
                                 icon = icon,
                                 selected = selected,
-                                accentColor = PetHelpGreen,
+                                accentColor = PetHelpPrimary,
                                 onClick = { viewModel.updateAnimalType(label) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -1325,12 +1371,70 @@ fun CreatePostScreen(
                             SelectableChip(
                                 label = size.displayName,
                                 selected = uiState.size == size,
-                                accentColor = PetHelpGreen,
+                                accentColor = PetHelpPrimary,
                                 onClick = { viewModel.updateSize(size) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
                     }
+                }
+            }
+
+            // ── Ubicación en mapa ─────────────────────────────────────
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Ubicación",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        letterSpacing = 0.35.sp
+                    )
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                            brush = Brush.linearGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.outlineVariant,
+                                    MaterialTheme.colorScheme.outlineVariant
+                                )
+                            )
+                        )
+                    ) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            properties = MapProperties(isMyLocationEnabled = false),
+                            onMapClick = { latLng ->
+                                val formattedName = "Lat: %.5f, Lng: %.5f".format(
+                                    Locale.US,
+                                    latLng.latitude,
+                                    latLng.longitude
+                                )
+                                viewModel.updateLocation(latLng.latitude, latLng.longitude, formattedName)
+                            }
+                        ) {
+                            Marker(
+                                state = MarkerState(position = selectedLatLng),
+                                title = "Ubicación seleccionada",
+                                snippet = if (uiState.locationName.isNotBlank()) uiState.locationName else null
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = if (uiState.locationName.isNotBlank()) {
+                            "Seleccionada: ${uiState.locationName}"
+                        } else {
+                            "Toca el mapa para seleccionar una ubicación."
+                        },
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -1359,7 +1463,7 @@ private fun SelectableChip(
         modifier = modifier.height(50.dp),
         shape = RoundedCornerShape(50),
         color = if (selected) accentColor.copy(alpha = 0.1f) else Color.White,
-        border = ButtonDefaults.outlinedButtonBorder.copy(
+        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
             brush = Brush.linearGradient(
                 listOf(
                     if (selected) accentColor else MaterialTheme.colorScheme.outline,

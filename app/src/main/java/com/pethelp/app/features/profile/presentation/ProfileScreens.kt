@@ -1,5 +1,8 @@
 package com.pethelp.app.features.profile.presentation
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,13 +46,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.domain.model.UserLevel
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
-import com.pethelp.app.core.ui.theme.PetHelpGreen
-import com.pethelp.app.core.ui.theme.WarmOrange
+import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.PetHelpSecondary
+import com.pethelp.app.core.ui.theme.PetHelpSecondaryDark
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -68,7 +74,7 @@ fun ProfileScreen(
         when (uiState) {
             is ProfileUiState.Loading -> {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = PetHelpGreen)
+                    CircularProgressIndicator(color = PetHelpPrimary)
                 }
             }
             is ProfileUiState.Error -> {
@@ -107,7 +113,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
             modifier = Modifier
                 .offset(x = (-96).dp, y = 40.dp)
                 .size(288.dp)
-                .background(Color(0xFF4CAF50).copy(alpha = 0.06f), CircleShape)
+                .background(PetHelpPrimary.copy(alpha = 0.06f), CircleShape)
         )
         Box(
             modifier = Modifier
@@ -134,11 +140,11 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                     modifier = Modifier
                         .background(
                             brush = Brush.horizontalGradient(
-                                listOf(Color(0xFF4CAF50).copy(alpha = 0.15f), Color(0xFF66BB6A).copy(alpha = 0.15f))
+                                listOf(PetHelpPrimary.copy(alpha = 0.15f), PetHelpPrimary.copy(alpha = 0.15f))
                             ),
                             shape = RoundedCornerShape(50)
                         )
-                        .border(1.dp, Color(0xFF4CAF50).copy(alpha = 0.2f), RoundedCornerShape(50))
+                        .border(1.dp, PetHelpPrimary.copy(alpha = 0.2f), RoundedCornerShape(50))
                         .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
                 ) {
                     Row(
@@ -149,14 +155,14 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                             modifier = Modifier
                                 .size(20.dp)
                                 .background(
-                                    brush = Brush.verticalGradient(listOf(PetHelpGreen, Color(0xFF66BB6A))),
+                                    brush = Brush.verticalGradient(listOf(PetHelpPrimary, PetHelpPrimary)),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Filled.Star, null, tint = Color.White, modifier = Modifier.size(10.dp))
                         }
-                        Text("Nivel ${user.level.ordinal + 1}", color = PetHelpGreen, fontSize = 12.sp)
+                        Text("Nivel ${user.level.ordinal + 1}", color = PetHelpPrimary, fontSize = 12.sp)
                     }
                 }
 
@@ -201,11 +207,11 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 modifier = Modifier
                     .background(
                         brush = Brush.horizontalGradient(
-                            listOf(Color(0xFF4CAF50).copy(alpha = 0.15f), Color(0xFF66BB6A).copy(alpha = 0.1f))
+                            listOf(PetHelpPrimary.copy(alpha = 0.15f), PetHelpPrimary.copy(alpha = 0.1f))
                         ),
                         shape = RoundedCornerShape(50)
                     )
-                    .border(1.dp, Color(0xFF4CAF50).copy(alpha = 0.25f), RoundedCornerShape(50))
+                    .border(1.dp, PetHelpPrimary.copy(alpha = 0.25f), RoundedCornerShape(50))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text("👑 ${user.level.displayName}", color = Color(0xFF0A0A0A), fontSize = 14.sp)
@@ -246,7 +252,7 @@ private fun ProfileAvatarWithRing(user: User) {
             )
             // Arco de progreso verde
             drawArc(
-                color = Color(0xFF4CAF50),
+                color = PetHelpPrimary,
                 startAngle = -90f, sweepAngle = progress * 360f, useCenter = false,
                 style = Stroke(strokeW, cap = StrokeCap.Round),
                 topLeft = tl, size = arcSize
@@ -261,7 +267,28 @@ private fun ProfileAvatarWithRing(user: User) {
                 .border(3.dp, Color.White, CircleShape)
                 .clip(CircleShape)
                 .background(Color(0xFFB0BEC5))
-        )
+        ) {
+            if (user.photoUrl.isNotBlank()) {
+                AsyncImage(
+                    model = user.photoUrl,
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(42.dp)
+                    )
+                }
+            }
+        }
 
         // Badge de porcentaje debajo del avatar
         Box(
@@ -271,9 +298,9 @@ private fun ProfileAvatarWithRing(user: User) {
         ) {
             Row(
                 modifier = Modifier
-                    .shadow(4.dp, RoundedCornerShape(50), spotColor = Color(0xFF4CAF50).copy(alpha = 0.3f))
+                    .shadow(4.dp, RoundedCornerShape(50), spotColor = PetHelpPrimary.copy(alpha = 0.3f))
                     .background(
-                        brush = Brush.verticalGradient(listOf(Color(0xFF4CAF50), Color(0xFF66BB6A))),
+                        brush = Brush.verticalGradient(listOf(PetHelpPrimary, PetHelpPrimary)),
                         shape = RoundedCornerShape(50)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -297,15 +324,15 @@ private fun PointsCardSection(points: Int) {
             .height(140.dp)
             .shadow(
                 8.dp, RoundedCornerShape(24.dp),
-                spotColor = Color(0xFFFF8A65).copy(alpha = 0.2f),
-                ambientColor = Color(0xFFFF8A65).copy(alpha = 0.2f)
+                spotColor = PetHelpSecondary.copy(alpha = 0.2f),
+                ambientColor = PetHelpSecondary.copy(alpha = 0.2f)
             )
             .clip(RoundedCornerShape(24.dp))
     ) {
         // Fondo degradado naranja (Figma: from-[#ff8a65] to-[#f4511e])
         Box(
             modifier = Modifier.fillMaxSize().background(
-                brush = Brush.horizontalGradient(listOf(Color(0xFFFF8A65), Color(0xFFF4511E)))
+                brush = Brush.horizontalGradient(listOf(PetHelpSecondary, PetHelpSecondaryDark))
             )
         )
         // Círculos decorativos internos
@@ -371,13 +398,13 @@ private fun StatsGrid2x2Section(user: User) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpGreen, iconBg = PetHelpGreen.copy(alpha = 0.1f),
+                iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
                 value = "$levelNum", label = "Nivel actual",
                 icon = Icons.Filled.Star
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpGreen, iconBg = PetHelpGreen.copy(alpha = 0.1f),
+                iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
                 value = memberSince, label = "Miembro desde",
                 icon = Icons.Filled.CalendarToday, smallValue = true
             )
@@ -385,13 +412,13 @@ private fun StatsGrid2x2Section(user: User) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = WarmOrange, iconBg = WarmOrange.copy(alpha = 0.1f),
+                iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
                 value = "$badgeCount", label = "Insignias",
                 icon = Icons.Filled.EmojiEvents
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = WarmOrange, iconBg = WarmOrange.copy(alpha = 0.1f),
+                iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
                 value = "$prefCount", label = "Preferencias",
                 icon = Icons.Filled.Favorite
             )
@@ -455,9 +482,9 @@ private fun QuickAccessSection(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
-                QuickAccessRow(Icons.AutoMirrored.Filled.List, PetHelpGreen.copy(alpha = 0.1f), PetHelpGreen, "Mis publicaciones", {}, true)
-                QuickAccessRow(Icons.Filled.Favorite, WarmOrange.copy(alpha = 0.1f), WarmOrange, "Favoritos", {}, true)
-                QuickAccessRow(Icons.Filled.Shield, PetHelpGreen.copy(alpha = 0.1f), PetHelpGreen, "Panel de Moderación",
+                QuickAccessRow(Icons.AutoMirrored.Filled.List, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, "Mis publicaciones", {}, true)
+                QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, "Favoritos", {}, true)
+                QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, "Panel de Moderación",
                     { navController.navigate(Screen.ModeratorPanel) }, true)
                 QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), "Configuración",
                     { navController.navigate(Screen.EditProfile) }, false)
@@ -524,18 +551,36 @@ fun EditProfileScreen(
     // SnackBar
     val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     if (uiState is ProfileUiState.Success) {
-        val user = (uiState as ProfileUiState.Success).user
+        val successState = uiState as ProfileUiState.Success
+        val user = successState.user
+        val isUploadingPhoto = successState.isUploadingPhoto
         
         var name by remember { mutableStateOf(user.name) }
         var bio by remember { mutableStateOf(user.bio) }
         var city by remember { mutableStateOf(user.city) }
         var alertsNearMe by remember { mutableStateOf(user.alertsNearMe) }
 
+        val photoPickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.PickVisualMedia(),
+            onResult = { uri ->
+                if (uri != null) {
+                    viewModel.uploadProfilePhoto(uri.toString())
+                }
+            }
+        )
+
         // Mock preferences for now
         val preferences = remember { mutableStateListOf(*user.petPreferences.toTypedArray()) }
 
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = { Text("Editar Perfil", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
@@ -562,7 +607,7 @@ fun EditProfileScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary)
                     ) {
                         Text(stringResource(R.string.btn_save_changes), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -583,26 +628,66 @@ fun EditProfileScreen(
                      Box(
                          modifier = Modifier
                              .size(100.dp)
-                             .background(Color.LightGray, CircleShape)
-                     )
+                             .clip(CircleShape)
+                             .background(Color.LightGray)
+                             .clickable(enabled = !isUploadingPhoto) {
+                                 photoPickerLauncher.launch(
+                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                 )
+                             }
+                     ) {
+                         if (user.photoUrl.isNotBlank()) {
+                             AsyncImage(
+                                 model = user.photoUrl,
+                                 contentDescription = "Foto de perfil",
+                                 modifier = Modifier.fillMaxSize(),
+                                 contentScale = ContentScale.Crop
+                             )
+                         } else {
+                             Box(
+                                 modifier = Modifier.fillMaxSize(),
+                                 contentAlignment = Alignment.Center
+                             ) {
+                                 Icon(
+                                     Icons.Filled.Person,
+                                     contentDescription = null,
+                                     tint = Color.White,
+                                     modifier = Modifier.size(42.dp)
+                                 )
+                             }
+                         }
+                     }
 
                      // Camera overlay
                      Box(
                          modifier = Modifier
                              .align(Alignment.BottomEnd)
                              .size(32.dp)
-                             .background(PetHelpGreen, CircleShape)
+                             .background(PetHelpPrimary, CircleShape)
                              .border(2.dp, Color.White, CircleShape),
                          contentAlignment = Alignment.Center
                      ) {
-                         Icon(Icons.Filled.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                         if (isUploadingPhoto) {
+                             CircularProgressIndicator(
+                                 modifier = Modifier.size(16.dp),
+                                 color = Color.White,
+                                 strokeWidth = 2.dp
+                             )
+                         } else {
+                             Icon(
+                                 Icons.Filled.CameraAlt,
+                                 contentDescription = null,
+                                 tint = Color.White,
+                                 modifier = Modifier.size(16.dp)
+                             )
+                         }
                      }
                 }
 
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.edit_profile_change_photo),
-                    color = PetHelpGreen,
+                    color = PetHelpPrimary,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -618,7 +703,7 @@ fun EditProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpGreen
+                         focusedBorderColor = PetHelpPrimary
                     )
                 )
 
@@ -633,7 +718,7 @@ fun EditProfileScreen(
                     shape = RoundedCornerShape(16.dp),
                     maxLines = 4,
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpGreen
+                         focusedBorderColor = PetHelpPrimary
                     )
                 )
 
@@ -647,7 +732,7 @@ fun EditProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpGreen
+                         focusedBorderColor = PetHelpPrimary
                     )
                 )
 
@@ -679,7 +764,7 @@ fun EditProfileScreen(
                     Switch(
                         checked = alertsNearMe,
                         onCheckedChange = { alertsNearMe = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PetHelpGreen)
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PetHelpPrimary)
                     )
                 }
 
@@ -688,7 +773,7 @@ fun EditProfileScreen(
         }
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = PetHelpGreen)
+            CircularProgressIndicator(color = PetHelpPrimary)
         }
     }
 }
@@ -700,7 +785,7 @@ fun PreferenceChip(label: String, preferences: MutableList<String>) {
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = if (selected) PetHelpGreen else Color(0xFFE5E7EB),
+                color = if (selected) PetHelpPrimary else Color(0xFFE5E7EB),
                 shape = RoundedCornerShape(20.dp)
             )
             .background(
