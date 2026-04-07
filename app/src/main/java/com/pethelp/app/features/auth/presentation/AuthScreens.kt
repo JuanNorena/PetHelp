@@ -317,6 +317,8 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -394,6 +396,8 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF101828),
+                    unfocusedTextColor = Color(0xFF101828),
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     focusedBorderColor = PetHelpPrimary,
@@ -447,6 +451,8 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF101828),
+                    unfocusedTextColor = Color(0xFF101828),
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     focusedBorderColor = PetHelpPrimary,
@@ -641,152 +647,163 @@ fun RegisterScreen(
             offsetY = 597.dp
         )
 
+        // ── Contenido Scrollable ──
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding()
         ) {
-            // ── Header con botón atrás ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(96.dp)
-                    .padding(start = 24.dp),
-                contentAlignment = Alignment.CenterStart
+                    .defaultMinSize(minHeight = 800.dp) // Aproximación, idealmente usar BoxWithConstraints
             ) {
-                BackButton(onClick = { navController.popBackStack() })
-            }
-
-            // ── Contenido principal ──
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                // ── Título ──
-                Text(
-                    text = stringResource(R.string.register_heading),
-                    style = MaterialTheme.typography.displaySmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 36.sp,
-                        lineHeight = 40.sp,
-                        letterSpacing = (-0.9).sp
-                    ),
-                    color = Color(0xFF101828)
-                )
-
-                Spacer(Modifier.height(32.dp))
-
-                // ── Campo Nombre completo ──
-                AuthTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = stringResource(R.string.name_hint),
-                    leadingIcon = Icons.Filled.Person,
-                    keyboardType = KeyboardType.Text
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // ── Campo Correo electrónico ──
-                AuthTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = stringResource(R.string.email_hint),
-                    leadingIcon = Icons.Filled.Email,
-                    keyboardType = KeyboardType.Email
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // ── Campo Contraseña ──
-                AuthTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = stringResource(R.string.password_hint),
-                    leadingIcon = Icons.Filled.Lock,
-                    keyboardType = KeyboardType.Password,
-                    isPassword = true,
-                    passwordVisible = passwordVisible,
-                    onTogglePassword = { passwordVisible = !passwordVisible }
-                )
-
-                // ── Indicador de fortaleza ──
-                Spacer(Modifier.height(8.dp))
-                PasswordStrengthIndicator(password)
-
-                Spacer(Modifier.height(24.dp))
-
-                // ── Checkbox términos ──
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = termsAccepted,
-                        onCheckedChange = { termsAccepted = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = PetHelpPrimary,
-                            uncheckedColor = Color(0xFFD1D5DC)
-                        )
-                    )
-                    Text(
-                        text = stringResource(R.string.terms_prefix),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = Color(0xFF4A5565)
-                    )
-                    Text(
-                        text = stringResource(R.string.terms_link),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = PetHelpPrimary,
-                        modifier = Modifier.clickable { showTermsDialog = true }
-                    )
-                }
-
-                Spacer(Modifier.height(32.dp))
-
-                // ── Botón Registrarme ──
-                val isFormValid = name.isNotBlank() && email.isNotBlank()
-                        && password.length >= 6 && termsAccepted
-                Button(
-                    onClick = {
-                        viewModel.register(name.trim(), email.trim(), password)
-                    },
-                    enabled = isFormValid && uiState !is AuthUiState.Loading,
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PetHelpPrimary,
-                        disabledContainerColor = Color(0xFFD1D5DC).copy(alpha = 0.5f)
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = if (isFormValid) 10.dp else 0.dp,
-                        pressedElevation = 4.dp
-                    ),
+                // ── Flecha atrás (Arriba, un poco más baja) ──
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .padding(top = 60.dp, start = 20.dp),
+                    contentAlignment = Alignment.TopStart
                 ) {
-                    if (uiState is AuthUiState.Loading) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.btn_register_me),
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                letterSpacing = 0.45.sp
+                    BackButton(onClick = { navController.popBackStack() })
+                }
+
+                // ── Bloque de Registro Centrado ──
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 120.dp)
+                        .align(Alignment.Center),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // ── Título ──
+                    Text(
+                        text = stringResource(R.string.register_heading),
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 32.sp,
+                            lineHeight = 38.sp,
+                            letterSpacing = (-0.5).sp
+                        ),
+                        color = Color(0xFF101828)
+                    )
+
+                    Spacer(Modifier.height(32.dp))
+
+                    // ── Campo Nombre completo ──
+                    AuthTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        placeholder = stringResource(R.string.name_hint),
+                        leadingIcon = Icons.Filled.Person,
+                        keyboardType = KeyboardType.Text
+                    )
+
+                    Spacer(Modifier.height(20.dp))
+
+                    // ── Campo Correo electrónico ──
+                    AuthTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = stringResource(R.string.email_hint),
+                        leadingIcon = Icons.Filled.Email,
+                        keyboardType = KeyboardType.Email
+                    )
+
+                    Spacer(Modifier.height(20.dp))
+
+                    // ── Campo Contraseña ──
+                    AuthTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = stringResource(R.string.password_hint),
+                        leadingIcon = Icons.Filled.Lock,
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
+                        passwordVisible = passwordVisible,
+                        onTogglePassword = { passwordVisible = !passwordVisible }
+                    )
+
+                    // ── Indicador de fortaleza ──
+                    Spacer(Modifier.height(8.dp))
+                    PasswordStrengthIndicator(password)
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // ── Checkbox términos ──
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = termsAccepted,
+                            onCheckedChange = { termsAccepted = it },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = PetHelpPrimary,
+                                uncheckedColor = Color(0xFFD1D5DC)
                             )
                         )
+                        Text(
+                            text = stringResource(R.string.terms_prefix),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = Color(0xFF4A5565)
+                        )
+                        Text(
+                            text = stringResource(R.string.terms_link),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = PetHelpPrimary,
+                            modifier = Modifier.clickable { showTermsDialog = true }
+                        )
+                    }
+
+                    Spacer(Modifier.height(32.dp))
+
+                    // ── Botón Registrarme ──
+                    val isFormValid = name.isNotBlank() && email.isNotBlank()
+                            && password.length >= 6 && termsAccepted
+                    Button(
+                        onClick = {
+                            viewModel.register(name.trim(), email.trim(), password)
+                        },
+                        enabled = isFormValid && uiState !is AuthUiState.Loading,
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PetHelpPrimary,
+                            disabledContainerColor = Color(0xFFD1D5DC).copy(alpha = 0.5f)
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = if (isFormValid) 10.dp else 0.dp,
+                            pressedElevation = 4.dp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                    ) {
+                        if (uiState is AuthUiState.Loading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.btn_register_me),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    letterSpacing = 0.45.sp
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -1222,6 +1239,8 @@ private fun AuthTextField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color(0xFF101828),
+            unfocusedTextColor = Color(0xFF101828),
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
             focusedBorderColor = PetHelpPrimary,
