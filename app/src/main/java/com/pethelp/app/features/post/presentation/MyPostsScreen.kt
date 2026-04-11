@@ -1,6 +1,5 @@
 package com.pethelp.app.features.post.presentation
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,79 +11,64 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.pethelp.app.R
-import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.theme.BackgroundLight
+import com.pethelp.app.core.ui.theme.PetHelpDestructive
 import com.pethelp.app.core.ui.theme.PetHelpPrimary
 import com.pethelp.app.core.ui.theme.PetHelpSecondary
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPostsScreen(
     navController: NavController,
     viewModel: MyPostsViewModel = hiltViewModel()
 ) {
-    val postsState by viewModel.postsState.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Activas", "En revisión", "Finalizadas")
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val filteredPosts by viewModel.filteredPosts.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collect { msg ->
+            snackbarHostState.showSnackbar(msg)
+        }
+    }
+
+    uiState.postPendingDelete?.let { post ->
+        DeleteConfirmationDialog(
+            petName = post.title,
+            onConfirm = { viewModel.confirmDelete() },
+            onDismiss = { viewModel.cancelDelete() }
+        )
+    }
 
     Scaffold(
-        containerColor = Color(0xFFF9FAFB),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = BackgroundLight,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Mis Publicaciones",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = Color(0xFF101828)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
-                    }
-                },
-                actions = {
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .size(36.dp)
-                            .background(Color(0xFFE8F5E9), CircleShape)
-                            .clip(CircleShape)
-                            .clickable { navController.navigate(Screen.CreatePost) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Nuevo",
-                            tint = PetHelpPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            MyPostsTopBar(
+                onBackClick = { navController.popBackStack() },
+                onAddClick  = { navController.navigate(Screen.CreatePost) }
             )
         },
         floatingActionButton = {
@@ -92,10 +76,9 @@ fun MyPostsScreen(
                 onClick = { navController.navigate(Screen.CreatePost) },
                 containerColor = PetHelpSecondary,
                 contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.padding(16.dp)
+                shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Publicar")
+                Icon(Icons.Default.Add, contentDescription = "Nueva publicación")
             }
         }
     ) { padding ->
@@ -103,282 +86,475 @@ fun MyPostsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF9FAFB))
         ) {
-            // ── Tabs de Filtro ──
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                color = Color(0xFFF2F4F7),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        val selected = selectedTab == index
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(if (selected) Color.White else Color.Transparent)
-                                .then(if (selected) Modifier.shadow(if (selected) 1.dp else 0.dp, RoundedCornerShape(20.dp)) else Modifier)
-                                .clickable { selectedTab = index },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = title,
-                                fontSize = 14.sp,
-                                color = if (selected) Color(0xFF101828) else Color(0xFF667085),
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            }
+            MyPostsTabRow(
+                selectedTab   = uiState.selectedTab,
+                onTabSelected = viewModel::selectTab
+            )
 
-            // ── Lista de Publicaciones ──
-            when (val state = postsState) {
-                is Resource.Loading -> {
+            when {
+                uiState.isLoading && uiState.allPosts.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = PetHelpPrimary)
                     }
                 }
-                is Resource.Error -> {
+                uiState.error != null && uiState.allPosts.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(state.message ?: "Error desconocido", color = Color.Red)
+                        Text(
+                            text = uiState.error!!,
+                            color = PetHelpDestructive,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(24.dp)
+                        )
                     }
                 }
-                is Resource.Success -> {
-                    val allPosts = state.data ?: emptyList()
-                    val filteredPosts = when (selectedTab) {
-                        0 -> allPosts.filter { it.status == PostStatus.VERIFIED }
-                        1 -> allPosts.filter { it.status == PostStatus.PENDING || it.status == PostStatus.REJECTED }
-                        else -> allPosts.filter { it.status == PostStatus.RESOLVED }
-                    }
-
-                    if (filteredPosts.isEmpty()) {
-                        EmptyState(tabs[selectedTab])
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(filteredPosts) { post ->
-                                MyPostCard(
-                                    post = post,
-                                    onEdit = { navController.navigate(Screen.EditPost(post.id)) },
-                                    onDelete = { viewModel.deletePost(post.id) },
-                                    onToggleStatus = { viewModel.togglePostStatus(post.id, it) },
-                                    onMarkResolved = { viewModel.markAsResolved(post.id) }
-                                )
-                            }
-                        }
-                    }
+                filteredPosts.isEmpty() -> { /* tab vacía: no mostrar nada */ }
+                else -> {
+                    MyPostsList(
+                        posts           = filteredPosts,
+                        isDeleting      = uiState.isDeleting,
+                        onEditClick     = { navController.navigate(Screen.EditPost(it.id)) },
+                        onDeleteClick   = { viewModel.requestDelete(it) },
+                        onPauseClick    = { viewModel.pausePost(it.id) },
+                        onResolvedClick = { viewModel.markAsResolved(it.id) }
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyPostCard(
-    post: Post,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onToggleStatus: (Boolean) -> Unit,
-    onMarkResolved: () -> Unit
+private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "Mis Publicaciones",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver"
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onAddClick) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(PetHelpPrimary, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Nueva publicación",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+    )
+}
+
+@Composable
+private fun MyPostsTabRow(
+    selectedTab: MyPostsTab,
+    onTabSelected: (MyPostsTab) -> Unit
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(24.dp)),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF2F4F7))
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(50)
+            )
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-                // Imagen
-                AsyncImage(
-                    model = post.imageUrls.firstOrNull() ?: R.drawable.img_happy_puppy,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(20.dp)),
-                    contentScale = ContentScale.Crop
-                )
-
-                Spacer(Modifier.width(16.dp))
-
-                // Info principal
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = post.title,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF101828)
-                        )
-                        StatusBadge(post.status)
-                    }
-
-                    Text(
-                        text = "${post.animalType} • ${post.breed}",
-                        fontSize = 14.sp,
-                        color = Color(0xFF667085)
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(post.locationName, fontSize = 13.sp, color = Color(0xFF667085))
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CalendarToday, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        val date = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(Date(post.createdAt))
-                        Text(date, fontSize = 13.sp, color = Color(0xFF667085))
-                    }
-                }
-            }
-
-            // Banner de Rechazo (Imagen 2 del usuario)
-            if (post.status == PostStatus.REJECTED) {
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFFFFBFA), RoundedCornerShape(12.dp))
-                        .border(1.dp, Color(0xFFFDA29B), RoundedCornerShape(12.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.ErrorOutline, null, tint = Color(0xFFD92D20), modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        post.rejectionReason ?: "Tu publicación no cumple con nuestras normas. Por favor edítala.",
-                        color = Color(0xFFB42318),
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp
-                    )
-                }
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 1.dp, color = Color(0xFFF2F4F7))
-
-            // Acciones y Métricas
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        MyPostsTab.entries.forEach { tab ->
+            val isSelected = tab == selectedTab
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(50))
+                    .background(if (isSelected) PetHelpPrimary else Color.Transparent)
+                    .clickable { onTabSelected(tab) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                // Iconos de acciones a la izquierda
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Icon(
-                        Icons.Outlined.Edit,
-                        null,
-                        tint = Color(0xFF667085),
-                        modifier = Modifier.size(22.dp).clickable { onEdit() }
-                    )
-                    
-                    // Solo mostramos Pausa/Play si está Activa o en Revisión (pero no Rechazada)
-                    if (post.status == PostStatus.VERIFIED || post.status == PostStatus.PENDING) {
-                        val isPaused = post.status == PostStatus.PENDING
-                        Icon(
-                            if (isPaused) Icons.Outlined.PlayCircleOutline else Icons.Outlined.PauseCircleOutline,
-                            null,
-                            tint = Color(0xFF667085),
-                            modifier = Modifier.size(22.dp).clickable { onToggleStatus(!isPaused) }
-                        )
-                    }
-                }
-
-                // Botón "Adoptado" central (solo si es activa)
-                if (post.status == PostStatus.VERIFIED) {
-                    Button(
-                        onClick = onMarkResolved,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFECFDF3), contentColor = Color(0xFF027A48)),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Adoptado", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                // Icono de eliminar a la derecha
-                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Outlined.Delete, null, tint = Color(0xFFFDA29B), modifier = Modifier.size(22.dp))
-                }
+                Text(
+                    text = tab.label,
+                    color = if (isSelected) Color.White
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    fontSize = 13.sp
+                )
             }
         }
     }
 }
 
 @Composable
-fun StatusBadge(status: PostStatus) {
-    val (color, text) = when (status) {
-        PostStatus.VERIFIED -> Color(0xFF027A48) to "ACTIVA"
-        PostStatus.PENDING -> Color(0xFFF79009) to "EN REVISIÓN"
-        PostStatus.REJECTED -> Color(0xFFD92D20) to "RECHAZADA"
-        PostStatus.RESOLVED -> Color(0xFF7F56D9) to "ADOPTADA"
+private fun MyPostsList(
+    posts: List<Post>,
+    isDeleting: Boolean,
+    onEditClick: (Post) -> Unit,
+    onDeleteClick: (Post) -> Unit,
+    onPauseClick: (Post) -> Unit,
+    onResolvedClick: (Post) -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(posts, key = { it.id }) { post ->
+            MyPostCard(
+                post            = post,
+                isDeleting      = isDeleting,
+                onEditClick     = { onEditClick(post) },
+                onDeleteClick   = { onDeleteClick(post) },
+                onPauseClick    = { onPauseClick(post) },
+                onResolvedClick = { onResolvedClick(post) }
+            )
+        }
     }
+}
 
-    Surface(
-        color = color.copy(alpha = 0.1f),
-        shape = RoundedCornerShape(8.dp)
+@Composable
+private fun MyPostCard(
+    post: Post,
+    isDeleting: Boolean,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onPauseClick: () -> Unit,
+    onResolvedClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            // ── Fila principal: imagen + datos ────────────────────────────────
+            Row(verticalAlignment = Alignment.Top) {
+                // Miniatura
+                if (post.imageUrls.isNotEmpty()) {
+                    AsyncImage(
+                        model = post.imageUrls.first(),
+                        contentDescription = post.title,
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Pets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                // Contenido derecho
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Badge de estado (siempre arriba, por sí solo)
+                    PostStatusBadge(post.status)
+
+                    // Nombre del post
+                    Text(
+                        text = post.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    // Tipo · Raza
+                    val animalInfo = listOfNotNull(
+                        post.animalType.takeIf { it.isNotBlank() },
+                        post.breed.takeIf { it.isNotBlank() }
+                    ).joinToString(" · ")
+                    if (animalInfo.isNotBlank()) {
+                        Text(
+                            text = animalInfo,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Ubicación
+                    if (post.locationName.isNotBlank()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = PetHelpPrimary
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = post.locationName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    // Fecha
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = formatPostDate(post.createdAt),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // ── Motivo de rechazo (solo si REJECTED) ─────────────────────────
+            if (post.status == PostStatus.REJECTED && !post.rejectionReason.isNullOrBlank()) {
+                Spacer(Modifier.height(10.dp))
+                RejectionReasonBox(reason = post.rejectionReason)
+            }
+
+            // ── Botones de acción ─────────────────────────────────────────────
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(2.dp))
+            PostActionRow(
+                post            = post,
+                isDeleting      = isDeleting,
+                onEditClick     = onEditClick,
+                onDeleteClick   = onDeleteClick,
+                onPauseClick    = onPauseClick,
+                onResolvedClick = onResolvedClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun PostStatusBadge(status: PostStatus) {
+    val (bgColor, textColor, label) = when (status) {
+        PostStatus.VERIFIED -> Triple(
+            PetHelpPrimary.copy(alpha = 0.12f), PetHelpPrimary, "ACTIVA"
+        )
+        PostStatus.PENDING -> Triple(
+            PetHelpSecondary.copy(alpha = 0.15f), PetHelpSecondary, "EN REVISIÓN"
+        )
+        PostStatus.REJECTED -> Triple(
+            PetHelpDestructive.copy(alpha = 0.12f), PetHelpDestructive, "RECHAZADA"
+        )
+        PostStatus.RESOLVED -> Triple(
+            Color.Gray.copy(alpha = 0.15f), Color.Gray, "FINALIZADA"
+        )
+    }
+    Box(
+        modifier = Modifier
+            .background(bgColor, RoundedCornerShape(4.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            color = color,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
+            text = label,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor,
+            letterSpacing = 0.5.sp
         )
     }
 }
 
 @Composable
-fun EmptyState(tabName: String) {
-    Box(
-        modifier = Modifier.fillMaxSize().padding(paddingValues = PaddingValues(top = 80.dp)),
-        contentAlignment = Alignment.Center
+private fun RejectionReasonBox(reason: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = PetHelpDestructive.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = PetHelpDestructive.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text("🐾", fontSize = 48.sp)
-            Text(
-                "No tienes publicaciones en $tabName",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                color = Color(0xFF101828)
-            )
-            Text(
-                "Tus publicaciones aparecerán aquí una vez que las crees.",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = Color(0xFF667085),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(horizontal = 40.dp)
-            )
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = null,
+            tint = PetHelpDestructive,
+            modifier = Modifier
+                .size(16.dp)
+                .padding(top = 1.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = reason,
+            fontSize = 12.sp,
+            color = PetHelpDestructive,
+            lineHeight = 16.sp
+        )
+    }
+}
+
+@Composable
+private fun PostActionRow(
+    post: Post,
+    isDeleting: Boolean,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onPauseClick: () -> Unit,
+    onResolvedClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        when (post.status) {
+            PostStatus.VERIFIED -> {
+                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
+                ActionIconButton(Icons.Default.PauseCircle, "Pausar", onPauseClick)
+                ActionIconButton(Icons.Default.CheckCircle, "Marcar como resuelta", onResolvedClick)
+                Spacer(Modifier.weight(1f))
+                ActionIconButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    onClick = onDeleteClick,
+                    tint = PetHelpDestructive,
+                    enabled = !isDeleting
+                )
+            }
+            PostStatus.PENDING -> {
+                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
+                ActionIconButton(Icons.Default.PauseCircle, "Pausar", onPauseClick)
+                Spacer(Modifier.weight(1f))
+                ActionIconButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    onClick = onDeleteClick,
+                    tint = PetHelpDestructive,
+                    enabled = !isDeleting
+                )
+            }
+            PostStatus.REJECTED -> {
+                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
+                Spacer(Modifier.weight(1f))
+                ActionIconButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    onClick = onDeleteClick,
+                    tint = PetHelpDestructive,
+                    enabled = !isDeleting
+                )
+            }
+            PostStatus.RESOLVED -> {
+                Spacer(Modifier.weight(1f))
+                ActionIconButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    onClick = onDeleteClick,
+                    tint = PetHelpDestructive,
+                    enabled = !isDeleting
+                )
+            }
         }
     }
 }
+
+@Composable
+private fun ActionIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    enabled: Boolean = true
+) {
+    IconButton(onClick = onClick, enabled = enabled) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = if (enabled) tint else tint.copy(alpha = 0.4f),
+            modifier = Modifier.size(22.dp)
+        )
+    }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    petName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = null,
+                tint = PetHelpDestructive
+            )
+        },
+        title = {
+            Text("Eliminar publicación", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Text(
+                text = "¿Estás seguro de que deseas eliminar \"$petName\"? Esta acción no se puede deshacer.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = PetHelpDestructive)
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+private fun formatPostDate(timestampMillis: Long): String =
+    SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
+        .format(Date(timestampMillis))
