@@ -16,6 +16,7 @@ import com.pethelp.app.features.moderation.presentation.ModeratorPanelScreen
 import com.pethelp.app.features.notifications.presentation.NotificationsScreen
 import com.pethelp.app.features.post.presentation.CreatePostScreen
 import com.pethelp.app.features.post.presentation.EditPostScreen
+import com.pethelp.app.features.post.presentation.MyPostsScreen
 import com.pethelp.app.features.post.presentation.PostDetailScreen
 import com.pethelp.app.features.profile.presentation.EditProfileScreen
 import com.pethelp.app.features.profile.presentation.ProfileScreen
@@ -68,9 +69,12 @@ fun PetHelpNavGraph(
             PostDetailScreen(postId = route.postId, navController = navController)
         }
 
-        // ── Crear / Editar publicación ────────────────────────────────────────
+        // ── Crear / Editar / Mis publicaciones ───────────────────────────────
         composable<Screen.CreatePost> {
             CreatePostScreen(navController = navController)
+        }
+        composable<Screen.MyPosts> {
+            MyPostsScreen(navController = navController)
         }
         composable<Screen.EditPost> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.EditPost>()

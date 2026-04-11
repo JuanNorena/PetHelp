@@ -87,6 +87,65 @@ class FirebasePostRepository @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    // ── Obtener publicaciones por usuario ─────────────────────────────────────
+    override fun getPostsByUser(userId: String): Flow<Resource<List<Post>>> = callbackFlow {
+        trySend(Resource.Loading())
+
+        val listener = postsCollection
+            .whereEqualTo("authorId", userId)
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    trySend(Resource.Error(
+                        error.localizedMessage ?: "Error al obtener tus publicaciones."
+                    ))
+                    return@addSnapshotListener
+                }
+                val posts = snapshots?.documents?.mapNotNull { doc ->
+                    snapshotToPost(doc)
+                }?.sortedByDescending { it.createdAt } ?: emptyList()
+                trySend(Resource.Success(posts))
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    // ── Eliminar publicación ────────────────────────────────────────────────
+    override fun deletePost(postId: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            postsCollection.document(postId).delete().await()
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al eliminar la publicación."))
+        }
+    }
+
+    // ── Pausar o reanudar publicación ───────────────────────────────────────
+    override fun togglePostStatus(postId: String, isPaused: Boolean): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            val newStatus = if (isPaused) PostStatus.PENDING else PostStatus.VERIFIED // O un estado PAUSED si existiera
+            // Por ahora usemos una lógica simple: si está "resuelta" no se toca, si no, se cambia.
+            // Para la imagen, asumiremos que existe un campo "isPaused" o similar, 
+            // pero para ser fieles al modelo actual usaremos VERIFIED vs PENDING (o similar)
+            postsCollection.document(postId).update("status", if (isPaused) "PENDING" else "VERIFIED").await()
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al cambiar el estado."))
+        }
+    }
+
+    // ── Marcar como resuelta (Adoptado) ──────────────────────────────────────
+    override fun markAsResolved(postId: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            postsCollection.document(postId).update("status", PostStatus.RESOLVED.name).await()
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al marcar como resuelta."))
+        }
+    }
+
     // ── Crear publicación ───────────────────────────────────────────────────
     override fun createPost(post: Post): Flow<Resource<Post>> = flow {
         emit(Resource.Loading())

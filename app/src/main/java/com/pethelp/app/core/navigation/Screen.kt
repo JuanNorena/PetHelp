@@ -19,10 +19,11 @@ sealed class Screen {
     // ── Aplicación principal (usuario) ────────────────────────────────────────
     @Serializable data object Feed : Screen()
     
-    @Serializable 
-    data class PostDetail(val postId: String) : Screen()
+    @Serializable data class PostDetail(val postId: String) : Screen()
     
     @Serializable data object CreatePost : Screen()
+
+    @Serializable data object MyPosts : Screen()
     
     @Serializable 
     data class EditPost(val postId: String) : Screen()

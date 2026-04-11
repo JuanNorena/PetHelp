@@ -19,6 +19,9 @@ interface PostRepository {
     /** Obtiene todas las publicaciones (opcionalmente filtradas por categoría). */
     fun getPosts(category: String? = null): Flow<Resource<List<Post>>>
 
+    /** Obtiene las publicaciones de un usuario específico. */
+    fun getPostsByUser(userId: String): Flow<Resource<List<Post>>>
+
     /** Crea una nueva publicación en Firestore. */
     fun createPost(post: Post): Flow<Resource<Post>>
 
@@ -42,4 +45,12 @@ interface PostRepository {
 
     /** Solicita adopción de una publicación. */
     fun requestAdoption(postId: String, userId: String, message: String): Flow<Resource<Unit>>
+    /** Elimina una publicación. */
+    fun deletePost(postId: String): Flow<Resource<Unit>>
+
+    /** Pausa o reanuda una publicación. */
+    fun togglePostStatus(postId: String, isPaused: Boolean): Flow<Resource<Unit>>
+
+    /** Marca una publicación como resuelta (adoptada/encontrada). */
+    fun markAsResolved(postId: String): Flow<Resource<Unit>>
 }

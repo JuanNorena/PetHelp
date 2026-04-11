@@ -482,7 +482,14 @@ private fun QuickAccessSection(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
-                QuickAccessRow(Icons.AutoMirrored.Filled.List, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, "Mis publicaciones", {}, true)
+                QuickAccessRow(
+                    Icons.AutoMirrored.Filled.List,
+                    PetHelpPrimary.copy(alpha = 0.1f),
+                    PetHelpPrimary,
+                    "Mis publicaciones",
+                    { navController.navigate(Screen.MyPosts) },
+                    true
+                )
                 QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, "Favoritos", {}, true)
                 QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, "Panel de Moderación",
                     { navController.navigate(Screen.ModeratorPanel) }, true)
