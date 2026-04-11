@@ -44,6 +44,9 @@
 
     <!-- ── Feed ───────────────────────────────────────────── -->
     <string name="feed_title">PetHelp</string>
+    <string name="feed_empty_posts_title">No hay publicaciones aún</string>
+    <string name="feed_empty_posts_subtitle">Sé el primero en publicar\nuna mascota</string>
+    <string name="feed_notifications_desc">Notificaciones</string>
     <string name="btn_new_post">Nueva publicación</string>
     <string name="view_list">Vista lista</string>
     <string name="view_map">Vista mapa</string>
@@ -59,6 +62,13 @@
     <string name="category_found">Encontrados</string>
     <string name="category_temp_home">Hogar temporal</string>
     <string name="category_vet_event">Eventos veterinarios</string>
+
+    <!-- ── Tags de Mascotas ──────────────────────────────── -->
+    <string name="tag_male">Macho</string>
+    <string name="tag_female">Hembra</string>
+    <string name="tag_small">Pequeño</string>
+    <string name="tag_medium">Mediano</string>
+    <string name="tag_large">Grande</string>
 
     <!-- ── Estados ────────────────────────────────────────── -->
     <string name="status_pending">Pendiente de verificación</string>
@@ -83,6 +93,22 @@
     <string name="btn_interested">Me interesa</string>
     <string name="btn_adopt">Me interesa adoptar</string>
 
+    <!-- ── Mis Publicaciones ─────────────────────────────── -->
+    <string name="my_posts_title">Mis Publicaciones</string>
+    <string name="my_posts_empty_active">No tienes publicaciones activas</string>
+    <string name="my_posts_empty_in_review">No tienes publicaciones en revisión</string>
+    <string name="my_posts_empty_resolved">No tienes publicaciones finalizadas</string>
+    <string name="status_active_caps">ACTIVA</string>
+    <string name="status_pending_caps">EN REVISIÓN</string>
+    <string name="status_rejected_caps">RECHAZADA</string>
+    <string name="status_resolved_caps">FINALIZADA</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_pause">Pausar</string>
+    <string name="action_resolve">Marcar como resuelta</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="delete_post_title">Eliminar publicación</string>
+    <string name="delete_post_confirmation">¿Estás seguro de que deseas eliminar \"%1$s\"? Esta acción no se puede deshacer.</string>
+
     <!-- ── Moderación ─────────────────────────────────────── -->
     <string name="moderation_panel_title">Panel de Moderación</string>
     <string name="btn_approve">Aprobar</string>
@@ -104,13 +130,18 @@
 
     <!-- ── Reputación ─────────────────────────────────────── -->
     <string name="reputation_title">Mi Reputación</string>
+    <string name="reputation_points">⭐ Puntos totales: %1$s</string>
+    <string name="reputation_level_label">Nivel: %1$s</string>
+    <string name="reputation_badges_title">Insignias obtenidas:</string>
+    <string name="reputation_badges_empty">(ninguna aún — Fase 2)</string>
     <string name="level_friend">Amigo Animal</string>
     <string name="level_protector">Protector</string>
     <string name="level_guardian">Guardián</string>
     <string name="level_hero">Héroe de las Mascotas</string>
 
-    <!-- ── Notificaciones ────────────────────────────────────-->
+    <!-- ── Notificaciones ──────────────────────────────────── -->
     <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_empty">No tienes notificaciones por ahora</string>
     <string name="notification_channel_name">PetHelp Alertas</string>
 
     <!-- ── Errores generales ──────────────────────────────── -->
@@ -131,11 +162,20 @@
     <string name="nav_chat">Chat</string>
     <string name="nav_profile">Perfil</string>
     
-    <string name="profile_username_prefix">@</string>
+    <string name="profile_username_prefix">\@</string>
     <string name="profile_my_posts">Mis publicaciones</string>
     <string name="profile_favorites">Favoritos</string>
     <string name="profile_settings">Configuración</string>
-    
+    <string name="profile_level_label">Nivel %1$d</string>
+    <string name="profile_total_points">PUNTOS TOTALES</string>
+    <string name="profile_stats_level">Nivel actual</string>
+    <string name="profile_stats_member_since">Miembro desde</string>
+    <string name="profile_stats_badges">Insignias</string>
+    <string name="profile_stats_preferences">Preferencias</string>
+    <string name="profile_quick_access_title">Accesos rápidos</string>
+    <string name="profile_avatar_desc">Foto de perfil</string>
+    <string name="common_back">Atrás</string>
+
     <string name="edit_profile_change_photo">Cambiar foto de perfil</string>
     <string name="edit_profile_bio_hint">Biografía</string>
     <string name="edit_profile_city_hint">Ciudad</string>
@@ -145,5 +185,69 @@
     <string name="preference_cat">Gato</string>
     <string name="preference_rabbit">Conejo</string>
     <string name="preference_bird">Ave</string>
-    
+
+    <!-- ── Configuración (Settings) ──────────────────────── -->
+    <string name="settings_account_section">CUENTA</string>
+    <string name="settings_security">Seguridad</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_value">Español</string>
+    <string name="settings_notifications_section">NOTIFICACIONES</string>
+    <string name="settings_push_notifications">Notificaciones Push</string>
+    <string name="settings_email_alerts">Alertas por Email</string>
+    <string name="settings_privacy_section">PRIVACIDAD</string>
+    <string name="settings_privacy_policy">Política de Privacidad</string>
+    <string name="settings_profile_visibility">Visibilidad del perfil</string>
+    <string name="settings_visibility_public">Público</string>
+    <string name="settings_appearance_section">APARIENCIA</string>
+    <string name="settings_dark_mode">Modo Oscuro</string>
+    <string name="settings_support_section">SOPORTE</string>
+    <string name="settings_help_center">Centro de ayuda</string>
+
+    <!-- ── Seguridad (Security) ────────────────────────── -->
+    <string name="security_title">Seguridad</string>
+    <string name="security_password_section">CONTRASEÑA</string>
+    <string name="security_current_password">Contraseña actual</string>
+    <string name="security_new_password">Nueva contraseña</string>
+    <string name="security_update_password">Actualizar contraseña</string>
+    <string name="security_auth_section">AUTENTICACIÓN</string>
+    <string name="security_2fa_title">Autenticación en dos pasos</string>
+    <string name="security_2fa_desc">Añade una capa extra de seguridad a tu cuenta mediante un código SMS.</string>
+    <string name="security_devices_section">DISPOSITIVOS</string>
+    <string name="security_this_device">Este dispositivo</string>
+    <string name="security_danger_zone">Zona de Peligro</string>
+    <string name="security_delete_account_desc">Eliminar tu cuenta es irreversible. Perderás todo tu historial de adopciones y chats.</string>
+
+    <!-- ── Privacidad (Privacy) ────────────────────────── -->
+    <string name="privacy_title">Privacidad</string>
+    <string name="privacy_intro_title">1. Introducción</string>
+    <string name="privacy_intro_body">En PetHelp, nos tomamos muy en serio tu privacidad. Esta política describe cómo recopilamos, usamos y protegemos tu información personal cuando utilizas nuestra plataforma de adopción.</string>
+    <string name="privacy_data_collect_title">2. Información que recopilamos</string>
+    <string name="privacy_data_collect_body">Podemos recopilar información como tu nombre, dirección de correo electrónico, ubicación aproximada y preferencias de mascotas para mejorar tu experiencia de búsqueda y adopción.</string>
+    <string name="privacy_data_item_profile">Datos de perfil (Nombre, Foto)</string>
+    <string name="privacy_data_item_contact">Datos de contacto (Email, Teléfono opcional)</string>
+    <string name="privacy_data_item_usage">Datos de uso y navegación</string>
+    <string name="privacy_usage_title">3. Uso de la información</string>
+    <string name="privacy_usage_body">Utilizamos tus datos para conectarte con refugios y otros usuarios, personalizar tus recomendaciones de mascotas y garantizar la seguridad de la comunidad.</string>
+    <string name="privacy_share_title">4. Compartir información</string>
+    <string name="privacy_share_body">No vendemos tus datos personales. Solo compartimos información necesaria con refugios verificados cuando inicias un proceso de adopción.</string>
+    <string name="privacy_rights_title">5. Tus derechos</string>
+    <string name="privacy_rights_body">Tienes derecho a acceder, corregir o eliminar tus datos personales en cualquier momento desde la configuración de tu cuenta.</string>
+    <string name="privacy_last_update">Última actualización: 27 de Febrero de 2026</string>
+
+    <!-- ── Visibilidad del Perfil (Profile Visibility) ─── -->
+    <string name="visibility_title">Visibilidad del Perfil</string>
+    <string name="visibility_who_section">QUIÉN PUEDE VER TU PERFIL</string>
+    <string name="visibility_public_title">Público</string>
+    <string name="visibility_public_desc">Cualquier persona en PetHelp puede ver tu perfil, tus mascotas en adopción y tus insignias.</string>
+    <string name="visibility_followers_title">Solo seguidores</string>
+    <string name="visibility_followers_desc">Solo los usuarios que te siguen pueden ver tu actividad completa.</string>
+    <string name="visibility_private_title">Privado</string>
+    <string name="visibility_private_desc">Nadie puede ver tu perfil excepto tú. No podrás publicar mascotas para adopción.</string>
+    <string name="visibility_details_section">DETALLES ESPECÍFICOS</string>
+    <string name="visibility_show_email_title">Mostrar email de contacto</string>
+    <string name="visibility_show_email_desc">Permite que otros usuarios vean tu email en tu perfil.</string>
+    <string name="visibility_show_city_title">Mostrar ciudad</string>
+    <string name="visibility_show_city_desc">Muestra tu ciudad (Ej. Ciudad de México) en tu perfil público.</string>
+
+    <string name="common_cancel">Cancelar</string>
 </resources>

@@ -51,4 +51,10 @@ interface AuthRepository {
      * Cierra la sesión del usuario actual.
      */
     fun logout()
+
+    /**
+     * Actualiza la contraseña del usuario autenticado.
+     * Requiere que el usuario se haya autenticado recientemente.
+     */
+    fun updatePassword(newPassword: String): Flow<Resource<Unit>>
 }

@@ -1,20 +1,19 @@
 package com.pethelp.app.features.stats.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.pethelp.app.R
 
 /**
  * Dashboard de estadísticas personales del usuario.
- *
- * TODO (Fase 2): mostrar conteos calculados en memoria.
- *   - Publicaciones activas, finalizadas, pendientes de verificación.
- *
- * TODO (Fase 3): carga desde Firestore con queries agregadas.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,23 +21,31 @@ fun StatisticsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Estadísticas") },
+                title = { Text(stringResource(R.string.stats_title)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) { Text("←") }
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back)
+                        )
+                    }
                 }
             )
         }
     ) { padding ->
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(24.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            StatCard(label = "Publicaciones activas",           value = "—")
+            StatCard(label = stringResource(R.string.stats_active), value = "—")
             Spacer(Modifier.height(12.dp))
-            StatCard(label = "Publicaciones finalizadas",       value = "—")
+            StatCard(label = stringResource(R.string.stats_finished), value = "—")
             Spacer(Modifier.height(12.dp))
-            StatCard(label = "Pendientes de verificación",      value = "—")
+            StatCard(label = stringResource(R.string.stats_pending), value = "—")
         }
     }
 }
@@ -52,8 +59,11 @@ private fun StatCard(label: String, value: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(label, style = MaterialTheme.typography.bodyMedium)
-            Text(value, style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

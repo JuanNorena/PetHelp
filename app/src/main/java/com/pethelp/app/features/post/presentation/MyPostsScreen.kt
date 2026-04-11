@@ -24,7 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pethelp.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -78,7 +80,7 @@ fun MyPostsScreen(
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nueva publicación")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_new_post))
             }
         }
     ) { padding ->
@@ -110,9 +112,9 @@ fun MyPostsScreen(
                 }
                 filteredPosts.isEmpty() -> {
                     val message = when (uiState.selectedTab) {
-                        MyPostsTab.ACTIVE    -> "No tienes publicaciones activas"
-                        MyPostsTab.IN_REVIEW -> "No tienes publicaciones en revisión"
-                        MyPostsTab.RESOLVED  -> "No tienes publicaciones finalizadas"
+                        MyPostsTab.ACTIVE    -> stringResource(R.string.my_posts_empty_active)
+                        MyPostsTab.IN_REVIEW -> stringResource(R.string.my_posts_empty_in_review)
+                        MyPostsTab.RESOLVED  -> stringResource(R.string.my_posts_empty_resolved)
                     }
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
@@ -156,7 +158,7 @@ private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "Mis Publicaciones",
+                text = stringResource(R.string.my_posts_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -165,7 +167,7 @@ private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver"
+                    contentDescription = stringResource(R.string.common_back)
                 )
             }
         },
@@ -179,7 +181,7 @@ private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Nueva publicación",
+                        contentDescription = stringResource(R.string.btn_new_post),
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
@@ -397,16 +399,16 @@ private fun MyPostCard(
 private fun PostStatusBadge(status: PostStatus) {
     val (bgColor, textColor, label) = when (status) {
         PostStatus.VERIFIED -> Triple(
-            PetHelpPrimary.copy(alpha = 0.12f), PetHelpPrimary, "ACTIVA"
+            PetHelpPrimary.copy(alpha = 0.12f), PetHelpPrimary, stringResource(R.string.status_active_caps)
         )
         PostStatus.PENDING -> Triple(
-            PetHelpSecondary.copy(alpha = 0.15f), PetHelpSecondary, "EN REVISIÓN"
+            PetHelpSecondary.copy(alpha = 0.15f), PetHelpSecondary, stringResource(R.string.status_pending_caps)
         )
         PostStatus.REJECTED -> Triple(
-            PetHelpDestructive.copy(alpha = 0.12f), PetHelpDestructive, "RECHAZADA"
+            PetHelpDestructive.copy(alpha = 0.12f), PetHelpDestructive, stringResource(R.string.status_rejected_caps)
         )
         PostStatus.RESOLVED -> Triple(
-            Color.Gray.copy(alpha = 0.15f), Color.Gray, "FINALIZADA"
+            Color.Gray.copy(alpha = 0.15f), Color.Gray, stringResource(R.string.status_resolved_caps)
         )
     }
     Box(
@@ -474,36 +476,36 @@ private fun PostActionRow(
     ) {
         when (post.status) {
             PostStatus.VERIFIED -> {
-                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
-                ActionIconButton(Icons.Default.PauseCircle, "Pausar", onPauseClick)
-                ActionIconButton(Icons.Default.CheckCircle, "Marcar como resuelta", onResolvedClick)
+                ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
+                ActionIconButton(Icons.Default.PauseCircle, stringResource(R.string.action_pause), onPauseClick)
+                ActionIconButton(Icons.Default.CheckCircle, stringResource(R.string.action_resolve), onResolvedClick)
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
+                    contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
                     tint = PetHelpDestructive,
                     enabled = !isDeleting
                 )
             }
             PostStatus.PENDING -> {
-                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
-                ActionIconButton(Icons.Default.PauseCircle, "Pausar", onPauseClick)
+                ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
+                ActionIconButton(Icons.Default.PauseCircle, stringResource(R.string.action_pause), onPauseClick)
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
+                    contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
                     tint = PetHelpDestructive,
                     enabled = !isDeleting
                 )
             }
             PostStatus.REJECTED -> {
-                ActionIconButton(Icons.Default.Edit, "Editar", onEditClick)
+                ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
+                    contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
                     tint = PetHelpDestructive,
                     enabled = !isDeleting
@@ -513,7 +515,7 @@ private fun PostActionRow(
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
+                    contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
                     tint = PetHelpDestructive,
                     enabled = !isDeleting
@@ -557,11 +559,11 @@ private fun DeleteConfirmationDialog(
             )
         },
         title = {
-            Text("Eliminar publicación", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.delete_post_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Text(
-                text = "¿Estás seguro de que deseas eliminar \"$petName\"? Esta acción no se puede deshacer.",
+                text = stringResource(R.string.delete_post_confirmation, petName),
                 style = MaterialTheme.typography.bodyMedium
             )
         },
@@ -570,12 +572,12 @@ private fun DeleteConfirmationDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = PetHelpDestructive)
             ) {
-                Text("Eliminar")
+                Text(stringResource(R.string.action_delete))
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )

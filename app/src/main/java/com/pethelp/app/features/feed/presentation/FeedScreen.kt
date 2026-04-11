@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +45,7 @@ fun FeedScreen(navController: NavController) {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "PetHelp",
+                            text = stringResource(R.string.feed_title),
                             color = PetHelpPrimary,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp
@@ -54,7 +55,7 @@ fun FeedScreen(navController: NavController) {
                         IconButton(onClick = { navController.navigate(Screen.Notifications) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
-                                contentDescription = "Notificaciones",
+                                contentDescription = stringResource(R.string.feed_notifications_desc),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -81,10 +82,10 @@ fun FeedScreen(navController: NavController) {
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item { FilterChipUI("Todos", true) }
-                    item { FilterChipUI("Adopción", false) }
-                    item { FilterChipUI("Perdidos", false) }
-                    item { FilterChipUI("Encontrados", false) }
+                    item { FilterChipUI(stringResource(R.string.filter_all), true) }
+                    item { FilterChipUI(stringResource(R.string.category_adoption), false) }
+                    item { FilterChipUI(stringResource(R.string.category_lost), false) }
+                    item { FilterChipUI(stringResource(R.string.category_found), false) }
                 }
                 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -116,13 +117,13 @@ fun FeedScreen(navController: NavController) {
                             fontSize = 48.sp
                         )
                         Text(
-                            text = "No hay publicaciones aún",
+                            text = stringResource(R.string.feed_empty_posts_title),
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Sé el primero en publicar\nuna mascota",
+                            text = stringResource(R.string.feed_empty_posts_subtitle),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -222,8 +223,8 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                     
                     // Tags
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TagChip("Macho")
-                        TagChip("Mediano")
+                        TagChip(stringResource(R.string.tag_male))
+                        TagChip(stringResource(R.string.tag_medium))
                     }
                 }
             }

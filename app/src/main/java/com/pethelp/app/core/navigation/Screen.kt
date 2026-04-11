@@ -33,6 +33,10 @@ sealed class Screen {
     @Serializable data object Chat : Screen()
     @Serializable data object Profile : Screen()
     @Serializable data object EditProfile : Screen()
+    @Serializable data object Settings : Screen()
+    @Serializable data object Security : Screen()
+    @Serializable data object Privacy : Screen()
+    @Serializable data object ProfileVisibility : Screen()
     @Serializable data object Statistics : Screen()
     @Serializable data object Reputation : Screen()
 

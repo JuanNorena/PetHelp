@@ -162,7 +162,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                         ) {
                             Icon(Icons.Filled.Star, null, tint = Color.White, modifier = Modifier.size(10.dp))
                         }
-                        Text("Nivel ${user.level.ordinal + 1}", color = PetHelpPrimary, fontSize = 12.sp)
+                        Text(stringResource(R.string.profile_level_label, user.level.ordinal + 1), color = PetHelpPrimary, fontSize = 12.sp)
                     }
                 }
 
@@ -170,7 +170,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable { navController.navigate(Screen.EditProfile) },
+                        .clickable { navController.navigate(Screen.Settings) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Filled.Settings, null, tint = Color(0xFF6A7282), modifier = Modifier.size(22.dp))
@@ -195,7 +195,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
 
             // Username
             Text(
-                text = if (user.username.isNotEmpty()) "@${user.username}" else "@usuario",
+                text = if (user.username.isNotEmpty()) "${stringResource(R.string.profile_username_prefix)}${user.username}" else "${stringResource(R.string.profile_username_prefix)}usuario",
                 color = Color(0xFF99A1AF),
                 fontSize = 14.sp
             )
@@ -271,7 +271,7 @@ private fun ProfileAvatarWithRing(user: User) {
             if (user.photoUrl.isNotBlank()) {
                 AsyncImage(
                     model = user.photoUrl,
-                    contentDescription = "Foto de perfil",
+                    contentDescription = stringResource(R.string.profile_avatar_desc),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -359,7 +359,7 @@ private fun PointsCardSection(points: Int) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "PUNTOS TOTALES",
+                stringResource(R.string.profile_total_points),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 12.sp,
                 letterSpacing = 1.2.sp
@@ -399,13 +399,13 @@ private fun StatsGrid2x2Section(user: User) {
             StatCard2(
                 modifier = Modifier.weight(1f),
                 iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
-                value = "$levelNum", label = "Nivel actual",
+                value = "$levelNum", label = stringResource(R.string.profile_stats_level),
                 icon = Icons.Filled.Star
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
                 iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
-                value = memberSince, label = "Miembro desde",
+                value = memberSince, label = stringResource(R.string.profile_stats_member_since),
                 icon = Icons.Filled.CalendarToday, smallValue = true
             )
         }
@@ -413,13 +413,13 @@ private fun StatsGrid2x2Section(user: User) {
             StatCard2(
                 modifier = Modifier.weight(1f),
                 iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
-                value = "$badgeCount", label = "Insignias",
+                value = "$badgeCount", label = stringResource(R.string.profile_stats_badges),
                 icon = Icons.Filled.EmojiEvents
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
                 iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
-                value = "$prefCount", label = "Preferencias",
+                value = "$prefCount", label = stringResource(R.string.profile_stats_preferences),
                 icon = Icons.Filled.Favorite
             )
         }
@@ -469,7 +469,7 @@ private fun StatCard2(
 private fun QuickAccessSection(navController: NavController) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Text(
-            "Accesos rápidos",
+            stringResource(R.string.profile_quick_access_title),
             fontSize = 14.sp, fontWeight = FontWeight.Medium,
             color = Color(0xFF6A7282), letterSpacing = 0.35.sp,
             modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
@@ -486,15 +486,15 @@ private fun QuickAccessSection(navController: NavController) {
                     Icons.AutoMirrored.Filled.List,
                     PetHelpPrimary.copy(alpha = 0.1f),
                     PetHelpPrimary,
-                    "Mis publicaciones",
+                    stringResource(R.string.profile_my_posts),
                     { navController.navigate(Screen.MyPosts) },
                     true
                 )
-                QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, "Favoritos", {}, true)
-                QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, "Panel de Moderación",
+                QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, stringResource(R.string.profile_favorites), {}, true)
+                QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, stringResource(R.string.moderation_panel_title),
                     { navController.navigate(Screen.ModeratorPanel) }, true)
-                QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), "Configuración",
-                    { navController.navigate(Screen.EditProfile) }, false)
+                QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), stringResource(R.string.profile_settings),
+                    { navController.navigate(Screen.Settings) }, false)
             }
         }
     }
@@ -542,7 +542,7 @@ private fun LogoutSection(navController: NavController, viewModel: ProfileViewMo
     ) {
         Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text("Cerrar sesión", color = Color(0xFF99A1AF), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+        Text(stringResource(R.string.btn_logout), color = Color(0xFF99A1AF), fontWeight = FontWeight.Medium, fontSize = 14.sp)
     }
 }
 
@@ -590,10 +590,10 @@ fun EditProfileScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Editar Perfil", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                    title = { Text(stringResource(R.string.edit_profile_title), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                         }
                     }
                 )
@@ -705,7 +705,7 @@ fun EditProfileScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = { Text("Nombre completo") },
+                    placeholder = { Text(stringResource(R.string.name_hint)) },
                     leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -719,7 +719,7 @@ fun EditProfileScreen(
                 OutlinedTextField(
                     value = bio,
                     onValueChange = { bio = it },
-                    placeholder = { Text("Biografía") },
+                    placeholder = { Text(stringResource(R.string.edit_profile_bio_hint)) },
                     leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth().height(120.dp),
                     shape = RoundedCornerShape(16.dp),
@@ -734,7 +734,7 @@ fun EditProfileScreen(
                 OutlinedTextField(
                     value = city,
                     onValueChange = { city = it },
-                    placeholder = { Text("Ciudad") },
+                    placeholder = { Text(stringResource(R.string.edit_profile_city_hint)) },
                     leadingIcon = { Icon(Icons.Filled.LocationCity, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -749,10 +749,10 @@ fun EditProfileScreen(
                 Spacer(Modifier.height(12.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PreferenceChip("Perro", preferences)
-                    PreferenceChip("Gato", preferences)
-                    PreferenceChip("Conejo", preferences)
-                    PreferenceChip("Ave", preferences)
+                    PreferenceChip(stringResource(R.string.preference_dog), preferences)
+                    PreferenceChip(stringResource(R.string.preference_cat), preferences)
+                    PreferenceChip(stringResource(R.string.preference_rabbit), preferences)
+                    PreferenceChip(stringResource(R.string.preference_bird), preferences)
                 }
 
                 Spacer(Modifier.height(24.dp))

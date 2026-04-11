@@ -6,7 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.pethelp.app.R
 
 /**
  * Pantalla de reputación y logros del usuario.
@@ -23,9 +27,14 @@ fun ReputationScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mi Reputación") },
+                title = { Text(stringResource(R.string.reputation_title)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) { Text("←") }
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back)
+                        )
+                    }
                 }
             )
         }
@@ -35,15 +44,26 @@ fun ReputationScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(16.dp))
-            Text("⭐ Puntos totales: —", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = stringResource(R.string.reputation_points, "—"),
+                style = MaterialTheme.typography.headlineMedium
+            )
             Spacer(Modifier.height(8.dp))
-            Text("Nivel: Amigo Animal", style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary)
+            Text(
+                text = stringResource(R.string.reputation_level_label, stringResource(R.string.level_friend)),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
             Spacer(Modifier.height(24.dp))
-            Text("Insignias obtenidas:", style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = stringResource(R.string.reputation_badges_title),
+                style = MaterialTheme.typography.titleSmall
+            )
             Spacer(Modifier.height(8.dp))
-            Text("(ninguna aún — Fase 2)",
-                style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = stringResource(R.string.reputation_badges_empty),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

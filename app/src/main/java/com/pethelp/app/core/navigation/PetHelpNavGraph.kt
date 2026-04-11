@@ -19,7 +19,11 @@ import com.pethelp.app.features.post.presentation.EditPostScreen
 import com.pethelp.app.features.post.presentation.MyPostsScreen
 import com.pethelp.app.features.post.presentation.PostDetailScreen
 import com.pethelp.app.features.profile.presentation.EditProfileScreen
+import com.pethelp.app.features.profile.presentation.PrivacyScreen
 import com.pethelp.app.features.profile.presentation.ProfileScreen
+import com.pethelp.app.features.profile.presentation.ProfileVisibilityScreen
+import com.pethelp.app.features.profile.presentation.SecurityScreen
+import com.pethelp.app.features.profile.presentation.SettingsScreen
 import com.pethelp.app.features.reputation.presentation.ReputationScreen
 import com.pethelp.app.features.stats.presentation.StatisticsScreen
 
@@ -92,6 +96,18 @@ fun PetHelpNavGraph(
         }
         composable<Screen.EditProfile> {
             EditProfileScreen(navController = navController)
+        }
+        composable<Screen.Settings> {
+            SettingsScreen(navController = navController)
+        }
+        composable<Screen.Security> {
+            SecurityScreen(navController = navController)
+        }
+        composable<Screen.Privacy> {
+            PrivacyScreen(navController = navController)
+        }
+        composable<Screen.ProfileVisibility> {
+            ProfileVisibilityScreen(navController = navController)
         }
 
         // ── Estadísticas ──────────────────────────────────────────────────────

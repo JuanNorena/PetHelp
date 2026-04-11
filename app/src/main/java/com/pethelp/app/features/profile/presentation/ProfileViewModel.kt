@@ -117,6 +117,20 @@ class ProfileViewModel @Inject constructor(
         authRepository.logout()
     }
 
+    fun updatePassword(newPassword: String) {
+        authRepository.updatePassword(newPassword).onEach { resource ->
+            when (resource) {
+                is Resource.Loading -> { /* Show loading in UI if needed */ }
+                is Resource.Success -> {
+                    _snackbarMessage.emit("Contraseña actualizada correctamente")
+                }
+                is Resource.Error -> {
+                    _snackbarMessage.emit(resource.message ?: "Error al actualizar contraseña")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
     fun deleteAccount() {
          profileRepository.deleteAccount().onEach { resource ->
             when(resource) {

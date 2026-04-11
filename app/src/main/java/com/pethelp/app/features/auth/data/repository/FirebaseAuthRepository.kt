@@ -285,6 +285,25 @@ class FirebaseAuthRepository @Inject constructor(
         firebaseAuth.signOut()
     }
 
+    override fun updatePassword(newPassword: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            val user = firebaseAuth.currentUser
+            if (user == null) {
+                emit(Resource.Error("No hay sesión activa."))
+                return@flow
+            }
+            if (newPassword.length < MIN_PASSWORD_LENGTH) {
+                emit(Resource.Error("La contraseña debe tener al menos $MIN_PASSWORD_LENGTH caracteres."))
+                return@flow
+            }
+            user.updatePassword(newPassword).await()
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(mapGenericError(e, "Error al actualizar la contraseña. Es posible que debas iniciar sesión de nuevo.")))
+        }
+    }
+
     // ── Helpers privados ─────────────────────────────────────────────────────
 
     /**

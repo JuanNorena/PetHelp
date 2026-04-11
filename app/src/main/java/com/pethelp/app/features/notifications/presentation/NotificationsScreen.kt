@@ -5,7 +5,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.pethelp.app.R
 
 /**
  * Lista de notificaciones del usuario.
@@ -21,7 +23,7 @@ fun NotificationsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones") },
+                title = { Text(stringResource(R.string.notifications_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Text("←")
@@ -34,7 +36,7 @@ fun NotificationsScreen(navController: NavController) {
             Modifier.fillMaxSize().padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            Text("Lista de notificaciones (Fase 2)",
+            Text(stringResource(R.string.notifications_empty),
                 style = MaterialTheme.typography.bodyLarge)
         }
     }
