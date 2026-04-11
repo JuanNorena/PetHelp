@@ -108,7 +108,33 @@ fun MyPostsScreen(
                         )
                     }
                 }
-                filteredPosts.isEmpty() -> { /* tab vacía: no mostrar nada */ }
+                filteredPosts.isEmpty() -> {
+                    val message = when (uiState.selectedTab) {
+                        MyPostsTab.ACTIVE    -> "No tienes publicaciones activas"
+                        MyPostsTab.IN_REVIEW -> "No tienes publicaciones en revisión"
+                        MyPostsTab.RESOLVED  -> "No tienes publicaciones finalizadas"
+                    }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Pets,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                            )
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
+                        }
+                    }
+                }
                 else -> {
                     MyPostsList(
                         posts           = filteredPosts,
