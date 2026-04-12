@@ -50,6 +50,7 @@ import coil.compose.AsyncImage
 import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.domain.model.UserLevel
+import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.PetHelpPrimary
@@ -94,7 +95,7 @@ fun ProfileScreen(
                     item { Spacer(Modifier.height(20.dp)) }
                     item { StatsGrid2x2Section(user) }
                     item { Spacer(Modifier.height(24.dp)) }
-                    item { QuickAccessSection(navController) }
+                    item { QuickAccessSection(navController, user.role) }
                     item { Spacer(Modifier.height(20.dp)) }
                     item { LogoutSection(navController, viewModel) }
                     item { Spacer(Modifier.height(32.dp)) }
@@ -466,7 +467,10 @@ private fun StatCard2(
 
 // ─── Accesos Rápidos ──────────────────────────────────────────────────────────
 @Composable
-private fun QuickAccessSection(navController: NavController) {
+private fun QuickAccessSection(
+    navController: NavController,
+    userRole: UserRole
+) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Text(
             stringResource(R.string.profile_quick_access_title),
@@ -491,8 +495,16 @@ private fun QuickAccessSection(navController: NavController) {
                     true
                 )
                 QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, stringResource(R.string.profile_favorites), {}, true)
-                QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, stringResource(R.string.moderation_panel_title),
-                    { navController.navigate(Screen.ModeratorPanel) }, true)
+                if (userRole == UserRole.MODERATOR) {
+                    QuickAccessRow(
+                        Icons.Filled.Shield,
+                        PetHelpPrimary.copy(alpha = 0.1f),
+                        PetHelpPrimary,
+                        stringResource(R.string.moderation_panel_title),
+                        { navController.navigate(Screen.ModeratorPanel) },
+                        true
+                    )
+                }
                 QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), stringResource(R.string.profile_settings),
                     { navController.navigate(Screen.Settings) }, false)
             }

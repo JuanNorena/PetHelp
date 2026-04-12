@@ -53,4 +53,13 @@ interface PostRepository {
 
     /** Marca una publicación como resuelta (adoptada/encontrada). */
     fun markAsResolved(postId: String): Flow<Resource<Unit>>
+
+    /** Obtiene publicaciones pendientes de moderación. */
+    fun getPendingPosts(): Flow<Resource<List<Post>>>
+
+    /** Aprueba una publicación pendiente y la marca como VERIFIED. */
+    fun approvePost(postId: String): Flow<Resource<Unit>>
+
+    /** Rechaza una publicación pendiente y guarda el motivo obligatorio. */
+    fun rejectPost(postId: String, reason: String): Flow<Resource<Unit>>
 }

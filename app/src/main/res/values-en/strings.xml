@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">PetHelp</string>
+
+    <!-- Authentication -->
+    <string name="login_title">Sign in</string>
+    <string name="register_title">Create account</string>
+    <string name="forgot_password_title">Recover password</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="name_hint">Full name</string>
+    <string name="btn_login">Sign In</string>
+    <string name="btn_register">Register</string>
+    <string name="btn_send_reset">Send link</string>
+    <string name="no_account_prompt">Do not have an account?</string>
+    <string name="no_account_action">Sign up</string>
+    <string name="has_account">Already have an account? Sign in</string>
+    <string name="login_greeting">Welcome back!</string>
+    <string name="login_subtitle">Welcome, we missed you.</string>
+    <string name="forgot_password_link">Forgot your password?</string>
+    <string name="register_heading">Create your
+account</string>
+    <string name="btn_register_me">Create account</string>
+    <string name="terms_prefix">I accept the</string>
+    <string name="terms_link">terms and conditions</string>
+    <string name="forgot_password_heading">Forgot your password?</string>
+    <string name="forgot_password_body">No worries. Enter your email and we will send a recovery link to access your account again.</string>
+    <string name="link_sent_title">Link sent!</string>
+    <string name="link_sent_body_prefix">We sent a recovery link to</string>
+    <string name="link_sent_body_suffix">. Check your inbox.</string>
+    <string name="btn_back_to_start">Back to start</string>
+    <string name="error_login_failed">Incorrect email or password.</string>
+    <string name="error_register_failed">Could not create account. Please verify your data.</string>
+    <string name="error_reset_failed">Could not send the recovery link.</string>
+    <string name="error_empty_fields">Please complete all fields.</string>
+    <string name="error_passwords_weak">Password must be at least 6 characters.</string>
+    <string name="error_terms_not_accepted">You must accept the terms and conditions.</string>
+
+    <!-- Terms and Conditions -->
+    <string name="terms_dialog_title">Terms and Conditions of Use</string>
+    <string name="terms_dialog_accept">Accept</string>
+    <string name="terms_dialog_close">Close</string>
+    <string name="terms_dialog_content"><![CDATA[<b>TERMS AND CONDITIONS OF USE - PetHelp</b>
+
+Last update: March 2026
+
+<b>1. ACCEPTANCE OF TERMS</b>
+By registering and using PetHelp, you accept these Terms and Conditions in accordance with current Colombian law, including Law 1581 of 2012 (Personal Data Protection), Decree 1377 of 2013, and Law 1273 of 2009 (Cybercrime).
+
+<b>2. SERVICE DESCRIPTION</b>
+PetHelp is an academic mobile platform developed at Universidad del Quindio that connects people interested in pet adoption, reporting, and care. The service includes:
+- Posting pets for adoption, lost, or found.
+- Offering temporary foster homes.
+- Sharing information about free veterinary events.
+- Community moderation and reputation system.
+
+<b>3. ACCOUNT REGISTRATION</b>
+- You must be of legal age (18+) or have authorization from a legal guardian.
+- Information provided must be truthful, complete, and up to date.
+- You are responsible for keeping your password confidential.
+- One account per person; shared accounts are not allowed.
+
+<b>4. PERSONAL DATA PROTECTION (Law 1581 of 2012)</b>
+As data controller, PetHelp informs:
+
+<b>4.1 Data collected:</b>
+- Full name and email (during registration).
+- Approximate geographic location (when using map features).
+- Published content (text, pet images).
+
+<b>4.2 Purpose of processing:</b>
+- Manage your account and authentication.
+- Facilitate adoption and pet reporting.
+- Send relevant notifications (new posts, comments).
+- Generate anonymous usage statistics.
+
+<b>4.3 Data subject rights (Art. 8, Law 1581/2012):</b>
+You have the right to:
+- Know, update, and rectify your personal data.
+- Request proof of your granted authorization.
+- Be informed about how your data is used.
+- Revoke authorization and request data deletion.
+- Access your data free of charge.
+- File complaints before the Superintendence of Industry and Commerce (SIC).
+
+To exercise these rights, contact: pethelp.soporte@udq.edu.co
+
+<b>4.4 Security:</b>
+Data is stored in Firebase (Google Cloud) with encryption in transit and at rest, following international ISO 27001 security standards.
+
+<b>5. ACCEPTABLE USE</b>
+Users agree to:
+- Not publish false, offensive, violent, or animal abuse promoting content.
+- Not use the platform for commercial or profit purposes.
+- Respect Law 84 of 1989 and Law 1774 of 2016 (animals are sentient beings).
+- Not impersonate other users.
+- Not attempt to compromise application security.
+
+<b>6. USER CONTENT</b>
+- You retain rights over the images and text you publish.
+- You grant PetHelp a non-exclusive license to display content within the platform.
+- The moderation team may remove content that violates these terms.
+
+<b>7. MODERATION</b>
+Posts are reviewed by designated moderators. PetHelp reserves the right to approve, reject, or remove content without prior notice when non-compliance is detected.
+
+<b>8. LIMITATION OF LIABILITY</b>
+- PetHelp is an academic project and does not guarantee the accuracy of third-party posts.
+- We are not responsible for adoption agreements between users.
+- We recommend verifying identity and conditions before any transfer or adoption.
+
+<b>9. INTELLECTUAL PROPERTY</b>
+Source code, design, and PetHelp brand belong to the development team of Universidad del Quindio. Reproduction without authorization is prohibited.
+
+<b>10. MODIFICATIONS</b>
+We reserve the right to modify these terms. Changes will be notified through the app.
+
+<b>11. APPLICABLE LAW AND JURISDICTION</b>
+These terms are governed by the laws of the Republic of Colombia. Any dispute will be resolved before the competent courts of Armenia, Quindio.
+
+<b>12. CONTACT</b>
+Universidad del Quindio - Systems Engineering Program
+Email: pethelp.soporte@udq.edu.co
+
+By clicking "Accept", you confirm that you have read, understood, and accepted these Terms and Conditions and the Personal Data Processing Policy.]]></string>
+
+    <!-- Feed -->
+    <string name="feed_title">PetHelp</string>
+    <string name="feed_empty_posts_title">There are no posts yet</string>
+    <string name="feed_empty_posts_subtitle">Be the first to post
+a pet</string>
+    <string name="feed_notifications_desc">Notifications</string>
+    <string name="btn_new_post">New post</string>
+    <string name="view_list">List view</string>
+    <string name="view_map">Map view</string>
+    <string name="filter_category">Filter by category</string>
+    <string name="filter_location">Filter by location</string>
+    <string name="filter_all">All</string>
+    <string name="filter_nearby">Nearby</string>
+    <string name="filter_city">In my city</string>
+
+    <!-- Categories -->
+    <string name="category_adoption">Adoption</string>
+    <string name="category_lost">Lost</string>
+    <string name="category_found">Found</string>
+    <string name="category_temp_home">Temporary home</string>
+    <string name="category_vet_event">Vet events</string>
+
+    <!-- Pet tags -->
+    <string name="tag_male">Male</string>
+    <string name="tag_female">Female</string>
+    <string name="tag_small">Small</string>
+    <string name="tag_medium">Medium</string>
+    <string name="tag_large">Large</string>
+
+    <!-- Status -->
+    <string name="status_pending">Pending verification</string>
+    <string name="status_verified">Verified</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_resolved">Resolved/Closed</string>
+
+    <!-- Post -->
+    <string name="post_title_hint">Post title</string>
+    <string name="post_desc_hint">Description</string>
+    <string name="post_animal_type_hint">Animal type (e.g., dog, cat)</string>
+    <string name="post_breed_hint">Approximate breed</string>
+    <string name="post_size">Size</string>
+    <string name="post_vaccinated">Vaccinated?</string>
+    <string name="post_location">Location</string>
+    <string name="post_pick_location">Select on map</string>
+    <string name="post_add_images">Add images</string>
+    <string name="btn_publish">Publish</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_mark_resolved">Mark as resolved</string>
+    <string name="btn_interested">I am interested</string>
+    <string name="btn_adopt">I want to adopt</string>
+
+    <!-- My posts -->
+    <string name="my_posts_title">My Posts</string>
+    <string name="my_posts_empty_active">You have no active posts</string>
+    <string name="my_posts_empty_in_review">You have no posts under review</string>
+    <string name="my_posts_empty_resolved">You have no completed posts</string>
+    <string name="status_active_caps">ACTIVE</string>
+    <string name="status_pending_caps">IN REVIEW</string>
+    <string name="status_rejected_caps">REJECTED</string>
+    <string name="status_resolved_caps">RESOLVED</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resolve">Mark as resolved</string>
+    <string name="action_delete">Delete</string>
+    <string name="delete_post_title">Delete post</string>
+    <string name="delete_post_confirmation">Are you sure you want to delete "%1$s"? This action cannot be undone.</string>
+
+    <!-- Moderation -->
+    <string name="moderation_panel_title">Moderation Panel</string>
+    <string name="btn_approve">Approve</string>
+    <string name="btn_reject">Reject</string>
+    <string name="reject_reason_hint">Rejection reason (required)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">My Profile</string>
+    <string name="edit_profile_title">Edit profile</string>
+    <string name="btn_logout">Sign out</string>
+    <string name="btn_delete_account">Delete account</string>
+    <string name="delete_account_confirm">Are you sure you want to delete your account? This action cannot be undone.</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">My Statistics</string>
+    <string name="stats_active">Active posts</string>
+    <string name="stats_finished">Completed posts</string>
+    <string name="stats_pending">Pending verification</string>
+
+    <!-- Reputation -->
+    <string name="reputation_title">My Reputation</string>
+    <string name="reputation_points">Total points: %1$s</string>
+    <string name="reputation_level_label">Level: %1$s</string>
+    <string name="reputation_badges_title">Earned badges:</string>
+    <string name="reputation_badges_empty">(none yet - Phase 2)</string>
+    <string name="level_friend">Animal Friend</string>
+    <string name="level_protector">Protector</string>
+    <string name="level_guardian">Guardian</string>
+    <string name="level_hero">Pet Hero</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">You have no notifications yet</string>
+    <string name="notification_channel_name">PetHelp Alerts</string>
+
+    <!-- General errors -->
+    <string name="error_generic">An error occurred. Please try again.</string>
+    <string name="error_no_internet">No internet connection.</string>
+    <string name="error_field_required">This field is required.</string>
+    <string name="error_invalid_email">Email is not valid.</string>
+    <string name="error_password_short">Password must be at least 6 characters.</string>
+
+    <!-- Generic buttons -->
+    <string name="btn_start">Start</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="splash_tagline">Find, care, adopt</string>
+
+    <!-- Profile and navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="profile_username_prefix">@</string>
+    <string name="profile_my_posts">My posts</string>
+    <string name="profile_favorites">Favorites</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_level_label">Level %1$d</string>
+    <string name="profile_total_points">TOTAL POINTS</string>
+    <string name="profile_stats_level">Current level</string>
+    <string name="profile_stats_member_since">Member since</string>
+    <string name="profile_stats_badges">Badges</string>
+    <string name="profile_stats_preferences">Preferences</string>
+    <string name="profile_quick_access_title">Quick access</string>
+    <string name="profile_avatar_desc">Profile photo</string>
+    <string name="common_back">Back</string>
+
+    <string name="edit_profile_change_photo">Change profile photo</string>
+    <string name="edit_profile_bio_hint">Bio</string>
+    <string name="edit_profile_city_hint">City</string>
+    <string name="edit_profile_pet_preferences">Pet preferences</string>
+    <string name="edit_profile_alerts_near_me">Nearby alerts</string>
+    <string name="preference_dog">Dog</string>
+    <string name="preference_cat">Cat</string>
+    <string name="preference_rabbit">Rabbit</string>
+    <string name="preference_bird">Bird</string>
+
+    <!-- Settings -->
+    <string name="settings_account_section">ACCOUNT</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_value">Spanish</string>
+    <string name="settings_notifications_section">NOTIFICATIONS</string>
+    <string name="settings_push_notifications">Push notifications</string>
+    <string name="settings_email_alerts">Email alerts</string>
+    <string name="settings_privacy_section">PRIVACY</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_profile_visibility">Profile visibility</string>
+    <string name="settings_visibility_public">Public</string>
+    <string name="settings_appearance_section">APPEARANCE</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string name="settings_support_section">SUPPORT</string>
+    <string name="settings_help_center">Help center</string>
+
+    <!-- Security -->
+    <string name="security_title">Security</string>
+    <string name="security_password_section">PASSWORD</string>
+    <string name="security_current_password">Current password</string>
+    <string name="security_new_password">New password</string>
+    <string name="security_update_password">Update password</string>
+    <string name="security_auth_section">AUTHENTICATION</string>
+    <string name="security_2fa_title">Two-factor authentication</string>
+    <string name="security_2fa_desc">Add an extra security layer to your account with an SMS code.</string>
+    <string name="security_devices_section">DEVICES</string>
+    <string name="security_this_device">This device</string>
+    <string name="security_danger_zone">Danger Zone</string>
+    <string name="security_delete_account_desc">Deleting your account is irreversible. You will lose your full adoption and chat history.</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_intro_title">1. Introduction</string>
+    <string name="privacy_intro_body">At PetHelp, we take your privacy seriously. This policy describes how we collect, use, and protect your personal information when you use our adoption platform.</string>
+    <string name="privacy_data_collect_title">2. Information we collect</string>
+    <string name="privacy_data_collect_body">We may collect information such as your name, email address, approximate location, and pet preferences to improve your search and adoption experience.</string>
+    <string name="privacy_data_item_profile">Profile data (Name, Photo)</string>
+    <string name="privacy_data_item_contact">Contact data (Email, Optional phone)</string>
+    <string name="privacy_data_item_usage">Usage and navigation data</string>
+    <string name="privacy_usage_title">3. Use of information</string>
+    <string name="privacy_usage_body">We use your data to connect you with shelters and users, personalize pet recommendations, and keep the community safe.</string>
+    <string name="privacy_share_title">4. Information sharing</string>
+    <string name="privacy_share_body">We do not sell your personal data. We only share required information with verified shelters when you start an adoption process.</string>
+    <string name="privacy_rights_title">5. Your rights</string>
+    <string name="privacy_rights_body">You can access, correct, or delete your personal data at any time from your account settings.</string>
+    <string name="privacy_last_update">Last update: February 27, 2026</string>
+
+    <!-- Profile visibility -->
+    <string name="visibility_title">Profile Visibility</string>
+    <string name="visibility_who_section">WHO CAN SEE YOUR PROFILE</string>
+    <string name="visibility_public_title">Public</string>
+    <string name="visibility_public_desc">Anyone on PetHelp can see your profile, pets for adoption, and badges.</string>
+    <string name="visibility_followers_title">Followers only</string>
+    <string name="visibility_followers_desc">Only users who follow you can see your full activity.</string>
+    <string name="visibility_private_title">Private</string>
+    <string name="visibility_private_desc">No one can see your profile except you. You will not be able to publish pets for adoption.</string>
+    <string name="visibility_details_section">SPECIFIC DETAILS</string>
+    <string name="visibility_show_email_title">Show contact email</string>
+    <string name="visibility_show_email_desc">Allow other users to see your email in your profile.</string>
+    <string name="visibility_show_city_title">Show city</string>
+    <string name="visibility_show_city_desc">Show your city (e.g., Mexico City) on your public profile.</string>
+
+    <string name="common_cancel">Cancel</string>
+</resources>

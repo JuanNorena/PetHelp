@@ -1418,8 +1418,12 @@ fun CreatePostScreen(
                                 viewModel.updateLocation(latLng.latitude, latLng.longitude, formattedName)
                             }
                         ) {
+                            val markerState = remember(selectedLatLng) {
+                                MarkerState(position = selectedLatLng)
+                            }
+
                             Marker(
-                                state = MarkerState(position = selectedLatLng),
+                                state = markerState,
                                 title = "Ubicación seleccionada",
                                 snippet = if (uiState.locationName.isNotBlank()) uiState.locationName else null
                             )

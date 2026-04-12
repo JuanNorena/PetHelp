@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.User
+import com.pethelp.app.core.preferences.AppLanguageManager
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val authRepository: AuthRepository // Needed for logout
+    private val authRepository: AuthRepository,
+    private val appLanguageManager: AppLanguageManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -30,8 +32,18 @@ class ProfileViewModel @Inject constructor(
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
+    private val _preferredLanguage = MutableStateFlow(AppLanguageManager.DEFAULT_LANGUAGE)
+    val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
+
     init {
         loadUserProfile()
+        observePreferredLanguage()
+    }
+
+    private fun observePreferredLanguage() {
+        appLanguageManager.preferredLanguage.onEach { languageTag ->
+            _preferredLanguage.value = languageTag
+        }.launchIn(viewModelScope)
     }
 
     private fun loadUserProfile() {
@@ -143,5 +155,30 @@ class ProfileViewModel @Inject constructor(
                 }
             }
          }.launchIn(viewModelScope)
+    }
+
+    fun changeAppLanguage(languageTag: String) {
+        viewModelScope.launch {
+            if (!appLanguageManager.isSupportedLanguage(languageTag)) {
+                _snackbarMessage.emit("Idioma no soportado")
+                return@launch
+            }
+
+            val normalizedLanguage = appLanguageManager.normalizeLanguage(languageTag)
+
+            appLanguageManager.setPreferredLanguage(normalizedLanguage)
+
+            _snackbarMessage.emit(
+                if (normalizedLanguage == AppLanguageManager.LANGUAGE_ENGLISH) {
+                    "Language changed to English"
+                } else {
+                    "Idioma cambiado a español"
+                }
+            )
+        }
+    }
+
+    fun getSupportedLanguages(): List<String> {
+        return AppLanguageManager.supportedLanguages.toList().sorted()
     }
 }

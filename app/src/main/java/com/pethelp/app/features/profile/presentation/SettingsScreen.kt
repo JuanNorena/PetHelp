@@ -126,7 +126,7 @@ fun SettingsScreen(
                     iconColor = Color(0xFF6366F1),
                     title = stringResource(R.string.settings_profile_visibility),
                     value = stringResource(R.string.settings_visibility_public),
-                    onClick = { /* TODO */ }
+                    onClick = { navController.navigate(Screen.ProfileVisibility) }
                 )
             }
 
