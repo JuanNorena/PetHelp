@@ -3,8 +3,8 @@ package com.pethelp.app.features.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
-import com.pethelp.app.core.data.repository.UserPreferencesRepository
 import com.pethelp.app.core.domain.model.User
+import com.pethelp.app.core.preferences.AppLanguageManager
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -23,8 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val authRepository: AuthRepository, // Needed for logout
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val authRepository: AuthRepository,
+    private val appLanguageManager: AppLanguageManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -33,44 +32,18 @@ class ProfileViewModel @Inject constructor(
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
-    private val _isDarkMode = MutableStateFlow(false)
-    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
-
-    private val _language = MutableStateFlow("es")
-    val language: StateFlow<String> = _language.asStateFlow()
+    private val _preferredLanguage = MutableStateFlow(AppLanguageManager.DEFAULT_LANGUAGE)
+    val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
 
     init {
         loadUserProfile()
-        observeDarkMode()
-        observeLanguage()
+        observePreferredLanguage()
     }
 
-    private fun observeDarkMode() {
-        viewModelScope.launch {
-            userPreferencesRepository.isDarkMode.collectLatest { enabled ->
-                _isDarkMode.value = enabled
-            }
-        }
-    }
-
-    private fun observeLanguage() {
-        viewModelScope.launch {
-            userPreferencesRepository.language.collectLatest { lang ->
-                _language.value = lang
-            }
-        }
-    }
-
-    fun toggleDarkMode(enabled: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setDarkMode(enabled)
-        }
-    }
-
-    fun setLanguage(languageCode: String) {
-        viewModelScope.launch {
-            userPreferencesRepository.setLanguage(languageCode)
-        }
+    private fun observePreferredLanguage() {
+        appLanguageManager.preferredLanguage.onEach { languageTag ->
+            _preferredLanguage.value = languageTag
+        }.launchIn(viewModelScope)
     }
 
     private fun loadUserProfile() {
@@ -182,5 +155,30 @@ class ProfileViewModel @Inject constructor(
                 }
             }
          }.launchIn(viewModelScope)
+    }
+
+    fun changeAppLanguage(languageTag: String) {
+        viewModelScope.launch {
+            if (!appLanguageManager.isSupportedLanguage(languageTag)) {
+                _snackbarMessage.emit("Idioma no soportado")
+                return@launch
+            }
+
+            val normalizedLanguage = appLanguageManager.normalizeLanguage(languageTag)
+
+            appLanguageManager.setPreferredLanguage(normalizedLanguage)
+
+            _snackbarMessage.emit(
+                if (normalizedLanguage == AppLanguageManager.LANGUAGE_ENGLISH) {
+                    "Language changed to English"
+                } else {
+                    "Idioma cambiado a español"
+                }
+            )
+        }
+    }
+
+    fun getSupportedLanguages(): List<String> {
+        return AppLanguageManager.supportedLanguages.toList().sorted()
     }
 }

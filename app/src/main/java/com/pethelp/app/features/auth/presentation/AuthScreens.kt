@@ -55,12 +55,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.PetHelpPrimaryDark
 import com.pethelp.app.core.ui.theme.PetHelpPrimary
 import com.pethelp.app.core.ui.theme.PetHelpTertiary
 import com.pethelp.app.core.ui.theme.PetHelpSecondary
 import kotlinx.coroutines.flow.collectLatest
+
+private fun authenticatedDestination(role: UserRole): Screen {
+    return when (role) {
+        UserRole.MODERATOR -> Screen.ModeratorPanel
+        UserRole.USER -> Screen.Feed
+    }
+}
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 @Composable
@@ -70,10 +78,11 @@ fun SplashScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Si ya está autenticado, ir directo al Feed
+    // Si ya está autenticado, redirigir según rol.
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed) {
+        val authenticatedState = uiState as? AuthUiState.Authenticated
+        if (authenticatedState != null) {
+            navController.navigate(authenticatedDestination(authenticatedState.user.role)) {
                 popUpTo<Screen.Splash>() { inclusive = true }
             }
         }
@@ -278,10 +287,11 @@ fun LoginScreen(
         }
     }
 
-    // Navegar al Feed cuando el login sea exitoso
+    // Navegar según rol cuando el login sea exitoso
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed) {
+        val authenticatedState = uiState as? AuthUiState.Authenticated
+        if (authenticatedState != null) {
+            navController.navigate(authenticatedDestination(authenticatedState.user.role)) {
                 popUpTo<Screen.Splash>() { inclusive = true }
             }
         }
@@ -601,10 +611,11 @@ fun RegisterScreen(
         }
     }
 
-    // Navegar al Feed cuando el registro sea exitoso
+    // Navegar según rol cuando el registro sea exitoso
     LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Authenticated) {
-            navController.navigate(Screen.Feed) {
+        val authenticatedState = uiState as? AuthUiState.Authenticated
+        if (authenticatedState != null) {
+            navController.navigate(authenticatedDestination(authenticatedState.user.role)) {
                 popUpTo<Screen.Splash>() { inclusive = true }
             }
         }

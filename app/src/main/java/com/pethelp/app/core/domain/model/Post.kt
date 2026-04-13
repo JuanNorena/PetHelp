@@ -33,6 +33,8 @@ data class Post(
     val votes: Int           = 0,
     val commentsCount: Int   = 0,
     val rejectionReason: String? = null,
+    val moderatedBy: String? = null,
+    val moderatedAt: Long?   = null,
     val createdAt: Long      = System.currentTimeMillis(),
     val updatedAt: Long      = System.currentTimeMillis()
 )

@@ -2,7 +2,10 @@ package com.pethelp.app
 
 import android.app.Application
 import com.google.firebase.auth.FirebaseAuth
+import com.pethelp.app.core.preferences.AppLanguageManager
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
+import kotlinx.coroutines.runBlocking
 
 /**
  * Clase Application de PetHelp.
@@ -14,13 +17,16 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class PetHelpApplication : Application() {
 
+    @Inject
+    lateinit var appLanguageManager: AppLanguageManager
+
     override fun onCreate() {
         super.onCreate()
 
-        // ── Firebase Auth: configuración de idioma ──
-        // Establece el idioma de los correos de verificación y recuperación
-        // de contraseña a español (Colombia).
-        FirebaseAuth.getInstance().setLanguageCode("es")
+        // Aplica el idioma guardado antes de levantar pantallas.
+        runBlocking {
+            appLanguageManager.applySavedLanguage()
+        }
 
         // ── Firebase Auth: deshabilitar verificación de app (reCAPTCHA) ──
         // En modo debug se desactiva la verificación reCAPTCHA Enterprise

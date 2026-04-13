@@ -16,7 +16,7 @@
 
     <!-- Cámara y galería (subida de imágenes) -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <!-- Si en el futuro se necesita video se puede ampliar el permiso -->
     <!-- El acceso amplio a fotos/videos se justifica porque la aplicación

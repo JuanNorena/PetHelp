@@ -6,6 +6,7 @@ import com.google.firebase.firestore.Query
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Comment
+import com.pethelp.app.core.domain.model.NotificationType
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
@@ -33,6 +34,7 @@ class FirebasePostRepository @Inject constructor(
     private val commentsCollection get() = firestore.collection(Constants.COLLECTION_COMMENTS)
     private val votesCollection get() = firestore.collection(Constants.COLLECTION_VOTES)
     private val adoptionRequestsCollection get() = firestore.collection(Constants.COLLECTION_ADOPTION_REQUESTS)
+    private val notificationsCollection get() = firestore.collection(Constants.COLLECTION_NOTIFICATIONS)
 
     // ── Obtener publicación por ID (con listener en tiempo real) ─────────────
     override fun getPostById(postId: String): Flow<Resource<Post>> = callbackFlow {
@@ -107,6 +109,141 @@ class FirebasePostRepository @Inject constructor(
             }
 
         awaitClose { listener.remove() }
+    }
+
+    // ── Obtener publicaciones pendientes de moderación ───────────────────────
+    override fun getPendingPosts(): Flow<Resource<List<Post>>> = callbackFlow {
+        trySend(Resource.Loading())
+
+        val listener = postsCollection
+            .whereEqualTo("status", PostStatus.PENDING.name)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    trySend(Resource.Error(error.localizedMessage ?: "Error al obtener publicaciones pendientes."))
+                    return@addSnapshotListener
+                }
+
+                val posts = snapshots?.documents
+                    ?.mapNotNull { snapshotToPost(it) }
+                    ?: emptyList()
+
+                trySend(Resource.Success(posts))
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    // ── Aprobar publicación ───────────────────────────────────────────────────
+    override fun approvePost(postId: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+
+        try {
+            val moderatorId = firebaseAuth.currentUser?.uid
+                ?: throw IllegalStateException("Debes iniciar sesión como moderador.")
+            val now = System.currentTimeMillis()
+
+            val postSnapshot = postsCollection.document(postId).get().await()
+            if (!postSnapshot.exists()) {
+                throw IllegalStateException("La publicación no existe.")
+            }
+
+            val authorId = postSnapshot.getString("authorId").orEmpty()
+
+            val postRef = postsCollection.document(postId)
+            val batch = firestore.batch()
+            batch.update(
+                postRef,
+                mapOf(
+                    "status" to PostStatus.VERIFIED.name,
+                    "rejectionReason" to null,
+                    "moderatedBy" to moderatorId,
+                    "moderatedAt" to now,
+                    "updatedAt" to now
+                )
+            )
+
+            if (authorId.isNotBlank()) {
+                val notificationRef = notificationsCollection.document()
+                batch.set(
+                    notificationRef,
+                    mapOf(
+                        "userId" to authorId,
+                        "type" to NotificationType.POST_APPROVED.name,
+                        "title" to "Publicación aprobada",
+                        "body" to "Tu publicación fue aprobada por moderación.",
+                        "relatedPostId" to postId,
+                        "isRead" to false,
+                        "createdAt" to now
+                    )
+                )
+            }
+
+            batch.commit().await()
+
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al aprobar la publicación."))
+        }
+    }
+
+    // ── Rechazar publicación ──────────────────────────────────────────────────
+    override fun rejectPost(postId: String, reason: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+
+        val normalizedReason = reason.trim()
+        if (normalizedReason.isBlank()) {
+            emit(Resource.Error("Debes ingresar un motivo de rechazo."))
+            return@flow
+        }
+
+        try {
+            val moderatorId = firebaseAuth.currentUser?.uid
+                ?: throw IllegalStateException("Debes iniciar sesión como moderador.")
+            val now = System.currentTimeMillis()
+
+            val postSnapshot = postsCollection.document(postId).get().await()
+            if (!postSnapshot.exists()) {
+                throw IllegalStateException("La publicación no existe.")
+            }
+
+            val authorId = postSnapshot.getString("authorId").orEmpty()
+
+            val postRef = postsCollection.document(postId)
+            val batch = firestore.batch()
+            batch.update(
+                postRef,
+                mapOf(
+                    "status" to PostStatus.REJECTED.name,
+                    "rejectionReason" to normalizedReason,
+                    "moderatedBy" to moderatorId,
+                    "moderatedAt" to now,
+                    "updatedAt" to now
+                )
+            )
+
+            if (authorId.isNotBlank()) {
+                val notificationRef = notificationsCollection.document()
+                batch.set(
+                    notificationRef,
+                    mapOf(
+                        "userId" to authorId,
+                        "type" to NotificationType.POST_REJECTED.name,
+                        "title" to "Publicación rechazada",
+                        "body" to "Tu publicación fue rechazada. Motivo: $normalizedReason",
+                        "relatedPostId" to postId,
+                        "isRead" to false,
+                        "createdAt" to now
+                    )
+                )
+            }
+
+            batch.commit().await()
+
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al rechazar la publicación."))
+        }
     }
 
     // ── Eliminar publicación ────────────────────────────────────────────────
@@ -352,6 +489,8 @@ class FirebasePostRepository @Inject constructor(
                 votes = doc.getLong("votes")?.toInt() ?: 0,
                 commentsCount = doc.getLong("commentsCount")?.toInt() ?: 0,
                 rejectionReason = doc.getString("rejectionReason"),
+                moderatedBy = doc.getString("moderatedBy"),
+                moderatedAt = doc.getLong("moderatedAt"),
                 createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                 updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
             )
@@ -377,7 +516,10 @@ class FirebasePostRepository @Inject constructor(
         "votes" to post.votes,
         "commentsCount" to post.commentsCount,
         "rejectionReason" to post.rejectionReason,
+        "moderatedBy" to post.moderatedBy,
+        "moderatedAt" to post.moderatedAt,
         "createdAt" to post.createdAt,
         "updatedAt" to post.updatedAt
     )
+
 }
