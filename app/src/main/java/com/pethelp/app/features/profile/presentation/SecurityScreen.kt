@@ -58,13 +58,21 @@ fun SecurityScreen(
                 title = { Text(stringResource(R.string.security_title), fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -76,10 +84,10 @@ fun SecurityScreen(
             Spacer(Modifier.height(16.dp))
 
             // CONTRASEÑA
-            SecuritySectionHeader(Icons.Outlined.Key, stringResource(R.string.security_password_section), Color(0xFF2DD4BF))
+            SecuritySectionHeader(Icons.Outlined.Key, stringResource(R.string.security_password_section), MaterialTheme.colorScheme.primary)
             SecurityCard {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.security_current_password), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.security_current_password), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = currentPassword,
@@ -88,15 +96,15 @@ fun SecurityScreen(
                         placeholder = { Text("********") },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF9FAFB),
-                            focusedContainerColor = Color(0xFFF9FAFB),
-                            unfocusedBorderColor = Color(0xFFE5E7EB)
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
                         )
                     )
                     
                     Spacer(Modifier.height(16.dp))
                     
-                    Text(stringResource(R.string.security_new_password), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.security_new_password), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = newPassword,
@@ -105,9 +113,9 @@ fun SecurityScreen(
                         placeholder = { Text("********") },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF9FAFB),
-                            focusedContainerColor = Color(0xFFF9FAFB),
-                            unfocusedBorderColor = Color(0xFFE5E7EB)
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
                         )
                     )
                     
@@ -121,7 +129,7 @@ fun SecurityScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA5))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(stringResource(R.string.security_update_password), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
@@ -136,10 +144,10 @@ fun SecurityScreen(
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color(0xFFE0F7F6), CircleShape),
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Outlined.Lock, contentDescription = null, tint = Color(0xFF00BFA5), modifier = Modifier.size(32.dp))
+                            Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
                         }
                     },
                     title = { 
@@ -147,14 +155,14 @@ fun SecurityScreen(
                             stringResource(R.string.security_update_password),
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = Color(0xFF111827)
+                            color = MaterialTheme.colorScheme.onSurface
                         ) 
                     },
                     text = { 
                         Text(
                             "¿Confirmas que deseas cambiar tu contraseña? Por seguridad, es posible que debas iniciar sesión de nuevo tras el cambio.",
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            color = Color(0xFF4B5563),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
                             lineHeight = 22.sp
                         ) 
@@ -169,7 +177,7 @@ fun SecurityScreen(
                             },
                             modifier = Modifier.fillMaxWidth().height(50.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA5))
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text("Confirmar cambio", fontWeight = FontWeight.Bold)
                         }
@@ -179,11 +187,11 @@ fun SecurityScreen(
                             onClick = { showPasswordConfirmDialog = false },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(stringResource(R.string.common_cancel), color = Color(0xFF6B7280))
+                            Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
                     shape = RoundedCornerShape(28.dp),
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = true)
                 )
             }
@@ -191,23 +199,30 @@ fun SecurityScreen(
             Spacer(Modifier.height(24.dp))
 
             // AUTENTICACIÓN
-            SecuritySectionHeader(Icons.Default.Shield, stringResource(R.string.security_auth_section), Color(0xFFFBBF24))
+            SecuritySectionHeader(Icons.Default.Shield, stringResource(R.string.security_auth_section), MaterialTheme.colorScheme.secondary)
             SecurityCard {
-                var twoStepEnabled by remember { mutableStateOf(false) }
+                val uiState = viewModel.uiState.collectAsState().value
+                val user = (uiState as? ProfileUiState.Success)?.user
+                val twoStepEnabled = user?.twoFactorEnabled ?: false
+                
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.security_2fa_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-                        Text(stringResource(R.string.security_2fa_desc), fontSize = 13.sp, color = Color(0xFF6B7280), lineHeight = 18.sp)
+                        Text(stringResource(R.string.security_2fa_title), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.security_2fa_desc), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
                     }
                     Switch(
                         checked = twoStepEnabled,
-                        onCheckedChange = { twoStepEnabled = it },
+                        onCheckedChange = { enabled ->
+                            user?.let {
+                                viewModel.updateProfile(it.copy(twoFactorEnabled = enabled))
+                            }
+                        },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF22C55E)
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -216,7 +231,7 @@ fun SecurityScreen(
             Spacer(Modifier.height(24.dp))
 
             // DISPOSITIVOS
-            SecuritySectionHeader(Icons.Outlined.Smartphone, stringResource(R.string.security_devices_section), Color(0xFF8B5CF6))
+            SecuritySectionHeader(Icons.Outlined.Smartphone, stringResource(R.string.security_devices_section), MaterialTheme.colorScheme.primary)
             SecurityCard {
                 val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
                 val model = android.os.Build.MODEL
@@ -239,8 +254,8 @@ fun SecurityScreen(
             if (showDeleteDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
-                    title = { Text(stringResource(R.string.security_danger_zone)) },
-                    text = { Text(stringResource(R.string.security_delete_account_desc)) },
+                    title = { Text(stringResource(R.string.security_danger_zone), color = MaterialTheme.colorScheme.error) },
+                    text = { Text(stringResource(R.string.security_delete_account_desc), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     confirmButton = {
                         TextButton(
                             onClick = {
@@ -250,31 +265,32 @@ fun SecurityScreen(
                                     popUpTo(0)
                                 }
                             },
-                            colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
                             Text(stringResource(R.string.btn_delete_account))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteDialog = false }) {
-                            Text(stringResource(R.string.common_cancel))
+                            Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                    }
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             }
 
-            SecurityCard(containerColor = Color(0xFFFFEBEE)) {
+            SecurityCard(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.security_danger_zone), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444))
+                        Text(stringResource(R.string.security_danger_zone), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(
                         stringResource(R.string.security_delete_account_desc),
                         fontSize = 13.sp,
-                        color = Color(0xFFF87171),
+                        color = MaterialTheme.colorScheme.error,
                         lineHeight = 18.sp
                     )
                     Spacer(Modifier.height(16.dp))
@@ -282,8 +298,8 @@ fun SecurityScreen(
                         onClick = { showDeleteDialog = true },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFCA5A5))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
                         Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
@@ -306,7 +322,7 @@ fun SecuritySectionHeader(icon: ImageVector, title: String, color: Color) {
             text = title,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF6B7280),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             letterSpacing = 1.sp
         )
     }
@@ -314,14 +330,15 @@ fun SecuritySectionHeader(icon: ImageVector, title: String, color: Color) {
 
 @Composable
 fun SecurityCard(
-    containerColor: Color = Color.White,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(content = content)
     }
@@ -340,19 +357,19 @@ fun DeviceItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(40.dp).background(if (isCurrent) Color(0xFFE0F7F6) else Color(0xFFF3F4F6), CircleShape),
+            modifier = Modifier.size(40.dp).background(if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = if (isCurrent) Color(0xFF00BFA5) else Color(0xFF9CA3AF), modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(deviceName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-            Text(deviceInfo, fontSize = 12.sp, color = if (isCurrent) Color(0xFF00BFA5) else Color(0xFF9CA3AF))
+            Text(deviceName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(deviceInfo, fontSize = 12.sp, color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (showLogout) {
             IconButton(onClick = { /* TODO */ }) {
-                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = Color(0xFFD1D5DB), modifier = Modifier.size(20.dp))
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
     }

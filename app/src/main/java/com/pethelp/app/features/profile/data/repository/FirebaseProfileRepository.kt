@@ -80,7 +80,13 @@ class FirebaseProfileRepository @Inject constructor(
                 "city" to user.city,
                 "petPreferences" to user.petPreferences,
                 "alertsNearMe" to user.alertsNearMe,
-                "photoUrl" to user.photoUrl
+                "photoUrl" to user.photoUrl,
+                "profileVisibility" to user.profileVisibility,
+                "showEmail" to user.showEmail,
+                "showCity" to user.showCity,
+                "pushNotificationsEnabled" to user.pushNotificationsEnabled,
+                "emailAlertsEnabled" to user.emailAlertsEnabled,
+                "twoFactorEnabled" to user.twoFactorEnabled
             )
             
             firestore.collection(USERS_COLLECTION)

@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pethelp.app.core.navigation.PetHelpNavGraph
 import com.pethelp.app.core.ui.theme.PetHelpTheme
+import com.pethelp.app.features.profile.presentation.ProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -20,6 +25,10 @@ import dagger.hilt.android.AndroidEntryPoint
  * - Toda la navegación se gestiona dentro del NavGraph de Compose.
  * - enableEdgeToEdge() activa el diseño pantalla completa (Material You).
  */
+import android.content.Context
+import android.content.res.Configuration
+import java.util.Locale
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -31,7 +40,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            PetHelpTheme {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+            val isDarkMode by profileViewModel.isDarkMode.collectAsState()
+            val language by profileViewModel.language.collectAsState()
+
+            // Update locale dynamically
+            LaunchedEffect(language) {
+                val locale = Locale(language)
+                Locale.setDefault(locale)
+                val config = resources.configuration
+                config.setLocale(locale)
+                
+                // For modern Android (N and above)
+                resources.updateConfiguration(config, resources.displayMetrics)
+                
+                // Trigger an activity recreation to ensure all strings are refreshed
+                // if we are not at the initial state.
+                // recreate() // Optional: uncomment if you want full restart on change
+            }
+
+            PetHelpTheme(darkTheme = isDarkMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     PetHelpNavGraph()
                 }

@@ -40,13 +40,13 @@ fun FeedScreen(navController: NavController) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Column(modifier = Modifier.background(Color.White)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 // Top App Bar
                 TopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.feed_title),
-                            color = PetHelpPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp
                         )
@@ -65,13 +65,13 @@ fun FeedScreen(navController: NavController) {
                                 .padding(end = 16.dp)
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color.LightGray)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable { navController.navigate(Screen.Profile) }
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White,
-                        titleContentColor = PetHelpPrimary
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.primary
                     )
                 )
 
@@ -141,11 +141,11 @@ fun FilterChipUI(label: String, selected: Boolean) {
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = if (selected) PetHelpPrimary else MaterialTheme.colorScheme.outline,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(20.dp)
             )
             .background(
-                color = if (selected) PetHelpPrimary.copy(alpha = 0.1f) else Color.White,
+                color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -153,7 +153,7 @@ fun FilterChipUI(label: String, selected: Boolean) {
     ) {
         Text(
             text = label,
-            color = if (selected) PetHelpPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 14.sp
         )
@@ -164,14 +164,14 @@ fun FilterChipUI(label: String, selected: Boolean) {
 fun PetCardMock(name: String, breed: String, distance: String) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
             .height(380.dp)
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(24.dp),
-                spotColor = Color.Black.copy(alpha = 0.05f)
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
             )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -181,7 +181,7 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(250.dp)
-                        .background(Color.LightGray)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     // Distance badge
                     Box(
@@ -189,13 +189,13 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                             .align(Alignment.TopStart)
                             .padding(16.dp)
                             .background(
-                                color = Color.White.copy(alpha = 0.8f),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = PetHelpPrimary, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text(text = distance, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                         }
@@ -207,10 +207,10 @@ fun PetCardMock(name: String, breed: String, distance: String) {
                             .align(Alignment.TopEnd)
                             .padding(16.dp)
                             .size(40.dp)
-                            .background(PetHelpSecondary.copy(alpha=0.1f), CircleShape),
+                            .background(MaterialTheme.colorScheme.secondary.copy(alpha=0.1f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                         Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = PetHelpSecondary, modifier = Modifier.size(24.dp))
+                         Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
                     }
                 }
                 

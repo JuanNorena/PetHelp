@@ -84,8 +84,50 @@
     <string name="post_size">Tamaño</string>
     <string name="post_vaccinated">¿Tiene vacunas?</string>
     <string name="post_location">Ubicación</string>
+    <string name="post_details_title">Detalles</string>
     <string name="post_pick_location">Seleccionar en el mapa</string>
     <string name="post_add_images">Agregar imágenes</string>
+    <string name="post_step_2_of_4">Paso 2 de 4</string>
+    <string name="post_location_instruction">Indica dónde se encuentra el peludo para que personas cercanas puedan verlo.</string>
+    <string name="post_my_location">Mi ubicación</string>
+    <string name="post_street_hint">Busca una dirección...</string>
+    <string name="post_street_label">Calle y número</string>
+    <string name="post_neighborhood_label">Barrio</string>
+    <string name="post_neighborhood_hint">Ej. El Poblado</string>
+    <string name="post_city_label">Ciudad</string>
+    <string name="post_city_hint">Ej. Armenia</string>
+    <string name="post_location_warning">La ubicación exacta no será visible al público. Solo mostraremos un área aproximada (ej. 1km a la redonda) por seguridad.</string>
+    <string name="btn_next_details">Siguiente: Detalles</string>
+    <string name="map_not_available">Mapa no disponible temporalmente</string>
+    <string name="map_coming_soon">Funcionalidad próximamente en implementar</string>
+    <string name="post_step_3_of_4">Paso 3 de 4</string>
+    <string name="post_approx_age">Edad aproximada</string>
+    <string name="post_age_puppy">Cachorro</string>
+    <string name="post_age_young">Joven</string>
+    <string name="post_age_adult">Adulto</string>
+    <string name="post_age_senior">Senior</string>
+    <string name="post_gender">Sexo</string>
+    <string name="post_gender_male">Macho</string>
+    <string name="post_gender_female">Hembra</string>
+    <string name="post_gender_unknown">No lo sé</string>
+    <string name="post_health_status">Estado de Salud</string>
+    <string name="post_vaccinated_label">Vacunado</string>
+    <string name="post_vaccinated_desc">Cuenta con sus vacunas básicas al día.</string>
+    <string name="post_dewormed_label">Desparasitado</string>
+    <string name="post_dewormed_desc">Tratamiento contra parásitos internos y externos.</string>
+    <string name="post_sterilized_label">Esterilizado / Castrado</string>
+    <string name="post_sterilized_desc">Ya fue operado para evitar reproducción.</string>
+    <string name="post_behavior">Comportamiento</string>
+    <string name="post_behavior_playful">Juguetón</string>
+    <string name="post_behavior_calm">Tranquilo</string>
+    <string name="post_behavior_protective">Protector</string>
+    <string name="post_behavior_shy">Tímido</string>
+    <string name="post_behavior_sociable">Sociable</string>
+    <string name="post_behavior_independent">Independiente</string>
+    <string name="post_behavior_affectionate">Cariñoso</string>
+    <string name="post_behavior_active">Activo</string>
+    <string name="post_behavior_instruction">Selecciona las características que mejor describan al peludo. Esto ayuda a encontrar a la persona ideal.</string>
+    <string name="btn_next_review">Siguiente: Revisar</string>
     <string name="btn_publish">Publicar</string>
     <string name="btn_save">Guardar</string>
     <string name="btn_cancel">Cancelar</string>
@@ -248,6 +290,45 @@
     <string name="visibility_show_email_desc">Permite que otros usuarios vean tu email en tu perfil.</string>
     <string name="visibility_show_city_title">Mostrar ciudad</string>
     <string name="visibility_show_city_desc">Muestra tu ciudad (Ej. Ciudad de México) en tu perfil público.</string>
+
+    <!-- ── Centro de Ayuda (Help Center) ──────────────── -->
+    <string name="help_center_title">Centro de Ayuda</string>
+    <string name="help_search_hint">Buscar ayuda...</string>
+    <string name="help_guides_title">Guías de uso</string>
+    <string name="help_security_title">Seguridad</string>
+    <string name="help_faq_section">Preguntas Frecuentes</string>
+
+    <!-- ── Guía de Usuario (User Guide) ───────────────── -->
+    <string name="user_guide_title">Guía de Usuario</string>
+    <string name="user_guide_welcome_title">Bienvenido a PetHelp</string>
+    <string name="user_guide_welcome_body">Tu compañero ideal está a solo unos clics de distancia. Esta guía te ayudará a navegar por la aplicación y aprovechar al máximo nuestras funciones para conectar mascotas con hogares amorosos.</string>
+    <string name="user_guide_start_title">Cómo empezar</string>
+    <string name="user_guide_start_body">Crea tu cuenta en segundos. Solo necesitas un correo electrónico o tu cuenta de Google. Completa tu perfil con una foto amigable para generar confianza en la comunidad.</string>
+    <string name="user_guide_adopt_title">Adoptar una mascota</string>
+    <string name="user_guide_adopt_body">Explora miles de mascotas usando nuestros filtros inteligentes. Cuando encuentres a tu compañero ideal, envía una solicitud de adopción directamente desde su perfil.</string>
+    <string name="user_guide_publish_title">Publicar adopción</string>
+    <string name="user_guide_publish_body">Sube fotos claras y con buena luz. Describe la personalidad de la mascota, sus gustos y necesidades médicas. Una buena historia aumenta las posibilidades de adopción.</string>
+    <string name="user_guide_security_title">Consejos de seguridad</string>
+    <string name="user_guide_security_body">Siempre realiza los encuentros en lugares públicos y seguros. Verifica la información del refugio o adoptante y nunca envíes dinero por adelantado sin garantías.</string>
+
+    <string name="faq_adopt_q">¿Cómo adopto una mascota?</string>
+    <string name="faq_adopt_a">Para adoptar, navega al perfil de la mascota que te interesa y haz clic en \'Solicitar adopción\'. El dueño o refugio revisará tu solicitud y se pondrá en contacto contigo.</string>
+
+    <string name="faq_free_q">¿Es gratis usar PetHelp?</string>
+    <string name="faq_free_a">Sí, PetHelp es completamente gratuito para adoptantes y para quienes dan en adopción. Somos una comunidad sin fines de lucro.</string>
+
+    <string name="faq_verify_q">¿Cómo verifico mi refugio?</string>
+    <string name="faq_verify_a">Para obtener la insignia de \'Refugio Verificado\', debes enviar tu documentación legal a verificacion@pethelp.app. El proceso toma de 3 a 5 días hábiles.</string>
+
+    <string name="faq_return_q">¿Qué pasa si no puedo cuidar a mi mascota adoptada?</string>
+    <string name="faq_return_a">Si surge un imprevisto, te pedimos que contactes primero al refugio o persona que te dio la mascota. Ellos tienen prioridad para recibirla de vuelta.</string>
+
+    <string name="faq_report_q">¿Cómo reporto un usuario sospechoso?</string>
+    <string name="faq_report_a">Ve al perfil del usuario, toca los tres puntos en la esquina superior derecha y selecciona \'Reportar\'. Nuestro equipo de moderación revisará el caso.</string>
+
+    <string name="help_still_questions">¿Sigues con dudas?</string>
+    <string name="help_support_available">Nuestro equipo de soporte está disponible 24/7 para ayudarte con cualquier problema.</string>
+    <string name="help_contact_us">Contáctanos</string>
 
     <string name="common_cancel">Cancelar</string>
 </resources>

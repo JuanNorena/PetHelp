@@ -36,6 +36,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface           = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
 )
 
+// TODO: IMPLEMENTAR EL CAMBIO DE IDIOMA EN TODO EL PROYECTO
+
 // ── Esquema de colores oscuro ─────────────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
     primary             = PetHelpPrimaryDark,

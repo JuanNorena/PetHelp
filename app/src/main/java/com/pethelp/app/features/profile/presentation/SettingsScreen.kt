@@ -2,6 +2,7 @@ package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,13 +42,21 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.profile_settings), fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back_to_start))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.btn_back_to_start),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -67,21 +76,57 @@ fun SettingsScreen(
                     title = stringResource(R.string.edit_profile_title),
                     onClick = { navController.navigate(Screen.EditProfile) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF3F4F6))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsItem(
                     icon = Icons.Default.Shield,
                     iconColor = Color(0xFF10B981),
                     title = stringResource(R.string.settings_security),
                     onClick = { navController.navigate(Screen.Security) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF3F4F6))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                
+                val currentLanguage by viewModel.language.collectAsState()
+                var showLanguageDialog by remember { mutableStateOf(false) }
+                
                 SettingsItem(
                     icon = Icons.Default.Language,
                     iconColor = Color(0xFF8B5CF6),
                     title = stringResource(R.string.settings_language),
-                    value = stringResource(R.string.settings_language_value),
-                    onClick = { /* TODO */ }
+                    value = if (currentLanguage == "es") "Español" else "English",
+                    onClick = { showLanguageDialog = true }
                 )
+
+                if (showLanguageDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showLanguageDialog = false },
+                        title = { Text(stringResource(R.string.settings_language)) },
+                        text = {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clickable { viewModel.setLanguage("es"); showLanguageDialog = false }.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = currentLanguage == "es", onClick = { viewModel.setLanguage("es"); showLanguageDialog = false })
+                                    Text("Español", modifier = Modifier.padding(start = 8.dp))
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clickable { viewModel.setLanguage("en"); showLanguageDialog = false }.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = currentLanguage == "en", onClick = { viewModel.setLanguage("en"); showLanguageDialog = false })
+                                    Text("English", modifier = Modifier.padding(start = 8.dp))
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        dismissButton = {
+                            TextButton(onClick = { showLanguageDialog = false }) {
+                                Text(stringResource(R.string.common_cancel))
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -99,7 +144,7 @@ fun SettingsScreen(
                     checked = pushEnabled,
                     onCheckedChange = { pushEnabled = it }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF3F4F6))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsToggleItem(
                     icon = Icons.Default.PhoneIphone,
                     iconColor = Color(0xFF64748B),
@@ -120,13 +165,13 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_privacy_policy),
                     onClick = { navController.navigate(Screen.Privacy) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF3F4F6))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsItem(
                     icon = Icons.Default.Visibility,
                     iconColor = Color(0xFF6366F1),
                     title = stringResource(R.string.settings_profile_visibility),
                     value = stringResource(R.string.settings_visibility_public),
-                    onClick = { /* TODO */ }
+                    onClick = { navController.navigate(Screen.ProfileVisibility) }
                 )
             }
 
@@ -135,13 +180,13 @@ fun SettingsScreen(
             // APARIENCIA
             SettingsSectionTitle(stringResource(R.string.settings_appearance_section))
             SettingsCard {
-                var darkMode by remember { mutableStateOf(false) }
+                val isDarkMode by viewModel.isDarkMode.collectAsState()
                 SettingsToggleItem(
                     icon = Icons.Default.LightMode,
                     iconColor = Color(0xFFFBBF24),
                     title = stringResource(R.string.settings_dark_mode),
-                    checked = darkMode,
-                    onCheckedChange = { darkMode = it }
+                    checked = isDarkMode,
+                    onCheckedChange = { viewModel.toggleDarkMode(it) }
                 )
             }
 
@@ -154,7 +199,7 @@ fun SettingsScreen(
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
                     iconColor = Color(0xFF06B6D4),
                     title = stringResource(R.string.settings_help_center),
-                    onClick = { /* TODO */ }
+                    onClick = { navController.navigate(Screen.HelpCenter) }
                 )
             }
 
@@ -173,8 +218,8 @@ fun SettingsScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFEBEE),
-                    contentColor = Color(0xFFEF4444)
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ),
                 elevation = null
             ) {
@@ -188,7 +233,7 @@ fun SettingsScreen(
             Text(
                 text = "PetHelp v1.0.0",
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color(0xFF9CA3AF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
 
@@ -203,7 +248,7 @@ fun SettingsSectionTitle(title: String) {
         text = title,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF6B7280),
+        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
         letterSpacing = 0.5.sp
     )
@@ -214,7 +259,7 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(content = content)
@@ -250,12 +295,12 @@ fun SettingsItem(
             modifier = Modifier.weight(1f),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF111827)
+            color = MaterialTheme.colorScheme.onSurface
         )
         if (value != null) {
-            Text(text = value, color = Color(0xFF9CA3AF), fontSize = 14.sp, modifier = Modifier.padding(end = 8.dp))
+            Text(text = value, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(end = 8.dp))
         }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFD1D5DB), modifier = Modifier.size(20.dp))
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -287,16 +332,16 @@ fun SettingsToggleItem(
             modifier = Modifier.weight(1f),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF111827)
+            color = MaterialTheme.colorScheme.onSurface
         )
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF22C55E),
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFFE5E7EB),
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
                 uncheckedBorderColor = Color.Transparent
             )
         )

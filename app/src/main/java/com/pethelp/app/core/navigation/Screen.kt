@@ -22,6 +22,26 @@ sealed class Screen {
     @Serializable data class PostDetail(val postId: String) : Screen()
     
     @Serializable data object CreatePost : Screen()
+    @Serializable data class LocationSelection(
+        val title: String,
+        val description: String,
+        val category: String,
+        val animalType: String,
+        val size: String,
+        val imageUris: List<String>
+    ) : Screen()
+
+    @Serializable data class PostDetails(
+        val title: String,
+        val description: String,
+        val category: String,
+        val animalType: String,
+        val size: String,
+        val imageUris: List<String>,
+        val street: String,
+        val neighborhood: String,
+        val city: String
+    ) : Screen()
 
     @Serializable data object MyPosts : Screen()
     
@@ -37,6 +57,8 @@ sealed class Screen {
     @Serializable data object Security : Screen()
     @Serializable data object Privacy : Screen()
     @Serializable data object ProfileVisibility : Screen()
+    @Serializable data object HelpCenter : Screen()
+    @Serializable data object UserGuide : Screen()
     @Serializable data object Statistics : Screen()
     @Serializable data object Reputation : Screen()
 
@@ -45,4 +67,21 @@ sealed class Screen {
     
     @Serializable 
     data class ModeratorDetail(val postId: String) : Screen()
+    @Serializable data class PostReview(
+        val title: String,
+        val description: String,
+        val category: String,
+        val animalType: String,
+        val age: String,
+        val gender: String,
+        val size: String,
+        val vaccinated: Boolean,
+        val dewormed: Boolean,
+        val sterilized: Boolean,
+        val behavior: List<String>,
+        val imageUris: List<String>,
+        val street: String,
+        val neighborhood: String,
+        val city: String
+    ) : Screen()
 }

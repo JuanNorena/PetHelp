@@ -18,6 +18,12 @@ data class User(
     val petPreferences: List<String> = emptyList(),
     val alertsNearMe: Boolean = true,
     val notificationRadiusKm: Double = 10.0,
+    val profileVisibility: String = "public",
+    val showEmail: Boolean = false,
+    val showCity: Boolean = true,
+    val pushNotificationsEnabled: Boolean = true,
+    val emailAlertsEnabled: Boolean = false,
+    val twoFactorEnabled: Boolean = false,
     val createdAt: Long     = System.currentTimeMillis()
 )
 

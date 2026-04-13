@@ -16,14 +16,19 @@ import com.pethelp.app.features.moderation.presentation.ModeratorPanelScreen
 import com.pethelp.app.features.notifications.presentation.NotificationsScreen
 import com.pethelp.app.features.post.presentation.CreatePostScreen
 import com.pethelp.app.features.post.presentation.EditPostScreen
+import com.pethelp.app.features.post.presentation.LocationSelectionScreen
 import com.pethelp.app.features.post.presentation.MyPostsScreen
 import com.pethelp.app.features.post.presentation.PostDetailScreen
+import com.pethelp.app.features.post.presentation.PostDetailsScreen
+import com.pethelp.app.features.post.presentation.PostReviewScreen
 import com.pethelp.app.features.profile.presentation.EditProfileScreen
+import com.pethelp.app.features.profile.presentation.HelpCenterScreen
 import com.pethelp.app.features.profile.presentation.PrivacyScreen
 import com.pethelp.app.features.profile.presentation.ProfileScreen
 import com.pethelp.app.features.profile.presentation.ProfileVisibilityScreen
 import com.pethelp.app.features.profile.presentation.SecurityScreen
 import com.pethelp.app.features.profile.presentation.SettingsScreen
+import com.pethelp.app.features.profile.presentation.UserGuideScreen
 import com.pethelp.app.features.reputation.presentation.ReputationScreen
 import com.pethelp.app.features.stats.presentation.StatisticsScreen
 
@@ -77,6 +82,18 @@ fun PetHelpNavGraph(
         composable<Screen.CreatePost> {
             CreatePostScreen(navController = navController)
         }
+        composable<Screen.LocationSelection> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.LocationSelection>()
+            LocationSelectionScreen(navController = navController, postData = route)
+        }
+        composable<Screen.PostDetails> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.PostDetails>()
+            PostDetailsScreen(navController = navController, postData = route)
+        }
+        composable<Screen.PostReview> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.PostReview>()
+            PostReviewScreen(navController = navController, postData = route)
+        }
         composable<Screen.MyPosts> {
             MyPostsScreen(navController = navController)
         }
@@ -108,6 +125,12 @@ fun PetHelpNavGraph(
         }
         composable<Screen.ProfileVisibility> {
             ProfileVisibilityScreen(navController = navController)
+        }
+        composable<Screen.HelpCenter> {
+            HelpCenterScreen(navController = navController)
+        }
+        composable<Screen.UserGuide> {
+            UserGuideScreen(navController = navController)
         }
 
         // ── Estadísticas ──────────────────────────────────────────────────────

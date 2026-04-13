@@ -29,3 +29,7 @@ val DarkSurface          = Color(0xFF2A2A2A)   // Alias para onPrimary/Secondary
 val White                = Color(0xFFFFFFFF)
 val PetHelpDestructive   = Color(0xFFFF4747)   // Rojo destructivo (#FF4747)
 val PetHelpDestructiveDark = Color(0xFFCC3333) // Rojo oscuro para tema oscuro
+
+// Alias para compatibilidad con pantallas
+val Orange = PetHelpSecondary
+val Teal = Color(0xFF00BFA5)

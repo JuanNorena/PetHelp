@@ -3,6 +3,7 @@ package com.pethelp.app.features.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.data.repository.UserPreferencesRepository
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -21,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val authRepository: AuthRepository // Needed for logout
+    private val authRepository: AuthRepository, // Needed for logout
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -30,8 +33,44 @@ class ProfileViewModel @Inject constructor(
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
+    private val _language = MutableStateFlow("es")
+    val language: StateFlow<String> = _language.asStateFlow()
+
     init {
         loadUserProfile()
+        observeDarkMode()
+        observeLanguage()
+    }
+
+    private fun observeDarkMode() {
+        viewModelScope.launch {
+            userPreferencesRepository.isDarkMode.collectLatest { enabled ->
+                _isDarkMode.value = enabled
+            }
+        }
+    }
+
+    private fun observeLanguage() {
+        viewModelScope.launch {
+            userPreferencesRepository.language.collectLatest { lang ->
+                _language.value = lang
+            }
+        }
+    }
+
+    fun toggleDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDarkMode(enabled)
+        }
+    }
+
+    fun setLanguage(languageCode: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setLanguage(languageCode)
+        }
     }
 
     private fun loadUserProfile() {

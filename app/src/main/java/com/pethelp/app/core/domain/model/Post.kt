@@ -16,9 +16,17 @@ data class Post(
     val status: PostStatus   = PostStatus.PENDING,
     val animalType: String   = "",
     val breed: String        = "",
+    val age: AnimalAge       = AnimalAge.YOUNG,
+    val gender: AnimalGender = AnimalGender.UNKNOWN,
     val size: AnimalSize     = AnimalSize.MEDIUM,
     val vaccinated: Boolean  = false,
+    val dewormed: Boolean    = false,
+    val sterilized: Boolean  = false,
+    val behavior: List<PetBehavior> = emptyList(),
     val imageUrls: List<String> = emptyList(),
+    val street: String       = "",
+    val neighborhood: String = "",
+    val city: String         = "",
     val latitude: Double     = 0.0,
     val longitude: Double    = 0.0,
     val locationName: String = "",
@@ -48,4 +56,28 @@ enum class AnimalSize(val displayName: String) {
     SMALL("Pequeño"),
     MEDIUM("Mediano"),
     LARGE("Grande")
+}
+
+enum class AnimalAge(val displayName: String) {
+    PUPPY("Cachorro"),
+    YOUNG("Joven"),
+    ADULT("Adulto"),
+    SENIOR("Senior")
+}
+
+enum class AnimalGender(val displayName: String) {
+    MALE("Macho"),
+    FEMALE("Hembra"),
+    UNKNOWN("No lo sé")
+}
+
+enum class PetBehavior(val displayName: String) {
+    PLAYFUL("Juguetón"),
+    CALM("Tranquilo"),
+    PROTECTIVE("Protector"),
+    SHY("Tímido"),
+    SOCIABLE("Sociable"),
+    INDEPENDENT("Independiente"),
+    AFFECTIONATE("Cariñoso"),
+    ACTIVE("Activo")
 }

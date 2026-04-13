@@ -7,7 +7,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.domain.model.AnimalAge
+import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.AnimalSize
+import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.upload.ImageUploader
@@ -29,10 +32,18 @@ data class CreatePostUiState(
     val category: PostCategory = PostCategory.ADOPTION,
     val animalType: String = "Perro",
     val breed: String = "",
+    val age: AnimalAge = AnimalAge.YOUNG,
+    val gender: AnimalGender = AnimalGender.UNKNOWN,
     val size: AnimalSize = AnimalSize.MEDIUM,
     val vaccinated: Boolean = false,
+    val dewormed: Boolean = false,
+    val sterilized: Boolean = false,
+    val behavior: List<PetBehavior> = emptyList(),
     val imageUris: List<Uri> = emptyList(),
     val imageUrls: List<String> = emptyList(),
+    val street: String = "",
+    val neighborhood: String = "",
+    val city: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val locationName: String = "",
@@ -99,6 +110,40 @@ class CreatePostViewModel @Inject constructor(
 
     fun updateVaccinated(vaccinated: Boolean) {
         _uiState.value = _uiState.value.copy(vaccinated = vaccinated)
+    }
+
+    fun updateDewormed(dewormed: Boolean) {
+        _uiState.value = _uiState.value.copy(dewormed = dewormed)
+    }
+
+    fun updateSterilized(sterilized: Boolean) {
+        _uiState.value = _uiState.value.copy(sterilized = sterilized)
+    }
+
+    fun updateAge(age: AnimalAge) {
+        _uiState.value = _uiState.value.copy(age = age)
+    }
+
+    fun updateGender(gender: AnimalGender) {
+        _uiState.value = _uiState.value.copy(gender = gender)
+    }
+
+    fun toggleBehavior(behavior: PetBehavior) {
+        val currentBehaviors = _uiState.value.behavior.toMutableList()
+        if (currentBehaviors.contains(behavior)) {
+            currentBehaviors.remove(behavior)
+        } else {
+            currentBehaviors.add(behavior)
+        }
+        _uiState.value = _uiState.value.copy(behavior = currentBehaviors)
+    }
+
+    fun updateAddress(street: String, neighborhood: String, city: String) {
+        _uiState.value = _uiState.value.copy(
+            street = street,
+            neighborhood = neighborhood,
+            city = city
+        )
     }
 
     fun addImage(uri: Uri) {

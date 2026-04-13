@@ -68,7 +68,7 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = Color(0xFFFAFAFA),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { PetHelpBottomNavBar(navController) }
     ) { padding ->
         when (uiState) {
@@ -113,13 +113,13 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
             modifier = Modifier
                 .offset(x = (-96).dp, y = 40.dp)
                 .size(288.dp)
-                .background(PetHelpPrimary.copy(alpha = 0.06f), CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f), CircleShape)
         )
         Box(
             modifier = Modifier
                 .offset(x = 196.dp, y = 200.dp)
                 .size(256.dp)
-                .background(Color(0xFF8DA399).copy(alpha = 0.08f), CircleShape)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f), CircleShape)
         )
 
         Column(
@@ -140,11 +140,14 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                     modifier = Modifier
                         .background(
                             brush = Brush.horizontalGradient(
-                                listOf(PetHelpPrimary.copy(alpha = 0.15f), PetHelpPrimary.copy(alpha = 0.15f))
+                                listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), 
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                )
                             ),
                             shape = RoundedCornerShape(50)
                         )
-                        .border(1.dp, PetHelpPrimary.copy(alpha = 0.2f), RoundedCornerShape(50))
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(50))
                         .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
                 ) {
                     Row(
@@ -155,14 +158,23 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                             modifier = Modifier
                                 .size(20.dp)
                                 .background(
-                                    brush = Brush.verticalGradient(listOf(PetHelpPrimary, PetHelpPrimary)),
+                                    brush = Brush.verticalGradient(
+                                        listOf(
+                                            MaterialTheme.colorScheme.primary, 
+                                            MaterialTheme.colorScheme.primary
+                                        )
+                                    ),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Filled.Star, null, tint = Color.White, modifier = Modifier.size(10.dp))
+                            Icon(Icons.Filled.Star, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
                         }
-                        Text(stringResource(R.string.profile_level_label, user.level.ordinal + 1), color = PetHelpPrimary, fontSize = 12.sp)
+                        Text(
+                            stringResource(R.string.profile_level_label, user.level.ordinal + 1), 
+                            color = MaterialTheme.colorScheme.primary, 
+                            fontSize = 12.sp
+                        )
                     }
                 }
 
@@ -173,7 +185,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                         .clickable { navController.navigate(Screen.Settings) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.Settings, null, tint = Color(0xFF6A7282), modifier = Modifier.size(22.dp))
+                    Icon(Icons.Filled.Settings, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(22.dp))
                 }
             }
 
@@ -189,14 +201,14 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 text = user.name,
                 fontWeight = FontWeight.Medium,
                 fontSize = 24.sp,
-                color = Color(0xFF101828),
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = (-0.6).sp
             )
 
             // Username
             Text(
                 text = if (user.username.isNotEmpty()) "${stringResource(R.string.profile_username_prefix)}${user.username}" else "${stringResource(R.string.profile_username_prefix)}usuario",
-                color = Color(0xFF99A1AF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontSize = 14.sp
             )
 
@@ -207,14 +219,14 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 modifier = Modifier
                     .background(
                         brush = Brush.horizontalGradient(
-                            listOf(PetHelpPrimary.copy(alpha = 0.15f), PetHelpPrimary.copy(alpha = 0.1f))
+                            listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                         ),
                         shape = RoundedCornerShape(50)
                     )
-                    .border(1.dp, PetHelpPrimary.copy(alpha = 0.25f), RoundedCornerShape(50))
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), RoundedCornerShape(50))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("👑 ${user.level.displayName}", color = Color(0xFF0A0A0A), fontSize = 14.sp)
+                Text("👑 ${user.level.displayName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -236,6 +248,8 @@ private fun levelProgress(user: User): Float {
 @Composable
 private fun ProfileAvatarWithRing(user: User) {
     val progress = levelProgress(user)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     Box(modifier = Modifier.size(140.dp), contentAlignment = Alignment.Center) {
         // Anillo dibujado con Canvas (Figma: circular progress verde)
         Canvas(modifier = Modifier.size(140.dp)) {
@@ -245,14 +259,14 @@ private fun ProfileAvatarWithRing(user: User) {
             val arcSize = Size(diameter, diameter)
             // Track gris claro
             drawArc(
-                color = Color(0xFFE8F5E9),
+                color = trackColor,
                 startAngle = -90f, sweepAngle = 360f, useCenter = false,
                 style = Stroke(strokeW, cap = StrokeCap.Round),
                 topLeft = tl, size = arcSize
             )
             // Arco de progreso verde
             drawArc(
-                color = PetHelpPrimary,
+                color = primaryColor,
                 startAngle = -90f, sweepAngle = progress * 360f, useCenter = false,
                 style = Stroke(strokeW, cap = StrokeCap.Round),
                 topLeft = tl, size = arcSize
@@ -264,9 +278,9 @@ private fun ProfileAvatarWithRing(user: User) {
             modifier = Modifier
                 .size(116.dp)
                 .shadow(8.dp, CircleShape)
-                .border(3.dp, Color.White, CircleShape)
+                .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
                 .clip(CircleShape)
-                .background(Color(0xFFB0BEC5))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             if (user.photoUrl.isNotBlank()) {
                 AsyncImage(
@@ -277,17 +291,18 @@ private fun ProfileAvatarWithRing(user: User) {
                 )
             } else {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Filled.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(42.dp)
-                    )
-                }
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                )
             }
+
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(42.dp)
+            )
         }
 
         // Badge de porcentaje debajo del avatar
@@ -298,17 +313,19 @@ private fun ProfileAvatarWithRing(user: User) {
         ) {
             Row(
                 modifier = Modifier
-                    .shadow(4.dp, RoundedCornerShape(50), spotColor = PetHelpPrimary.copy(alpha = 0.3f))
+                    .shadow(4.dp, RoundedCornerShape(50), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     .background(
-                        brush = Brush.verticalGradient(listOf(PetHelpPrimary, PetHelpPrimary)),
+                        brush = Brush.verticalGradient(
+                            listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
+                        ),
                         shape = RoundedCornerShape(50)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = Color.White, modifier = Modifier.size(10.dp))
-                Text("${(progress * 100).toInt()}%", color = Color.White, fontSize = 11.sp)
+                Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
+                Text("${(progress * 100).toInt()}%", color = MaterialTheme.colorScheme.onPrimary, fontSize = 11.sp)
             }
         }
     }
@@ -324,32 +341,34 @@ private fun PointsCardSection(points: Int) {
             .height(140.dp)
             .shadow(
                 8.dp, RoundedCornerShape(24.dp),
-                spotColor = PetHelpSecondary.copy(alpha = 0.2f),
-                ambientColor = PetHelpSecondary.copy(alpha = 0.2f)
+                spotColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                ambientColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
             )
             .clip(RoundedCornerShape(24.dp))
     ) {
         // Fondo degradado naranja (Figma: from-[#ff8a65] to-[#f4511e])
         Box(
             modifier = Modifier.fillMaxSize().background(
-                brush = Brush.horizontalGradient(listOf(PetHelpSecondary, PetHelpSecondaryDark))
+                brush = Brush.horizontalGradient(
+                    listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.secondaryContainer)
+                )
             )
         )
         // Círculos decorativos internos
-        Box(Modifier.offset(x = 230.dp, y = (-32).dp).size(128.dp).background(Color.White.copy(alpha = 0.10f), CircleShape))
-        Box(Modifier.offset(x = (-16).dp, y = 68.dp).size(96.dp).background(Color.White.copy(alpha = 0.05f), CircleShape))
-        Box(Modifier.offset(x = 230.dp, y = 84.dp).size(48.dp).background(Color.White.copy(alpha = 0.05f), CircleShape))
+        Box(Modifier.offset(x = 230.dp, y = (-32).dp).size(128.dp).background(MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.10f), CircleShape))
+        Box(Modifier.offset(x = (-16).dp, y = 68.dp).size(96.dp).background(MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.05f), CircleShape))
+        Box(Modifier.offset(x = 230.dp, y = 84.dp).size(48.dp).background(MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.05f), CircleShape))
 
         // Icono de llama (izquierda, ligeramente rotado)
         Icon(
             Icons.Filled.Whatshot, null,
-            tint = Color.White.copy(alpha = 0.9f),
+            tint = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.9f),
             modifier = Modifier.size(32.dp).align(Alignment.CenterStart).offset(x = 24.dp).rotate(-1f)
         )
         // Icono de estrella (derecha, ligeramente rotado)
         Icon(
             Icons.Filled.Star, null,
-            tint = Color.White.copy(alpha = 0.9f),
+            tint = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.9f),
             modifier = Modifier.size(32.dp).align(Alignment.CenterEnd).offset(x = (-24).dp).rotate(-4f)
         )
 
@@ -360,14 +379,14 @@ private fun PointsCardSection(points: Int) {
         ) {
             Text(
                 stringResource(R.string.profile_total_points),
-                color = Color.White.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f),
                 fontSize = 12.sp,
                 letterSpacing = 1.2.sp
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = points.toString(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSecondary,
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = (-2.4).sp,
@@ -398,13 +417,15 @@ private fun StatsGrid2x2Section(user: User) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
+                iconTint = MaterialTheme.colorScheme.primary, 
+                iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 value = "$levelNum", label = stringResource(R.string.profile_stats_level),
                 icon = Icons.Filled.Star
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpPrimary, iconBg = PetHelpPrimary.copy(alpha = 0.1f),
+                iconTint = MaterialTheme.colorScheme.primary, 
+                iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 value = memberSince, label = stringResource(R.string.profile_stats_member_since),
                 icon = Icons.Filled.CalendarToday, smallValue = true
             )
@@ -412,13 +433,15 @@ private fun StatsGrid2x2Section(user: User) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
+                iconTint = MaterialTheme.colorScheme.secondary, 
+                iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
                 value = "$badgeCount", label = stringResource(R.string.profile_stats_badges),
                 icon = Icons.Filled.EmojiEvents
             )
             StatCard2(
                 modifier = Modifier.weight(1f),
-                iconTint = PetHelpSecondary, iconBg = PetHelpSecondary.copy(alpha = 0.1f),
+                iconTint = MaterialTheme.colorScheme.secondary, 
+                iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
                 value = "$prefCount", label = stringResource(R.string.profile_stats_preferences),
                 icon = Icons.Filled.Favorite
             )
@@ -439,8 +462,8 @@ private fun StatCard2(
     Card(
         modifier = modifier.height(146.dp),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF3F4F6)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
@@ -455,11 +478,11 @@ private fun StatCard2(
                 text = value,
                 fontSize = if (smallValue) 18.sp else 30.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF101828),
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = if (smallValue) (-0.45).sp else (-0.75).sp,
                 lineHeight = if (smallValue) 28.sp else 36.sp
             )
-            Text(text = label, fontSize = 12.sp, color = Color(0xFF99A1AF), lineHeight = 16.sp)
+            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), lineHeight = 16.sp)
         }
     }
 }
@@ -471,29 +494,29 @@ private fun QuickAccessSection(navController: NavController) {
         Text(
             stringResource(R.string.profile_quick_access_title),
             fontSize = 14.sp, fontWeight = FontWeight.Medium,
-            color = Color(0xFF6A7282), letterSpacing = 0.35.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f), letterSpacing = 0.35.sp,
             modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
         )
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, Color(0xFFF3F4F6)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
                 QuickAccessRow(
                     Icons.AutoMirrored.Filled.List,
-                    PetHelpPrimary.copy(alpha = 0.1f),
-                    PetHelpPrimary,
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    MaterialTheme.colorScheme.primary,
                     stringResource(R.string.profile_my_posts),
                     { navController.navigate(Screen.MyPosts) },
                     true
                 )
-                QuickAccessRow(Icons.Filled.Favorite, PetHelpSecondary.copy(alpha = 0.1f), PetHelpSecondary, stringResource(R.string.profile_favorites), {}, true)
-                QuickAccessRow(Icons.Filled.Shield, PetHelpPrimary.copy(alpha = 0.1f), PetHelpPrimary, stringResource(R.string.moderation_panel_title),
+                QuickAccessRow(Icons.Filled.Favorite, MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), MaterialTheme.colorScheme.secondary, stringResource(R.string.profile_favorites), {}, true)
+                QuickAccessRow(Icons.Filled.Shield, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), MaterialTheme.colorScheme.primary, stringResource(R.string.moderation_panel_title),
                     { navController.navigate(Screen.ModeratorPanel) }, true)
-                QuickAccessRow(Icons.Filled.Settings, Color(0xFFF3F4F6), Color(0xFF6A7282), stringResource(R.string.profile_settings),
+                QuickAccessRow(Icons.Filled.Settings, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, stringResource(R.string.profile_settings),
                     { navController.navigate(Screen.Settings) }, false)
             }
         }
@@ -519,10 +542,10 @@ private fun QuickAccessRow(
                 modifier = Modifier.size(40.dp).background(iconBg, CircleShape),
                 contentAlignment = Alignment.Center
             ) { Icon(icon, null, tint = iconTint, modifier = Modifier.size(20.dp)) }
-            Text(label, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E2939))
-            Icon(Icons.Filled.ChevronRight, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(18.dp))
+            Text(label, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
         }
-        if (showDivider) HorizontalDivider(color = Color(0xFFF9FAFB), thickness = 1.dp)
+        if (showDivider) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
     }
 }
 
@@ -538,11 +561,11 @@ private fun LogoutSection(navController: NavController, viewModel: ProfileViewMo
         },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),
         shape = RoundedCornerShape(50),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(18.dp))
+        Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.btn_logout), color = Color(0xFF99A1AF), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+        Text(stringResource(R.string.btn_logout), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontWeight = FontWeight.Medium, fontSize = 14.sp)
     }
 }
 
@@ -590,16 +613,25 @@ fun EditProfileScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(R.string.edit_profile_title), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                    title = { Text(stringResource(R.string.edit_profile_title), fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             },
             bottomBar = {
-                Box(modifier = Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding()) {
+                Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(16.dp).navigationBarsPadding()) {
                     Button(
                         onClick = {
                             val updatedUser = user.copy(
@@ -614,7 +646,7 @@ fun EditProfileScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(stringResource(R.string.btn_save_changes), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -624,6 +656,7 @@ fun EditProfileScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
@@ -636,7 +669,7 @@ fun EditProfileScreen(
                          modifier = Modifier
                              .size(100.dp)
                              .clip(CircleShape)
-                             .background(Color.LightGray)
+                             .background(MaterialTheme.colorScheme.surfaceVariant)
                              .clickable(enabled = !isUploadingPhoto) {
                                  photoPickerLauncher.launch(
                                      PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -658,7 +691,7 @@ fun EditProfileScreen(
                                  Icon(
                                      Icons.Filled.Person,
                                      contentDescription = null,
-                                     tint = Color.White,
+                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                      modifier = Modifier.size(42.dp)
                                  )
                              }
@@ -670,21 +703,21 @@ fun EditProfileScreen(
                          modifier = Modifier
                              .align(Alignment.BottomEnd)
                              .size(32.dp)
-                             .background(PetHelpPrimary, CircleShape)
-                             .border(2.dp, Color.White, CircleShape),
+                             .background(MaterialTheme.colorScheme.primary, CircleShape)
+                             .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
                          contentAlignment = Alignment.Center
                      ) {
                          if (isUploadingPhoto) {
                              CircularProgressIndicator(
                                  modifier = Modifier.size(16.dp),
-                                 color = Color.White,
+                                 color = MaterialTheme.colorScheme.onPrimary,
                                  strokeWidth = 2.dp
                              )
                          } else {
                              Icon(
                                  Icons.Filled.CameraAlt,
                                  contentDescription = null,
-                                 tint = Color.White,
+                                 tint = MaterialTheme.colorScheme.onPrimary,
                                  modifier = Modifier.size(16.dp)
                              )
                          }
@@ -694,7 +727,7 @@ fun EditProfileScreen(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(R.string.edit_profile_change_photo),
-                    color = PetHelpPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -710,7 +743,8 @@ fun EditProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpPrimary
+                         focusedBorderColor = MaterialTheme.colorScheme.primary,
+                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
 
@@ -725,7 +759,8 @@ fun EditProfileScreen(
                     shape = RoundedCornerShape(16.dp),
                     maxLines = 4,
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpPrimary
+                         focusedBorderColor = MaterialTheme.colorScheme.primary,
+                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
 
@@ -739,13 +774,14 @@ fun EditProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                         focusedBorderColor = PetHelpPrimary
+                         focusedBorderColor = MaterialTheme.colorScheme.primary,
+                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
 
                 Spacer(Modifier.height(24.dp))
 
-                Text(stringResource(R.string.edit_profile_pet_preferences), fontWeight = FontWeight.Bold, color = Color(0xFF101828))
+                Text(stringResource(R.string.edit_profile_pet_preferences), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(12.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -764,14 +800,14 @@ fun EditProfileScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.GpsFixed, contentDescription = null, tint = Color(0xFF6A7282))
+                        Icon(Icons.Filled.GpsFixed, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.width(12.dp))
-                        Text(stringResource(R.string.edit_profile_alerts_near_me), fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.edit_profile_alerts_near_me), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     }
                     Switch(
                         checked = alertsNearMe,
                         onCheckedChange = { alertsNearMe = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PetHelpPrimary)
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.onPrimary, checkedTrackColor = MaterialTheme.colorScheme.primary)
                     )
                 }
 
@@ -779,8 +815,8 @@ fun EditProfileScreen(
             }
         }
     } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = PetHelpPrimary)
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -792,11 +828,11 @@ fun PreferenceChip(label: String, preferences: MutableList<String>) {
         modifier = Modifier
             .border(
                 width = 1.dp,
-                color = if (selected) PetHelpPrimary else Color(0xFFE5E7EB),
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(20.dp)
             )
             .background(
-                color = if (selected) Color(0xFFE8F5E9) else Color.White,
+                color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -806,7 +842,7 @@ fun PreferenceChip(label: String, preferences: MutableList<String>) {
     ) {
         Text(
             text = label,
-            color = if (selected) Color(0xFF2E7D32) else Color(0xFF4A5565),
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp
         )

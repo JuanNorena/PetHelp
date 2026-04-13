@@ -50,15 +50,15 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 spotColor = Color.Black.copy(alpha = 0.05f),
                 ambientColor = Color.Black.copy(alpha = 0.05f)
             )
-            .background(Color.White),
+            .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.TopCenter
     ) {
-        // Línea divisoria superior (#F3F4F6)
+        // Línea divisoria superior
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(0xFFF3F4F6))
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         )
 
         // ── Fila de ítems ─────────────────────────────────────────────────────
@@ -138,17 +138,20 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 .shadow(
                     elevation = 10.dp,
                     shape = RoundedCornerShape(16.dp),
-                    spotColor = PetHelpSecondary.copy(alpha = 0.4f),
-                    ambientColor = PetHelpSecondary.copy(alpha = 0.4f)
+                    spotColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                    ambientColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
                 )
-                .background(color = PetHelpSecondary, shape = RoundedCornerShape(16.dp))
+                .background(
+                    color = MaterialTheme.colorScheme.secondary, 
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .clickable { navController.navigate(Screen.CreatePost) },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
                 contentDescription = stringResource(R.string.nav_create),
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
                     .size(28.dp)
                     .rotate(-45f)
@@ -190,14 +193,14 @@ private fun NavBarItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(PetHelpPrimary.copy(alpha = 0.1f), CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)
                 )
             }
 
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = if (selected) PetHelpPrimary else Color(0xFF9CA3AF),
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp)
             )
 
@@ -207,14 +210,14 @@ private fun NavBarItem(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(15.dp)
-                        .border(1.5.dp, Color.White, CircleShape)
-                        .background(Color(0xFFFB2C36), CircleShape),
+                        .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                        .background(MaterialTheme.colorScheme.error, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = badgeCount.toString(),
                         fontSize = 9.sp,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onError,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 10.sp
                     )
@@ -226,7 +229,7 @@ private fun NavBarItem(
         if (selected) {
             Text(
                 text = label,
-                color = PetHelpPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(top = 2.dp)

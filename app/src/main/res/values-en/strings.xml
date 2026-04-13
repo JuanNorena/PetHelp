@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PetHelp</string>
+    <string name="login_title">Log In</string>
+    <string name="register_title">Create Account</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="btn_login">Log In</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="security_title">Security</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="profile_settings">Settings</string>
+</resources>
