@@ -3,6 +3,7 @@ package com.pethelp.app.features.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.data.repository.UserPreferencesRepository
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.preferences.AppLanguageManager
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
@@ -23,7 +24,8 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val authRepository: AuthRepository,
-    private val appLanguageManager: AppLanguageManager
+    private val appLanguageManager: AppLanguageManager,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -34,15 +36,26 @@ class ProfileViewModel @Inject constructor(
 
     private val _preferredLanguage = MutableStateFlow(AppLanguageManager.DEFAULT_LANGUAGE)
     val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
+    val language: StateFlow<String> = preferredLanguage
+
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
     init {
         loadUserProfile()
         observePreferredLanguage()
+        observeDarkMode()
     }
 
     private fun observePreferredLanguage() {
         appLanguageManager.preferredLanguage.onEach { languageTag ->
             _preferredLanguage.value = languageTag
+        }.launchIn(viewModelScope)
+    }
+
+    private fun observeDarkMode() {
+        userPreferencesRepository.isDarkMode.onEach { darkModeEnabled ->
+            _isDarkMode.value = darkModeEnabled
         }.launchIn(viewModelScope)
     }
 
@@ -175,6 +188,16 @@ class ProfileViewModel @Inject constructor(
                     "Idioma cambiado a español"
                 }
             )
+        }
+    }
+
+    fun setLanguage(languageTag: String) {
+        changeAppLanguage(languageTag)
+    }
+
+    fun toggleDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDarkMode(enabled)
         }
     }
 
