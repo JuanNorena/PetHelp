@@ -179,6 +179,7 @@ a pet</string>
 
     <!-- My posts -->
     <string name="my_posts_title">My Posts</string>
+    <string name="my_posts_create_desc">Make a new post</string>
     <string name="my_posts_empty_active">You have no active posts</string>
     <string name="my_posts_empty_in_review">You have no posts under review</string>
     <string name="my_posts_empty_resolved">You have no completed posts</string>
@@ -243,7 +244,7 @@ a pet</string>
     <!-- Profile and navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_map">Map</string>
-    <string name="nav_create">Create</string>
+    <string name="nav_create">Make a new post</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_profile">Profile</string>
 

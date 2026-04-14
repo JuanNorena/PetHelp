@@ -34,6 +34,8 @@ private val LightColorScheme = lightColorScheme(
     error               = PetHelpDestructive,
     onBackground        = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
     onSurface           = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
+    outlineVariant      = PetHelpOutline,
+    surfaceVariant      = Color(0xFFF5F5F5),
 )
 
 // TODO: IMPLEMENTAR EL CAMBIO DE IDIOMA EN TODO EL PROYECTO
@@ -56,6 +58,8 @@ private val DarkColorScheme = darkColorScheme(
     error               = PetHelpDestructiveDark,
     onBackground        = White,
     onSurface           = White,
+    outlineVariant      = PetHelpOutlineDark,
+    surfaceVariant      = Color(0xFF383838),
 )
 
 /**

@@ -69,7 +69,7 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = Color(0xFFFAFAFA),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { PetHelpBottomNavBar(navController) }
     ) { padding ->
         when (uiState) {
@@ -190,14 +190,14 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                 text = user.name,
                 fontWeight = FontWeight.Medium,
                 fontSize = 24.sp,
-                color = Color(0xFF101828),
+                color = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = (-0.6).sp
             )
 
             // Username
             Text(
                 text = if (user.username.isNotEmpty()) "${stringResource(R.string.profile_username_prefix)}${user.username}" else "${stringResource(R.string.profile_username_prefix)}usuario",
-                color = Color(0xFF99A1AF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp
             )
 
@@ -215,7 +215,7 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
                     .border(1.dp, PetHelpPrimary.copy(alpha = 0.25f), RoundedCornerShape(50))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("👑 ${user.level.displayName}", color = Color(0xFF0A0A0A), fontSize = 14.sp)
+                Text("👑 ${user.level.displayName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -440,8 +440,8 @@ private fun StatCard2(
     Card(
         modifier = modifier.height(146.dp),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF3F4F6)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
@@ -456,11 +456,11 @@ private fun StatCard2(
                 text = value,
                 fontSize = if (smallValue) 18.sp else 30.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF101828),
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = if (smallValue) (-0.45).sp else (-0.75).sp,
                 lineHeight = if (smallValue) 28.sp else 36.sp
             )
-            Text(text = label, fontSize = 12.sp, color = Color(0xFF99A1AF), lineHeight = 16.sp)
+            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
         }
     }
 }
@@ -475,13 +475,13 @@ private fun QuickAccessSection(
         Text(
             stringResource(R.string.profile_quick_access_title),
             fontSize = 14.sp, fontWeight = FontWeight.Medium,
-            color = Color(0xFF6A7282), letterSpacing = 0.35.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.35.sp,
             modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
         )
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, Color(0xFFF3F4F6)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -531,10 +531,10 @@ private fun QuickAccessRow(
                 modifier = Modifier.size(40.dp).background(iconBg, CircleShape),
                 contentAlignment = Alignment.Center
             ) { Icon(icon, null, tint = iconTint, modifier = Modifier.size(20.dp)) }
-            Text(label, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E2939))
-            Icon(Icons.Filled.ChevronRight, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(18.dp))
+            Text(label, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Icon(Icons.Filled.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
         }
-        if (showDivider) HorizontalDivider(color = Color(0xFFF9FAFB), thickness = 1.dp)
+        if (showDivider) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = 1.dp)
     }
 }
 
@@ -550,11 +550,11 @@ private fun LogoutSection(navController: NavController, viewModel: ProfileViewMo
         },
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),
         shape = RoundedCornerShape(50),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = Color(0xFF99A1AF), modifier = Modifier.size(18.dp))
+        Icon(Icons.AutoMirrored.Filled.ExitToApp, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.btn_logout), color = Color(0xFF99A1AF), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+        Text(stringResource(R.string.btn_logout), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium, fontSize = 14.sp)
     }
 }
 

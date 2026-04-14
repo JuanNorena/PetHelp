@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -17,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,8 +33,7 @@ import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.PetHelpSecondary
-import com.pethelp.app.core.ui.theme.Orange
+import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -47,73 +49,124 @@ fun PostDetailsScreen(
     val selectedBehaviors = remember { mutableStateListOf<PetBehavior>() }
 
     Scaffold(
+        containerColor = BackgroundLight,
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            stringResource(R.string.post_details_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            stringResource(R.string.post_step_3_of_4),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Box(
+            Surface(
+                color = SurfaceLight,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
-                    .navigationBarsPadding()
-            ) {
-                Button(
-                    onClick = {
-                        navController.navigate(
-                            Screen.PostReview(
-                                title = postData.title,
-                                description = postData.description,
-                                category = postData.category,
-                                animalType = postData.animalType,
-                                age = selectedAge.name,
-                                gender = selectedGender.name,
-                                size = postData.size,
-                                vaccinated = vaccinated,
-                                dewormed = dewormed,
-                                sterilized = sterilized,
-                                behavior = selectedBehaviors.map { it.name },
-                                imageUris = postData.imageUris,
-                                street = postData.street,
-                                neighborhood = postData.neighborhood,
-                                city = postData.city
-                            )
+                    .drawWithContent {
+                        drawContent()
+                        drawLine(
+                            color = PetHelpOutline,
+                            start = androidx.compose.ui.geometry.Offset(0f, size.height),
+                            end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+                            strokeWidth = 1.dp.toPx()
                         )
-                    },
+                    }
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00BFA5)
-                    )
+                        .statusBarsPadding()
+                        .height(68.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(id = android.R.drawable.ic_menu_edit), contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(12.dp))
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            modifier = Modifier.size(22.dp),
+                            tint = TextPrimary
+                        )
+                    }
                     Text(
-                        stringResource(R.string.btn_next_review),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(R.string.post_details_title),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        letterSpacing = (-0.5).sp,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.Default.Pets,
+                        contentDescription = null,
+                        tint = PetHelpPrimary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+        },
+        bottomBar = {
+            Surface(
+                color = SurfaceLight,
+                modifier = Modifier.drawWithContent {
+                    drawContent()
+                    drawLine(
+                        color = PetHelpOutline,
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                        strokeWidth = 1.dp.toPx()
+                    )
+                }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            navController.navigate(
+                                Screen.PostReview(
+                                    title = postData.title,
+                                    description = postData.description,
+                                    category = postData.category,
+                                    animalType = postData.animalType,
+                                    age = selectedAge.name,
+                                    gender = selectedGender.name,
+                                    size = postData.size,
+                                    vaccinated = vaccinated,
+                                    dewormed = dewormed,
+                                    sterilized = sterilized,
+                                    behavior = selectedBehaviors.map { it.name },
+                                    imageUris = postData.imageUris,
+                                    street = postData.street,
+                                    neighborhood = postData.neighborhood,
+                                    city = postData.city,
+                                    latitude = postData.latitude,
+                                    longitude = postData.longitude,
+                                    locationName = postData.locationName
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PetHelpPrimary
+                        )
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            stringResource(R.string.btn_next_review),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 0.45.sp
+                        )
+                    }
                 }
             }
         }
@@ -122,171 +175,218 @@ fun PostDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            LinearProgressIndicator(
-                progress = { 0.75f },
+            Spacer(Modifier.height(4.dp))
+            
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp)),
-                color = Color(0xFF00BFA5),
-                trackColor = Color.LightGray.copy(alpha = 0.3f)
-            )
-
-            // Edad Aproximada
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    stringResource(R.string.post_approx_age),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                LinearProgressIndicator(
+                    progress = { 0.75f },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = PetHelpPrimary,
+                    trackColor = SurfaceVariantLight
                 )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AnimalAge.entries.forEach { age ->
-                        FilterChip(
-                            selected = selectedAge == age,
-                            onClick = { selectedAge = age },
-                            label = { Text(age.toDisplayName()) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFFE0F2F1),
-                                selectedLabelColor = Color(0xFF00BFA5),
-                                selectedLeadingIconColor = Color(0xFF00BFA5)
-                            ),
-                            border = FilterChipDefaults.filterChipBorder(
-                                enabled = true,
-                                selected = selectedAge == age,
-                                borderColor = Color.LightGray.copy(alpha = 0.5f),
-                                selectedBorderColor = Color(0xFF00BFA5)
-                            ),
-                            modifier = Modifier.weight(1f).height(48.dp)
-                        )
+
+                // Edad Aproximada
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        stringResource(R.string.post_approx_age),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextSecondary,
+                        letterSpacing = 0.35.sp
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        AnimalAge.entries.forEach { age ->
+                            val isSelected = selectedAge == age
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.dp),
+                                shape = RoundedCornerShape(50),
+                                color = if (isSelected) PetHelpPrimary.copy(alpha = 0.1f) else SurfaceLight,
+                                border = BorderStroke(1.dp, if (isSelected) PetHelpPrimary else PetHelpOutline),
+                                onClick = { selectedAge = age }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = age.toDisplayName(),
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                        color = if (isSelected) PetHelpPrimary else TextSecondary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
 
-            // Sexo
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    stringResource(R.string.post_gender),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AnimalGender.entries.forEach { gender ->
-                        FilterChip(
-                            selected = selectedGender == gender,
-                            onClick = { selectedGender = gender },
-                            label = { Text(gender.toDisplayName()) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFFE0F2F1),
-                                selectedLabelColor = Color(0xFF00BFA5)
-                            ),
-                            border = FilterChipDefaults.filterChipBorder(
-                                enabled = true,
-                                selected = selectedGender == gender,
-                                borderColor = Color.LightGray.copy(alpha = 0.5f),
-                                selectedBorderColor = Color(0xFF00BFA5)
-                            ),
-                            modifier = Modifier.weight(1f).height(48.dp)
-                        )
+                // Sexo
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        stringResource(R.string.post_gender),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextSecondary,
+                        letterSpacing = 0.35.sp
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        AnimalGender.entries.forEach { gender ->
+                            val isSelected = selectedGender == gender
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.dp),
+                                shape = RoundedCornerShape(50),
+                                color = if (isSelected) PetHelpPrimary.copy(alpha = 0.1f) else SurfaceLight,
+                                border = BorderStroke(1.dp, if (isSelected) PetHelpPrimary else PetHelpOutline),
+                                onClick = { selectedGender = gender }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = gender.toDisplayName(),
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                        color = if (isSelected) PetHelpPrimary else TextSecondary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
 
-            // Estado de Salud
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(painterResource(id = android.R.drawable.ic_menu_myplaces), contentDescription = null, tint = Color(0xFF00BFA5), modifier = Modifier.size(20.dp))
-                    Text(
-                        stringResource(R.string.post_health_status),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                HealthStatusItem(
-                    title = stringResource(R.string.post_vaccinated_label),
-                    description = stringResource(R.string.post_vaccinated_desc),
-                    selected = vaccinated,
-                    onToggle = { vaccinated = it }
-                )
-                HealthStatusItem(
-                    title = stringResource(R.string.post_dewormed_label),
-                    description = stringResource(R.string.post_dewormed_desc),
-                    selected = dewormed,
-                    onToggle = { dewormed = it }
-                )
-                HealthStatusItem(
-                    title = stringResource(R.string.post_sterilized_label),
-                    description = stringResource(R.string.post_sterilized_desc),
-                    selected = sterilized,
-                    onToggle = { sterilized = it }
-                )
-            }
-
-            // Comportamiento
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(painterResource(id = android.R.drawable.ic_menu_view), contentDescription = null, tint = PetHelpSecondary, modifier = Modifier.size(20.dp))
-                    Text(
-                        stringResource(R.string.post_behavior),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    PetBehavior.entries.forEach { behavior ->
-                        val isSelected = selectedBehaviors.contains(behavior)
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                if (isSelected) selectedBehaviors.remove(behavior)
-                                else selectedBehaviors.add(behavior)
-                            },
-                            label = { Text(behavior.toDisplayName()) },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFFFFF3E0),
-                                selectedLabelColor = PetHelpSecondary
-                            ),
-                            border = FilterChipDefaults.filterChipBorder(
-                                enabled = true,
-                                selected = isSelected,
-                                borderColor = Color.LightGray.copy(alpha = 0.5f),
-                                selectedBorderColor = PetHelpSecondary
+                // Estado de Salud
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(PetHelpPrimary.copy(alpha = 0.1f), RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Pets,
+                                contentDescription = null,
+                                tint = PetHelpPrimary,
+                                modifier = Modifier.size(18.dp)
                             )
+                        }
+                        Text(
+                            stringResource(R.string.post_health_status),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
                     }
+                    
+                    HealthStatusItem(
+                        title = stringResource(R.string.post_vaccinated_label),
+                        description = stringResource(R.string.post_vaccinated_desc),
+                        selected = vaccinated,
+                        onToggle = { vaccinated = it }
+                    )
+                    HealthStatusItem(
+                        title = stringResource(R.string.post_dewormed_label),
+                        description = stringResource(R.string.post_dewormed_desc),
+                        selected = dewormed,
+                        onToggle = { dewormed = it }
+                    )
+                    HealthStatusItem(
+                        title = stringResource(R.string.post_sterilized_label),
+                        description = stringResource(R.string.post_sterilized_desc),
+                        selected = sterilized,
+                        onToggle = { sterilized = it }
+                    )
                 }
-                
-                Text(
-                    stringResource(R.string.post_behavior_instruction),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
+
+                // Comportamiento
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(PetHelpSecondary.copy(alpha = 0.1f), RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Pets,
+                                contentDescription = null,
+                                tint = PetHelpSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Text(
+                            stringResource(R.string.post_behavior),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        PetBehavior.entries.forEach { behavior ->
+                            val isSelected = selectedBehaviors.contains(behavior)
+                            Surface(
+                                modifier = Modifier.height(44.dp),
+                                shape = RoundedCornerShape(50),
+                                color = if (isSelected) PetHelpSecondary.copy(alpha = 0.1f) else SurfaceLight,
+                                border = BorderStroke(1.dp, if (isSelected) PetHelpSecondary else PetHelpOutline),
+                                onClick = {
+                                    if (isSelected) selectedBehaviors.remove(behavior)
+                                    else selectedBehaviors.add(behavior)
+                                }
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = behavior.toDisplayName(),
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                                        color = if (isSelected) PetHelpSecondary else TextSecondary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Text(
+                        stringResource(R.string.post_behavior_instruction),
+                        fontSize = 12.sp,
+                        color = TextSecondary.copy(alpha = 0.7f),
+                        lineHeight = 18.sp
+                    )
+                }
             }
 
-            Spacer(Modifier.height(80.dp))
+            Spacer(Modifier.height(40.dp))
         }
     }
 }
@@ -300,23 +400,41 @@ fun HealthStatusItem(
 ) {
     Surface(
         onClick = { onToggle(!selected) },
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) PetHelpPrimary.copy(alpha = 0.05f) else SurfaceLight,
+        border = BorderStroke(
+            1.dp, 
+            if (selected) PetHelpPrimary.copy(alpha = 0.3f) else PetHelpOutline
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             RadioButton(
                 selected = selected,
                 onClick = null,
-                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF00BFA5))
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = PetHelpPrimary,
+                    unselectedColor = PetHelpOutline
+                )
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(description, fontSize = 12.sp, color = Color.Gray)
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    color = TextSecondary,
+                    lineHeight = 18.sp
+                )
             }
         }
     }

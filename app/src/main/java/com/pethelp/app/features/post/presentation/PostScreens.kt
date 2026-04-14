@@ -4,20 +4,19 @@
  * Este archivo contiene:
  * - `PostDetailScreen`: muestra la información completa de una publicación, comentarios, votos y solicitud de adopción.
  * - `CreatePostScreen`: permite crear una publicación nueva con fotos, texto y categoría.
- * - Componentes reutilizables usados en ambas pantallas (chips, tarjetas, comentarios).
- *
- * Todas las funciones usan Material 3 y se apoyan en `ViewModel` para manejar el estado
- * y la lógica de negocio (la UI solo renderiza el estado que recibe).
+ * - `EditPostScreen`: permite editar una publicación existente.
  */
 package com.pethelp.app.features.post.presentation
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -28,7 +27,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -36,12 +35,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -55,35 +56,14 @@ import coil.compose.AsyncImage
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.CameraPositionState
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.pethelp.app.core.domain.model.AnimalSize
-import com.pethelp.app.core.domain.model.Comment
-import com.pethelp.app.core.domain.model.Post
-import com.pethelp.app.core.domain.model.PostCategory
-import com.pethelp.app.core.ui.theme.BackgroundLight
-import com.pethelp.app.core.ui.theme.PetHelpDestructive
-import com.pethelp.app.core.ui.theme.PetHelpPrimary
-import com.pethelp.app.core.ui.theme.PetHelpSecondary
-import com.pethelp.app.core.ui.theme.PetHelpTertiary
-import kotlinx.coroutines.launch
+import com.google.maps.android.compose.*
+import com.pethelp.app.R
+import com.pethelp.app.core.domain.model.*
+import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-// ── Colores de diseño (Figma) ────────────────────────────────────────────────
-private val ChipGreenBg = PetHelpPrimary.copy(alpha = 0.1f)
-private val ChipGreenBorder = PetHelpPrimary.copy(alpha = 0.2f)
-private val ChipBlueBg = PetHelpTertiary.copy(alpha=0.1f)
-private val ChipBlueBorder = PetHelpTertiary.copy(alpha=0.2f)
-private val ChipBlueText = PetHelpTertiary
-private val ChipPurpleBg = PetHelpTertiary.copy(alpha=0.1f)
-private val ChipPurpleBorder = PetHelpTertiary.copy(alpha=0.3f)
-private val ChipPurpleText = PetHelpTertiary
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── DETALLE DE PUBLICACIÓN ──────────────────────────────────────────────────
@@ -91,18 +71,6 @@ private val ChipPurpleText = PetHelpTertiary
 
 /**
  * Pantalla de detalle de una publicación.
- *
- * Muestra toda la información de un post:
- * - Imagen principal (carousel simple, if available)
- * - Datos clave (raza, tipo, tamaño, vacunación) en chips
- * - Descripción y estado de votos
- * - Comentarios en tiempo real con campo de entrada
- * - Posibilidad de solicitar adopción si la categoría es 
- *   `ADOPTION`.
- *
- * Esta pantalla se conecta con el ViewModel para:
- * - Obtener el estado del post en Firestore en tiempo real.
- * - Manejar votos / comentarios / solicitudes de adopción.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +81,6 @@ fun PostDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collect { message ->
@@ -123,7 +90,7 @@ fun PostDetailScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.White
+        containerColor = BackgroundLight
     ) { padding ->
         when {
             uiState.isLoading && uiState.post == null -> {
@@ -141,13 +108,13 @@ fun PostDetailScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = uiState.error ?: "Error desconocido",
+                            text = uiState.error ?: stringResource(R.string.post_detail_error),
                             color = PetHelpDestructive,
                             fontSize = 16.sp
                         )
                         Spacer(Modifier.height(16.dp))
                         OutlinedButton(onClick = { navController.popBackStack() }) {
-                            Text("Volver")
+                            Text(stringResource(R.string.common_back))
                         }
                     }
                 }
@@ -205,14 +172,14 @@ private fun PostDetailContent(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(Color.LightGray),
+                            .background(SurfaceVariantLight),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.Pets,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
-                            tint = Color.White
+                            tint = TextHint
                         )
                     }
                 }
@@ -225,7 +192,7 @@ private fun PostDetailContent(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Black.copy(alpha = 0.4f),
                                     Color.Transparent
                                 )
                             )
@@ -239,15 +206,15 @@ private fun PostDetailContent(
                         .padding(16.dp)
                         .size(40.dp)
                         .background(
-                            Color.White.copy(alpha = 0.3f),
+                            Color.Black.copy(alpha = 0.2f),
                             CircleShape
                         )
                         .align(Alignment.TopStart)
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = Color.White
+                        contentDescription = stringResource(R.string.common_back),
+                        tint = White
                     )
                 }
 
@@ -258,15 +225,15 @@ private fun PostDetailContent(
                         .padding(16.dp)
                         .size(40.dp)
                         .background(
-                            Color.White.copy(alpha = 0.3f),
+                            Color.Black.copy(alpha = 0.2f),
                             CircleShape
                         )
                         .align(Alignment.TopEnd)
                 ) {
                     Icon(
                         Icons.Default.Share,
-                        contentDescription = "Compartir",
-                        tint = Color.White
+                        contentDescription = stringResource(R.string.post_detail_share),
+                        tint = White
                     )
                 }
             }
@@ -279,7 +246,7 @@ private fun PostDetailContent(
                     .fillMaxWidth()
                     .offset(y = (-40).dp)
                     .background(
-                        Color.White,
+                        SurfaceLight,
                         RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp)
                     )
                     .padding(horizontal = 24.dp)
@@ -290,7 +257,7 @@ private fun PostDetailContent(
                     Modifier
                         .width(48.dp)
                         .height(6.dp)
-                        .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
+                        .background(PetHelpOutline, RoundedCornerShape(50))
                         .align(Alignment.CenterHorizontally)
                 )
 
@@ -303,19 +270,18 @@ private fun PostDetailContent(
                 ) {
                     Text(
                         text = post.title,
-                        fontSize = 36.sp,
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        letterSpacing = (-0.9).sp
+                        color = TextPrimary,
+                        letterSpacing = (-0.9).sp,
+                        modifier = Modifier.weight(1f)
                     )
 
                     // Chip del autor
                     Surface(
                         shape = RoundedCornerShape(50),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.colorScheme.outlineVariant))
-                        )
+                        color = SurfaceVariantLight,
+                        border = BorderStroke(1.dp, PetHelpOutline)
                     ) {
                         Row(
                             modifier = Modifier.padding(start = 5.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
@@ -326,8 +292,8 @@ private fun PostDetailContent(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(Color.LightGray)
-                                    .border(1.dp, Color.White, CircleShape),
+                                    .background(PetHelpOutline)
+                                    .border(1.dp, SurfaceLight, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (post.authorPhotoUrl.isNotBlank()) {
@@ -341,24 +307,24 @@ private fun PostDetailContent(
                                     Icon(
                                         Icons.Default.Person,
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = White,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
                             }
                             Column {
                                 Text(
-                                    text = "PUBLICADO POR",
+                                    text = stringResource(R.string.post_detail_published_by),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    color = TextSecondary.copy(alpha = 0.6f),
                                     letterSpacing = 0.5.sp
                                 )
                                 Text(
-                                    text = post.authorName.ifBlank { "Usuario" },
+                                    text = post.authorName.ifBlank { stringResource(R.string.post_detail_unknown_user) },
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = TextPrimary
                                 )
                             }
                         }
@@ -374,18 +340,18 @@ private fun PostDetailContent(
                 ) {
                     InfoChipCard(
                         icon = Icons.Default.Pets,
-                        label = post.breed.ifBlank { post.animalType.ifBlank { "Mascota" } },
-                        backgroundColor = ChipGreenBg,
-                        borderColor = ChipGreenBorder,
+                        label = post.breed.ifBlank { post.animalType.ifBlank { stringResource(R.string.post_detail_unknown_pet) } },
+                        backgroundColor = PetHelpPrimary.copy(alpha = 0.1f),
+                        borderColor = PetHelpPrimary.copy(alpha = 0.2f),
                         textColor = PetHelpPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     InfoChipCard(
                         icon = Icons.Default.Female,
-                        label = post.animalType.ifBlank { "N/A" },
-                        backgroundColor = ChipBlueBg,
-                        borderColor = ChipBlueBorder,
-                        textColor = ChipBlueText,
+                        label = post.animalType.ifBlank { stringResource(R.string.post_detail_na) },
+                        backgroundColor = PetHelpSecondary.copy(alpha = 0.1f),
+                        borderColor = PetHelpSecondary.copy(alpha = 0.2f),
+                        textColor = PetHelpSecondary,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -396,17 +362,17 @@ private fun PostDetailContent(
                 ) {
                     InfoChipCard(
                         icon = Icons.Default.Straighten,
-                        label = post.size.displayName,
-                        backgroundColor = ChipPurpleBg,
-                        borderColor = ChipPurpleBorder,
-                        textColor = ChipPurpleText,
+                        label = sizeToDisplayName(post.size),
+                        backgroundColor = PetHelpSecondary.copy(alpha = 0.1f),
+                        borderColor = PetHelpSecondary.copy(alpha = 0.2f),
+                        textColor = PetHelpSecondary,
                         modifier = Modifier.weight(1f)
                     )
                     InfoChipCard(
                         icon = Icons.Default.HealthAndSafety,
-                        label = if (post.vaccinated) "Vacunada" else "Sin vacunas",
-                        backgroundColor = ChipGreenBg,
-                        borderColor = ChipGreenBorder,
+                        label = if (post.vaccinated) stringResource(R.string.post_detail_vacunada) else stringResource(R.string.post_detail_no_vacunas),
+                        backgroundColor = PetHelpPrimary.copy(alpha = 0.1f),
+                        borderColor = PetHelpPrimary.copy(alpha = 0.2f),
                         textColor = PetHelpPrimary,
                         modifier = Modifier.weight(1f)
                     )
@@ -416,16 +382,16 @@ private fun PostDetailContent(
 
                 // ── Descripción ─────────────────────────────────────────
                 Text(
-                    text = "Sobre ${post.title}",
+                    text = stringResource(R.string.post_detail_about, post.title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = TextPrimary
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = post.description,
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = TextSecondary,
                     lineHeight = 24.sp,
                     letterSpacing = 0.375.sp
                 )
@@ -446,7 +412,7 @@ private fun PostDetailContent(
                             .clip(RoundedCornerShape(50))
                             .clickable { onVoteClick() }
                             .background(
-                                if (hasVoted) PetHelpSecondary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
+                                if (hasVoted) PetHelpSecondary.copy(alpha = 0.1f) else SurfaceVariantLight,
                                 RoundedCornerShape(50)
                             )
                             .padding(horizontal = 16.dp, vertical = 10.dp)
@@ -461,7 +427,7 @@ private fun PostDetailContent(
                             text = "${post.votes}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (hasVoted) PetHelpSecondary else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (hasVoted) PetHelpSecondary else TextSecondary
                         )
                     }
 
@@ -475,7 +441,7 @@ private fun PostDetailContent(
                             shape = RoundedCornerShape(50),
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
                             elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 8.dp
+                                defaultElevation = 4.dp
                             )
                         ) {
                             Icon(
@@ -485,7 +451,7 @@ private fun PostDetailContent(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Solicitar Adopción",
+                                stringResource(R.string.post_detail_request_adoption),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 15.sp
                             )
@@ -503,10 +469,10 @@ private fun PostDetailContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Ubicación",
+                            stringResource(R.string.post_location),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = TextPrimary
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -515,13 +481,13 @@ private fun PostDetailContent(
                             Icon(
                                 Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                tint = TextSecondary.copy(alpha = 0.8f),
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
                                 text = post.locationName,
                                 fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                color = TextSecondary.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -534,8 +500,8 @@ private fun PostDetailContent(
                             .fillMaxWidth()
                             .height(128.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .border(1.dp, PetHelpOutline, RoundedCornerShape(16.dp))
+                            .background(SurfaceVariantLight),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -545,18 +511,18 @@ private fun PostDetailContent(
                             Icon(
                                 Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = PetHelpDestructive,
                                 modifier = Modifier.size(32.dp)
                             )
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = Color.White.copy(alpha = 0.9f)
+                                color = White.copy(alpha = 0.9f)
                             ) {
                                 Text(
                                     text = post.locationName,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = TextPrimary,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
@@ -568,10 +534,10 @@ private fun PostDetailContent(
 
                 // ── Comentarios ─────────────────────────────────────────
                 Text(
-                    "Comentarios",
+                    stringResource(R.string.post_detail_comments),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = TextPrimary
                 )
                 Spacer(Modifier.height(12.dp))
 
@@ -579,8 +545,8 @@ private fun PostDetailContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .background(SurfaceVariantLight, RoundedCornerShape(16.dp))
+                        .border(1.dp, PetHelpOutline, RoundedCornerShape(16.dp))
                         .padding(horizontal = 13.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -590,13 +556,13 @@ private fun PostDetailContent(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.outline),
+                            .background(PetHelpOutline),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.Person,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = White,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -605,8 +571,8 @@ private fun PostDetailContent(
                         onValueChange = { commentText = it },
                         placeholder = {
                             Text(
-                                "Escribe un comentario...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                stringResource(R.string.post_detail_comment_hint),
+                                color = TextHint,
                                 fontSize = 14.sp
                             )
                         },
@@ -615,7 +581,10 @@ private fun PostDetailContent(
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
                             focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
+                            unfocusedContainerColor = Color.Transparent,
+                            cursorColor = PetHelpPrimary,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
                         ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -639,8 +608,8 @@ private fun PostDetailContent(
                         }
                     ) {
                         Text(
-                            "Publicar",
-                            color = PetHelpSecondary,
+                            stringResource(R.string.post_detail_comment_post),
+                            color = PetHelpPrimary,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp
                         )
@@ -655,8 +624,8 @@ private fun PostDetailContent(
         if (comments.isEmpty()) {
             item {
                 Text(
-                    text = "Aún no hay comentarios. ¡Sé el primero!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    text = stringResource(R.string.post_detail_no_comments),
+                    color = TextSecondary.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -678,11 +647,7 @@ private fun PostDetailContent(
 }
 
 /**
- * Tarjeta simple con icono + texto, usada para mostrar atributos del post
- * como "raza", "tamaño" o "vacunada".
- *
- * Está diseñada para ser compacta y con estilo de chip (bordes redondeados).
- * Se parametriza con colores para poder reutilizar con diferentes paletas.
+ * Tarjeta simple con icono + texto.
  */
 @Composable
 private fun InfoChipCard(
@@ -697,9 +662,7 @@ private fun InfoChipCard(
         modifier = modifier.height(64.dp),
         shape = RoundedCornerShape(16.dp),
         color = backgroundColor,
-        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-            brush = Brush.linearGradient(listOf(borderColor, borderColor))
-        )
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -726,16 +689,6 @@ private fun InfoChipCard(
     }
 }
 
-/**
- * Mostrar un comentario dentro de la lista de comentarios.
- *
- * Contiene:
- * - Avatar circular con inicial del autor.
- * - Nombre del autor y fecha de creación.
- * - Texto del comentario.
- *
- * Esto se usa en el `LazyColumn` que muestra la lista de comentarios.
- */
 @Composable
 private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yy HH:mm", Locale("es", "CO")) }
@@ -774,22 +727,22 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = comment.authorName.ifBlank { "Usuario" },
+                    text = comment.authorName.ifBlank { stringResource(R.string.post_detail_unknown_user) },
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = TextPrimary
                 )
                 Text(
                     text = dateFormat.format(Date(comment.createdAt)),
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    color = TextSecondary.copy(alpha = 0.6f)
                 )
             }
             Spacer(Modifier.height(2.dp))
             Text(
                 text = comment.text,
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = TextSecondary,
                 lineHeight = 20.sp
             )
         }
@@ -802,19 +755,7 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Pantalla de creación de publicaciones.
- *
- * Permite al usuario seleccionar hasta 5 fotos, completar datos de la mascota
- * (título, descripción, categoría, tipo y tamaño), y enviar una publicación.
- *
- * El flujo principal es:
- * 1) El usuario selecciona fotos (se agregan a `CreatePostUiState.imageUris`).
- * 2) Al dar clic en "Siguiente: Ubicación", se crea la publicación:
- *    - Se suben las imágenes a Cloudinary (a través de ImageUploader).
- *    - Se crea un objeto `Post` con las URLs de Cloudinary.
- *    - Se persiste en Firestore vía `PostRepository`.
- *
- * El ViewModel emite estados de carga y mensajes de snackbar para retroalimentación.
+ * Pantalla de creación de publicaciones (Paso 1).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -824,7 +765,6 @@ fun CreatePostScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -840,13 +780,13 @@ fun CreatePostScreen(
     // Navegar al feed tras crear exitosamente
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            navController.popBackStack()
+            navController.navigate(Screen.Feed) {
+                popUpTo(Screen.CreatePost) { inclusive = true }
+            }
         }
     }
 
-    val defaultLatLng = remember {
-        LatLng(4.535, -75.675) // Armenia, Quindio (fallback inicial)
-    }
+    val defaultLatLng = remember { LatLng(4.535, -75.675) }
     val selectedLatLng = remember(uiState.latitude, uiState.longitude) {
         if (uiState.latitude != 0.0 || uiState.longitude != 0.0) {
             LatLng(uiState.latitude, uiState.longitude)
@@ -867,13 +807,18 @@ fun CreatePostScreen(
         containerColor = BackgroundLight,
         topBar = {
             Surface(
-                color = BackgroundLight.copy(alpha = 0.9f),
-                shadowElevation = 0.dp,
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(0.dp)
-                )
+                color = SurfaceLight,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .drawWithContent {
+                        drawContent()
+                        drawLine(
+                            color = PetHelpOutline,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
             ) {
                 Row(
                     modifier = Modifier
@@ -889,16 +834,16 @@ fun CreatePostScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = TextPrimary
                         )
                     }
                     Text(
-                        text = "Ayuda a un peludo",
+                        text = stringResource(R.string.post_create_title),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = TextPrimary,
                         letterSpacing = (-0.5).sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
@@ -906,28 +851,50 @@ fun CreatePostScreen(
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = PetHelpPrimary.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp)
+                        tint = PetHelpPrimary,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
         },
         bottomBar = {
             Surface(
-                color = Color.White.copy(alpha = 0.95f),
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(0.dp)
-                )
+                color = SurfaceLight,
+                modifier = Modifier.drawWithContent {
+                    drawContent()
+                    drawLine(
+                        color = PetHelpOutline,
+                        start = Offset(0f, 0f),
+                        end = Offset(size.width, 0f),
+                        strokeWidth = 1.dp.toPx()
+                    )
+                }
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 17.dp)
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.createPost() },
+                        onClick = {
+                            navController.navigate(
+                                Screen.LocationSelection(
+                                    title = uiState.title,
+                                    description = uiState.description,
+                                    category = uiState.category.name,
+                                    animalType = uiState.animalType,
+                                    size = uiState.size.name,
+                                    imageUris = uiState.imageUris.map { it.toString() },
+                                    street = uiState.street,
+                                    neighborhood = uiState.neighborhood,
+                                    city = uiState.city,
+                                    latitude = uiState.latitude,
+                                    longitude = uiState.longitude,
+                                    locationName = uiState.locationName
+                                )
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp),
@@ -935,31 +902,20 @@ fun CreatePostScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PetHelpPrimary
                         ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 10.dp
-                        ),
-                        enabled = !uiState.isLoading
+                        enabled = uiState.title.isNotBlank() && uiState.description.isNotBlank() && uiState.imageUris.isNotEmpty()
                     ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                "Publicar",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Medium,
-                                letterSpacing = 0.45.sp
-                            )
-                        }
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            stringResource(R.string.btn_next_location),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 0.45.sp
+                        )
                     }
                 }
             }
@@ -969,25 +925,33 @@ fun CreatePostScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
+            // ── Barra de progreso ────────────────────────────────────────
+            item {
+                LinearProgressIndicator(
+                    progress = { 0.25f },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = PetHelpPrimary,
+                    trackColor = SurfaceVariantLight
+                )
+            }
+
             // ── Sección de fotos ────────────────────────────────────────
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
                     color = PetHelpPrimary.copy(alpha = 0.05f),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = Brush.linearGradient(
-                            listOf(PetHelpPrimary.copy(alpha = 0.4f), PetHelpPrimary.copy(alpha = 0.4f))
-                        )
-                    )
+                    border = BorderStroke(1.dp, PetHelpPrimary.copy(alpha = 0.2f))
                 ) {
                     Column(
                         modifier = Modifier.padding(21.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Área para agregar fotos
                         if (uiState.imageUris.isEmpty()) {
                             Column(
                                 modifier = Modifier
@@ -1004,7 +968,7 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(64.dp)
-                                        .background(PetHelpPrimary.copy(alpha = 0.15f), CircleShape),
+                                        .background(PetHelpPrimary.copy(alpha = 0.1f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -1016,12 +980,12 @@ fun CreatePostScreen(
                                 }
                                 Row {
                                     Text(
-                                        "Toca para agregar hasta ",
+                                        stringResource(R.string.post_photo_instruction_prefix),
                                         fontSize = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                        color = TextSecondary
                                     )
                                     Text(
-                                        "5 fotos",
+                                        stringResource(R.string.post_photo_instruction_suffix),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = PetHelpPrimary
@@ -1030,7 +994,6 @@ fun CreatePostScreen(
                             }
                         }
 
-                        // Miniaturas de fotos seleccionadas
                         if (uiState.imageUris.isNotEmpty()) {
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1040,8 +1003,7 @@ fun CreatePostScreen(
                                         modifier = Modifier
                                             .size(96.dp)
                                             .clip(RoundedCornerShape(16.dp))
-                                            .border(1.dp, Color.White, RoundedCornerShape(16.dp))
-                                            .shadow(4.dp, RoundedCornerShape(16.dp))
+                                            .border(1.dp, SurfaceLight, RoundedCornerShape(16.dp))
                                     ) {
                                         AsyncImage(
                                             model = uri,
@@ -1049,7 +1011,6 @@ fun CreatePostScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-                                        // Botón eliminar
                                         Box(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
@@ -1065,11 +1026,10 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.Close,
                                                 contentDescription = "Eliminar",
-                                                tint = Color.White,
+                                                tint = White,
                                                 modifier = Modifier.size(12.dp)
                                             )
                                         }
-                                        // Indicador de posición
                                         Box(
                                             modifier = Modifier
                                                 .align(Alignment.BottomStart)
@@ -1083,13 +1043,12 @@ fun CreatePostScreen(
                                             Text(
                                                 "${index + 1}/5",
                                                 fontSize = 10.sp,
-                                                color = Color.White
+                                                color = White
                                             )
                                         }
                                     }
                                 }
 
-                                // Botón agregar más
                                 if (uiState.imageUris.size < 5) {
                                     item {
                                         Box(
@@ -1098,10 +1057,10 @@ fun CreatePostScreen(
                                                 .clip(RoundedCornerShape(16.dp))
                                                 .border(
                                                     1.dp,
-                                                    PetHelpPrimary.copy(alpha = 0.4f),
+                                                    PetHelpPrimary.copy(alpha = 0.3f),
                                                     RoundedCornerShape(16.dp)
                                                 )
-                                                .background(Color.White)
+                                                .background(SurfaceLight)
                                                 .clickable {
                                                     photoPickerLauncher.launch(
                                                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -1127,13 +1086,12 @@ fun CreatePostScreen(
             // ── Título y descripción ────────────────────────────────────
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    // Título
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            "Título de publicación",
+                            stringResource(R.string.post_title_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            color = TextSecondary,
                             letterSpacing = 0.35.sp
                         )
                         OutlinedTextField(
@@ -1141,29 +1099,31 @@ fun CreatePostScreen(
                             onValueChange = { viewModel.updateTitle(it) },
                             placeholder = {
                                 Text(
-                                    "Ej: Perrito encontrado en la Condesa",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    stringResource(R.string.post_title_placeholder),
+                                    color = TextHint
                                 )
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PetHelpPrimary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                unfocusedBorderColor = PetHelpOutline,
+                                focusedContainerColor = SurfaceLight,
+                                unfocusedContainerColor = SurfaceLight,
+                                cursorColor = PetHelpPrimary,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
                             ),
                             singleLine = true
                         )
                     }
 
-                    // Descripción
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            "Descripción de la situación",
+                            stringResource(R.string.post_description_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            color = TextSecondary,
                             letterSpacing = 0.35.sp
                         )
                         OutlinedTextField(
@@ -1171,8 +1131,8 @@ fun CreatePostScreen(
                             onValueChange = { viewModel.updateDescription(it) },
                             placeholder = {
                                 Text(
-                                    "Describe cómo encontraste a este peludo, su estado de salud, comportamiento, etc.",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    stringResource(R.string.post_description_placeholder),
+                                    color = TextHint
                                 )
                             },
                             modifier = Modifier
@@ -1181,9 +1141,12 @@ fun CreatePostScreen(
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PetHelpPrimary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                unfocusedBorderColor = PetHelpOutline,
+                                focusedContainerColor = SurfaceLight,
+                                unfocusedContainerColor = SurfaceLight,
+                                cursorColor = PetHelpPrimary,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
                             )
                         )
                     }
@@ -1194,11 +1157,7 @@ fun CreatePostScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = Brush.linearGradient(
-                            listOf(PetHelpPrimary.copy(alpha = 0.2f), PetHelpPrimary.copy(alpha = 0.2f))
-                        )
-                    ),
+                    border = BorderStroke(1.dp, PetHelpTertiary.copy(alpha = 0.2f)),
                     color = Color.Transparent
                 ) {
                     Box(
@@ -1207,7 +1166,7 @@ fun CreatePostScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        PetHelpPrimary.copy(alpha = 0.1f),
+                                        PetHelpTertiary.copy(alpha = 0.1f),
                                         Color.Transparent
                                     )
                                 )
@@ -1224,47 +1183,43 @@ fun CreatePostScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(PetHelpPrimary.copy(alpha = 0.2f), CircleShape),
+                                        .background(PetHelpTertiary.copy(alpha = 0.2f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.AutoAwesome,
                                         contentDescription = null,
-                                        tint = PetHelpPrimary,
+                                        tint = PetHelpTertiary,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        "Categoría sugerida por IA",
+                                        stringResource(R.string.post_ai_category_title),
                                         fontSize = 14.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
                                     )
                                     Text(
-                                        "Analizamos tu foto y texto automáticamente",
+                                        stringResource(R.string.post_ai_category_subtitle),
                                         fontSize = 11.sp,
-                                        color = PetHelpPrimary.copy(alpha = 0.8f)
+                                        color = PetHelpTertiary
                                     )
                                 }
                                 Icon(
                                     Icons.Default.AutoAwesome,
                                     contentDescription = null,
-                                    tint = PetHelpPrimary.copy(alpha = 0.6f),
+                                    tint = PetHelpTertiary.copy(alpha = 0.6f),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
 
-                            // Selector de categoría
                             var expanded by remember { mutableStateOf(false) }
                             Box {
                                 Surface(
                                     shape = RoundedCornerShape(24.dp),
-                                    color = Color.White,
-                                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                                        brush = Brush.linearGradient(
-                                            listOf(PetHelpPrimary.copy(alpha = 0.2f), PetHelpPrimary.copy(alpha = 0.2f))
-                                        )
-                                    ),
+                                    color = SurfaceLight,
+                                    border = BorderStroke(1.dp, PetHelpTertiary.copy(alpha = 0.2f)),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(58.dp)
@@ -1284,20 +1239,20 @@ fun CreatePostScreen(
                                             Icon(
                                                 Icons.Default.AutoAwesome,
                                                 contentDescription = null,
-                                                tint = PetHelpPrimary,
+                                                tint = PetHelpTertiary,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                             Text(
-                                                uiState.category.displayName,
+                                                categoryToDisplayName(uiState.category),
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = TextPrimary
                                             )
                                         }
                                         Icon(
                                             Icons.Default.KeyboardArrowDown,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                            tint = TextSecondary
                                         )
                                     }
                                 }
@@ -1307,7 +1262,7 @@ fun CreatePostScreen(
                                 ) {
                                     PostCategory.entries.forEach { category ->
                                         DropdownMenuItem(
-                                            text = { Text(category.displayName) },
+                                            text = { Text(categoryToDisplayName(category)) },
                                             onClick = {
                                                 viewModel.updateCategory(category)
                                                 expanded = false
@@ -1325,10 +1280,10 @@ fun CreatePostScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "Tipo de mascota",
+                        stringResource(R.string.post_animal_type_label),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = TextSecondary,
                         letterSpacing = 0.35.sp
                     )
                     Row(
@@ -1357,10 +1312,10 @@ fun CreatePostScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "Tamaño",
+                        stringResource(R.string.post_size_label),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = TextSecondary,
                         letterSpacing = 0.35.sp
                     )
                     Row(
@@ -1369,7 +1324,7 @@ fun CreatePostScreen(
                     ) {
                         AnimalSize.entries.forEach { size ->
                             SelectableChip(
-                                label = size.displayName,
+                                label = sizeToDisplayName(size),
                                 selected = uiState.size == size,
                                 accentColor = PetHelpPrimary,
                                 onClick = { viewModel.updateSize(size) },
@@ -1384,10 +1339,10 @@ fun CreatePostScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "Ubicación",
+                        stringResource(R.string.post_location_approx_label),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = TextSecondary,
                         letterSpacing = 0.35.sp
                     )
 
@@ -1396,14 +1351,7 @@ fun CreatePostScreen(
                             .fillMaxWidth()
                             .height(240.dp),
                         shape = RoundedCornerShape(20.dp),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.outlineVariant,
-                                    MaterialTheme.colorScheme.outlineVariant
-                                )
-                            )
-                        )
+                        border = BorderStroke(1.dp, PetHelpOutline)
                     ) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
@@ -1432,12 +1380,12 @@ fun CreatePostScreen(
 
                     Text(
                         text = if (uiState.locationName.isNotBlank()) {
-                            "Seleccionada: ${uiState.locationName}"
+                            stringResource(R.string.post_location_selected, uiState.locationName)
                         } else {
-                            "Toca el mapa para seleccionar una ubicación."
+                            stringResource(R.string.post_location_map_instruction)
                         },
                         fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextSecondary
                     )
                 }
             }
@@ -1447,13 +1395,6 @@ fun CreatePostScreen(
     }
 }
 
-/**
- * Chip seleccionable usado para elegir opciones (tipo de mascota, tamaño, etc.).
- *
- * - `selected` controla el estado visual (color de fondo/borde).
- * - `accentColor` define el color principal del chip en estado activo.
- * - Usa `onClick` para notificar al ViewModel que cambió la selección.
- */
 @Composable
 private fun SelectableChip(
     label: String,
@@ -1466,16 +1407,11 @@ private fun SelectableChip(
     Surface(
         modifier = modifier.height(50.dp),
         shape = RoundedCornerShape(50),
-        color = if (selected) accentColor.copy(alpha = 0.1f) else Color.White,
-        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-            brush = Brush.linearGradient(
-                listOf(
-                    if (selected) accentColor else MaterialTheme.colorScheme.outline,
-                    if (selected) accentColor else MaterialTheme.colorScheme.outline
-                )
-            )
+        color = if (selected) accentColor.copy(alpha = 0.1f) else SurfaceLight,
+        border = BorderStroke(
+            1.dp,
+            if (selected) accentColor else PetHelpOutline
         ),
-        shadowElevation = if (selected) 2.dp else 0.dp,
         onClick = onClick
     ) {
         Row(
@@ -1487,7 +1423,7 @@ private fun SelectableChip(
                     Icon(
                         icon,
                         contentDescription = null,
-                        tint = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        tint = if (selected) accentColor else TextSecondary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
@@ -1496,34 +1432,525 @@ private fun SelectableChip(
                     text = label,
                     fontSize = 14.sp,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                    color = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    color = if (selected) accentColor else TextSecondary,
                     textAlign = TextAlign.Center
                 )
         }
     }
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+@Composable
+private fun categoryToDisplayName(category: PostCategory): String {
+    return when(category) {
+        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
+        PostCategory.LOST -> stringResource(R.string.category_lost)
+        PostCategory.FOUND -> stringResource(R.string.category_found)
+        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
+        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
+    }
+}
+
+@Composable
+private fun sizeToDisplayName(size: AnimalSize): String {
+    return when(size) {
+        AnimalSize.SMALL -> stringResource(R.string.tag_small)
+        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
+        AnimalSize.LARGE -> stringResource(R.string.tag_large)
+    }
+}
+
+@Composable
+private fun ageToDisplayName(age: AnimalAge): String {
+    return when(age) {
+        AnimalAge.PUPPY -> stringResource(R.string.post_age_puppy)
+        AnimalAge.YOUNG -> stringResource(R.string.post_age_young)
+        AnimalAge.ADULT -> stringResource(R.string.post_age_adult)
+        AnimalAge.SENIOR -> stringResource(R.string.post_age_senior)
+    }
+}
+
+@Composable
+private fun genderToDisplayName(gender: AnimalGender): String {
+    return when(gender) {
+        AnimalGender.MALE -> stringResource(R.string.post_gender_male)
+        AnimalGender.FEMALE -> stringResource(R.string.post_gender_female)
+        AnimalGender.UNKNOWN -> stringResource(R.string.post_gender_unknown)
+    }
+}
+
+@Composable
+private fun behaviorToDisplayName(behavior: PetBehavior): String {
+    return when(behavior) {
+        PetBehavior.CALM -> stringResource(R.string.post_behavior_calm)
+        PetBehavior.ACTIVE -> stringResource(R.string.post_behavior_active)
+        PetBehavior.SOCIABLE -> stringResource(R.string.post_behavior_sociable)
+        PetBehavior.SHY -> stringResource(R.string.post_behavior_shy)
+        PetBehavior.PROTECTIVE -> stringResource(R.string.post_behavior_protective)
+        PetBehavior.PLAYFUL -> stringResource(R.string.post_behavior_playful)
+        PetBehavior.INDEPENDENT -> stringResource(R.string.post_behavior_independent)
+        PetBehavior.AFFECTIONATE -> stringResource(R.string.post_behavior_affectionate)
+    }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ─── EDITAR PUBLICACIÓN (placeholder — usa CreatePostScreen precargado) ─────
+// ─── EDITAR PUBLICACIÓN ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
 @Composable
-fun EditPostScreen(postId: String, navController: NavController) {
-    Scaffold { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Editar publicación", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-            Text("ID: $postId", style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(24.dp))
-            Button(onClick = { navController.popBackStack() }) { Text("Guardar (placeholder)") }
+fun EditPostScreen(
+    postId: String,
+    navController: NavController,
+    viewModel: EditPostViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            navController.popBackStack()
         }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = BackgroundLight,
+        topBar = {
+            Surface(
+                color = SurfaceLight,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .drawWithContent {
+                        drawContent()
+                        drawLine(
+                            color = PetHelpOutline,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .height(68.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            modifier = Modifier.size(22.dp),
+                            tint = TextPrimary
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.edit_post_title),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        letterSpacing = (-0.5).sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = PetHelpPrimary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+        },
+        bottomBar = {
+            Surface(
+                color = SurfaceLight,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .drawWithContent {
+                        drawContent()
+                        drawLine(
+                            color = PetHelpOutline,
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, 0f),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                ) {
+                    Button(
+                        onClick = { viewModel.saveChanges() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PetHelpPrimary
+                        ),
+                        enabled = !uiState.isLoading
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Icon(
+                                Icons.Default.Save,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                stringResource(R.string.btn_save_changes),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                letterSpacing = 0.45.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    ) { padding ->
+        if (uiState.post == null && uiState.isLoading) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PetHelpPrimary)
+            }
+        } else if (uiState.error != null) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(uiState.error!!, color = PetHelpDestructive, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(16.dp))
+                Button(onClick = { /* retry? */ }) {
+                    Text("Reintentar")
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                // ── Título y descripción ────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                stringResource(R.string.post_title_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            OutlinedTextField(
+                                value = uiState.title,
+                                onValueChange = { viewModel.updateTitle(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = PetHelpPrimary,
+                                    unfocusedBorderColor = PetHelpOutline
+                                )
+                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                stringResource(R.string.post_description_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            OutlinedTextField(
+                                value = uiState.description,
+                                onValueChange = { viewModel.updateDescription(it) },
+                                modifier = Modifier.fillMaxWidth().height(154.dp),
+                                shape = RoundedCornerShape(24.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = PetHelpPrimary,
+                                    unfocusedBorderColor = PetHelpOutline
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // ── Categoría ──────────────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            stringResource(R.string.post_summary_category),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextSecondary
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(PostCategory.entries) { category ->
+                                SelectableChip(
+                                    label = categoryToDisplayName(category),
+                                    selected = uiState.category == category,
+                                    accentColor = PetHelpPrimary,
+                                    onClick = { viewModel.updateCategory(category) }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ── Info de la mascota ──────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        // Tipo de animal
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                stringResource(R.string.post_animal_type_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            OutlinedTextField(
+                                value = uiState.animalType,
+                                onValueChange = { viewModel.updateAnimalType(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                        }
+
+                        // Raza (Breed)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                stringResource(R.string.post_breed_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            OutlinedTextField(
+                                value = uiState.breed,
+                                onValueChange = { viewModel.updateBreed(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                        }
+
+                        // Edad (Chips)
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(
+                                stringResource(R.string.post_age_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                AnimalAge.entries.forEach { age ->
+                                    SelectableChip(
+                                        label = ageToDisplayName(age),
+                                        selected = uiState.age == age,
+                                        accentColor = PetHelpPrimary,
+                                        onClick = { viewModel.updateAge(age) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+
+                        // Sexo (Chips)
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(
+                                stringResource(R.string.post_gender_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                AnimalGender.entries.forEach { gender ->
+                                    SelectableChip(
+                                        label = genderToDisplayName(gender),
+                                        selected = uiState.gender == gender,
+                                        accentColor = PetHelpPrimary,
+                                        onClick = { viewModel.updateGender(gender) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+
+                        // Tamaño (Chips)
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(
+                                stringResource(R.string.post_size_label),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                AnimalSize.entries.forEach { size ->
+                                    SelectableChip(
+                                        label = sizeToDisplayName(size),
+                                        selected = uiState.size == size,
+                                        accentColor = PetHelpPrimary,
+                                        onClick = { viewModel.updateSize(size) },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Estado de salud ─────────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(
+                            stringResource(R.string.post_health_status),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                        
+                        HealthToggle(
+                            label = stringResource(R.string.post_vaccinated_label),
+                            checked = uiState.vaccinated,
+                            onCheckedChange = { viewModel.updateVaccinated(it) }
+                        )
+                        HealthToggle(
+                            label = stringResource(R.string.post_dewormed_label),
+                            checked = uiState.dewormed,
+                            onCheckedChange = { viewModel.updateDewormed(it) }
+                        )
+                        HealthToggle(
+                            label = stringResource(R.string.post_sterilized_label),
+                            checked = uiState.sterilized,
+                            onCheckedChange = { viewModel.updateSterilized(it) }
+                        )
+                    }
+                }
+
+                // ── Comportamiento ──────────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            stringResource(R.string.post_behavior_label),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextSecondary
+                        )
+                        @OptIn(ExperimentalLayoutApi::class)
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            PetBehavior.entries.forEach { behavior ->
+                                val isSelected = uiState.behavior.contains(behavior)
+                                SelectableChip(
+                                    label = behaviorToDisplayName(behavior),
+                                    selected = isSelected,
+                                    accentColor = PetHelpSecondary,
+                                    onClick = { viewModel.toggleBehavior(behavior) }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ── Ubicación ───────────────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(
+                            stringResource(R.string.post_location),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.post_street_label), fontSize = 13.sp, color = TextSecondary)
+                            OutlinedTextField(
+                                value = uiState.street,
+                                onValueChange = { viewModel.updateLocation(it, uiState.neighborhood, uiState.city) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.post_neighborhood_label), fontSize = 13.sp, color = TextSecondary)
+                            OutlinedTextField(
+                                value = uiState.neighborhood,
+                                onValueChange = { viewModel.updateLocation(uiState.street, it, uiState.city) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.post_city_label), fontSize = 13.sp, color = TextSecondary)
+                            OutlinedTextField(
+                                value = uiState.city,
+                                onValueChange = { viewModel.updateLocation(uiState.street, uiState.neighborhood, it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        }
+                    }
+                }
+                
+                item { Spacer(Modifier.height(16.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HealthToggle(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (checked) PetHelpPrimary.copy(alpha = 0.05f) else SurfaceLight)
+            .border(1.dp, if (checked) PetHelpPrimary.copy(alpha = 0.3f) else PetHelpOutline, RoundedCornerShape(20.dp))
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = PetHelpPrimary,
+                uncheckedThumbColor = TextSecondary,
+                uncheckedTrackColor = SurfaceVariantLight
+            )
+        )
     }
 }

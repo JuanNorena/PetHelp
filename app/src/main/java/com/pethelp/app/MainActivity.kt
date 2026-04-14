@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.gms.maps.MapsInitializer
 import com.pethelp.app.core.navigation.PetHelpNavGraph
 import com.pethelp.app.core.ui.theme.PetHelpTheme
 import com.pethelp.app.features.profile.presentation.ProfileViewModel
@@ -35,6 +36,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Instalar Splash Screen antes de super.onCreate()
         installSplashScreen()
+
+        // Initialize Maps SDK to avoid CameraUpdateFactory NPE
+        MapsInitializer.initialize(applicationContext)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

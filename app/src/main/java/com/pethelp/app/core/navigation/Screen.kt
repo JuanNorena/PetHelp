@@ -28,7 +28,13 @@ sealed class Screen {
         val category: String,
         val animalType: String,
         val size: String,
-        val imageUris: List<String>
+        val imageUris: List<String>,
+        val street: String = "",
+        val neighborhood: String = "",
+        val city: String = "",
+        val latitude: Double = 0.0,
+        val longitude: Double = 0.0,
+        val locationName: String = ""
     ) : Screen()
 
     @Serializable data class PostDetails(
@@ -40,7 +46,10 @@ sealed class Screen {
         val imageUris: List<String>,
         val street: String,
         val neighborhood: String,
-        val city: String
+        val city: String,
+        val latitude: Double,
+        val longitude: Double,
+        val locationName: String
     ) : Screen()
 
     @Serializable data object MyPosts : Screen()
@@ -82,6 +91,9 @@ sealed class Screen {
         val imageUris: List<String>,
         val street: String,
         val neighborhood: String,
-        val city: String
+        val city: String,
+        val latitude: Double,
+        val longitude: Double,
+        val locationName: String
     ) : Screen()
 }

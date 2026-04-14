@@ -128,6 +128,22 @@
     <string name="post_behavior_active">Activo</string>
     <string name="post_behavior_instruction">Selecciona las características que mejor describan al peludo. Esto ayuda a encontrar a la persona ideal.</string>
     <string name="btn_next_review">Siguiente: Revisar</string>
+    <string name="post_summary_general">Información General</string>
+    <string name="post_summary_title">Título</string>
+    <string name="post_summary_category">Categoría</string>
+    <string name="post_summary_animal_type">Tipo de animal</string>
+    <string name="post_summary_location">Ubicación</string>
+    <string name="post_summary_address">Dirección</string>
+    <string name="post_summary_city">Ciudad</string>
+    <string name="post_summary_details">Detalles del Peludo</string>
+    <string name="post_summary_age">Edad</string>
+    <string name="post_summary_gender">Sexo</string>
+    <string name="post_summary_size">Tamaño</string>
+    <string name="post_summary_health">Estado de salud</string>
+    <string name="post_summary_behavior">Comportamiento</string>
+    <string name="post_review_title">Revisar</string>
+    <string name="post_step_4_of_4">Paso 4 de 4</string>
+    <string name="post_review_instruction">Revisa que toda la información sea correcta antes de publicar.</string>
     <string name="btn_publish">Publicar</string>
     <string name="btn_save">Guardar</string>
     <string name="btn_cancel">Cancelar</string>
@@ -137,6 +153,7 @@
 
     <!-- ── Mis Publicaciones ─────────────────────────────── -->
     <string name="my_posts_title">Mis Publicaciones</string>
+    <string name="my_posts_create_desc">Hacer una nueva publicación</string>
     <string name="my_posts_empty_active">No tienes publicaciones activas</string>
     <string name="my_posts_empty_in_review">No tienes publicaciones en revisión</string>
     <string name="my_posts_empty_resolved">No tienes publicaciones finalizadas</string>
@@ -200,7 +217,7 @@
     <!-- ── Nuevos Strings de Profile y Nav ───────────────── -->
     <string name="nav_home">Inicio</string>
     <string name="nav_map">Mapa</string>
-    <string name="nav_create">Crear</string>
+    <string name="nav_create">Hacer una nueva publicación</string>
     <string name="nav_chat">Chat</string>
     <string name="nav_profile">Perfil</string>
     
@@ -217,6 +234,7 @@
     <string name="profile_quick_access_title">Accesos rápidos</string>
     <string name="profile_avatar_desc">Foto de perfil</string>
     <string name="common_back">Atrás</string>
+    <string name="common_cancel">Cancelar</string>
 
     <string name="edit_profile_change_photo">Cambiar foto de perfil</string>
     <string name="edit_profile_bio_hint">Biografía</string>
@@ -330,5 +348,40 @@
     <string name="help_support_available">Nuestro equipo de soporte está disponible 24/7 para ayudarte con cualquier problema.</string>
     <string name="help_contact_us">Contáctanos</string>
 
-    <string name="common_cancel">Cancelar</string>
+    <string name="btn_next_location">Siguiente: Ubicación</string>
+    <string name="post_create_title">Ayuda a un peludo</string>
+    <string name="post_photo_instruction_prefix">Toca para agregar hasta </string>
+    <string name="post_photo_instruction_suffix">5 fotos</string>
+    <string name="post_title_label">Título de publicación</string>
+    <string name="post_title_placeholder">Ej: Perrito encontrado en la Condesa</string>
+    <string name="post_description_label">Descripción de la situación</string>
+    <string name="post_description_placeholder">Describe cómo encontraste a este peludo, su estado de salud, comportamiento, etc.</string>
+    <string name="post_ai_category_title">Categoría sugerida por IA</string>
+    <string name="post_ai_category_subtitle">Analizamos tu foto y texto automáticamente</string>
+    <string name="post_animal_type_label">Tipo de mascota</string>
+    <string name="post_size_label">Tamaño</string>
+    <string name="post_location_approx_label">Ubicación aproximada</string>
+    <string name="post_location_map_instruction">Toca el mapa para seleccionar una ubicación.</string>
+    <string name="post_location_selected">Seleccionada: %1$s</string>
+    <string name="post_location_selected_label">Ubicación seleccionada</string>
+    <string name="post_breed_label">Raza</string>
+    <string name="post_age_label">Edad aproximada</string>
+    <string name="post_gender_label">Sexo</string>
+    <string name="post_behavior_label">Comportamiento</string>
+    <string name="post_detail_error">Error al cargar la publicación</string>
+    <string name="post_detail_published_by">PUBLICADO POR</string>
+    <string name="post_detail_about">Sobre %1$s</string>
+    <string name="post_detail_comments">Comentarios</string>
+    <string name="post_detail_comment_hint">Escribe un comentario...</string>
+    <string name="post_detail_comment_post">Publicar</string>
+    <string name="post_detail_no_comments">Aún no hay comentarios. ¡Sé el primero!</string>
+    <string name="post_detail_vacunada">Vacunada</string>
+    <string name="post_detail_no_vacunas">Sin vacunas</string>
+    <string name="post_detail_request_adoption">Solicitar Adopción</string>
+    <string name="post_detail_share">Compartir</string>
+    <string name="post_detail_unknown_user">Usuario</string>
+    <string name="post_detail_unknown_pet">Mascota</string>
+    <string name="post_detail_na">N/A</string>
+    <string name="edit_post_title">Editar publicación</string>
+    <string name="edit_post_placeholder_msg">Esta pantalla te permitirá modificar los detalles de tu publicación pronto.</string>
 </resources>

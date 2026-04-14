@@ -80,7 +80,7 @@ fun MyPostsScreen(
                 contentColor = MaterialTheme.colorScheme.onSecondary,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_new_post))
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.my_posts_create_desc))
             }
         }
     ) { padding ->
@@ -181,7 +181,7 @@ private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.btn_new_post),
+                        contentDescription = stringResource(R.string.my_posts_create_desc),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(20.dp)
                     )
