@@ -94,7 +94,14 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 label = stringResource(R.string.nav_map),
                 selected = currentDestination?.hasRoute<Screen.Map>() == true,
                 badgeCount = 0,
-                onClick = { /* TODO Fase 3 */ }
+                onClick = {
+                    if (currentDestination?.hasRoute<Screen.Map>() != true) {
+                        navController.navigate(Screen.Map) {
+                            popUpTo<Screen.Feed>() { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
 
             // Espacio reservado para el FAB central (no es un ítem real)

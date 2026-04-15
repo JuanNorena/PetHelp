@@ -11,6 +11,7 @@ import com.pethelp.app.features.auth.presentation.LoginScreen
 import com.pethelp.app.features.auth.presentation.RegisterScreen
 import com.pethelp.app.features.auth.presentation.SplashScreen
 import com.pethelp.app.features.feed.presentation.FeedScreen
+import com.pethelp.app.features.map.presentation.MapScreen
 import com.pethelp.app.features.moderation.presentation.ModeratorDetailScreen
 import com.pethelp.app.features.moderation.presentation.ModeratorPanelScreen
 import com.pethelp.app.features.notifications.presentation.NotificationsScreen
@@ -105,6 +106,11 @@ fun PetHelpNavGraph(
         // ── Notificaciones ────────────────────────────────────────────────────
         composable<Screen.Notifications> {
             NotificationsScreen(navController = navController)
+        }
+
+        // ── Mapa ─────────────────────────────────────────────────────────────
+        composable<Screen.Map> {
+            MapScreen(navController = navController)
         }
 
         // ── Perfil ────────────────────────────────────────────────────────────
