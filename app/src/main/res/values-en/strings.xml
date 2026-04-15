@@ -130,6 +130,7 @@ By clicking "Accept", you confirm that you have read, understood, and accepted t
     <string name="feed_empty_posts_title">There are no posts yet</string>
     <string name="feed_empty_posts_subtitle">Be the first to post
 a pet</string>
+    <string name="feed_empty_filtered">There are no posts in this category</string>
     <string name="feed_notifications_desc">Notifications</string>
     <string name="btn_new_post">New post</string>
     <string name="view_list">List view</string>
@@ -388,4 +389,5 @@ a pet</string>
     <string name="visibility_show_city_desc">Show your city (e.g., Mexico City) on your public profile.</string>
 
     <string name="common_cancel">Cancel</string>
+    <string name="common_retry">Retry</string>
 </resources>

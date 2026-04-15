@@ -255,7 +255,7 @@ fun PostReviewScreen(
                             letterSpacing = (-0.5).sp
                         )
                         SummaryRow(label = stringResource(R.string.post_summary_title), value = postData.title, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_category), value = postData.category, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_category), value = categoryNameToDisplay(postData.category), textColor = textColor, secondaryTextColor = secondaryTextColor)
                         SummaryRow(label = stringResource(R.string.post_summary_animal_type), value = postData.animalType, textColor = textColor, secondaryTextColor = secondaryTextColor)
                         SummaryRow(label = stringResource(R.string.post_summary_breed), value = postData.breed, textColor = textColor, secondaryTextColor = secondaryTextColor)
                         
@@ -286,9 +286,9 @@ fun PostReviewScreen(
                             color = PetHelpPrimary,
                             letterSpacing = (-0.5).sp
                         )
-                        SummaryRow(label = stringResource(R.string.post_summary_age), value = postData.age, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_gender), value = postData.gender, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_size), value = postData.size, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_age), value = ageNameToDisplay(postData.age), textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_gender), value = genderNameToDisplay(postData.gender), textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_size), value = sizeNameToDisplay(postData.size), textColor = textColor, secondaryTextColor = secondaryTextColor)
                         
                         val healthStates = mutableListOf<String>()
                         if (postData.vaccinated) healthStates.add(stringResource(R.string.post_vaccinated_label))
@@ -300,7 +300,7 @@ fun PostReviewScreen(
                         }
 
                         if (postData.behavior.isNotEmpty()) {
-                            SummaryRow(label = stringResource(R.string.post_summary_behavior), value = postData.behavior.joinToString(", "), textColor = textColor, secondaryTextColor = secondaryTextColor)
+                            SummaryRow(label = stringResource(R.string.post_summary_behavior), value = behaviorNamesToDisplay(postData.behavior), textColor = textColor, secondaryTextColor = secondaryTextColor)
                         }
                     }
                 }
@@ -309,6 +309,55 @@ fun PostReviewScreen(
             }
         }
     }
+}
+
+@Composable
+private fun categoryNameToDisplay(rawValue: String): String {
+    val category = PostCategory.entries.find { it.name == rawValue } ?: return rawValue
+    return when (category) {
+        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
+        PostCategory.LOST -> stringResource(R.string.category_lost)
+        PostCategory.FOUND -> stringResource(R.string.category_found)
+        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
+        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
+    }
+}
+
+@Composable
+private fun ageNameToDisplay(rawValue: String): String {
+    val age = AnimalAge.entries.find { it.name == rawValue } ?: return rawValue
+    return age.toDisplayName()
+}
+
+@Composable
+private fun genderNameToDisplay(rawValue: String): String {
+    val gender = AnimalGender.entries.find { it.name == rawValue } ?: return rawValue
+    return gender.toDisplayName()
+}
+
+@Composable
+private fun sizeNameToDisplay(rawValue: String): String {
+    val size = AnimalSize.entries.find { it.name == rawValue } ?: return rawValue
+    return when (size) {
+        AnimalSize.SMALL -> stringResource(R.string.tag_small)
+        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
+        AnimalSize.LARGE -> stringResource(R.string.tag_large)
+    }
+}
+
+@Composable
+private fun behaviorNamesToDisplay(values: List<String>): String {
+    val labels = mutableListOf<String>()
+    for (value in values) {
+        labels.add(behaviorNameToDisplay(value))
+    }
+    return labels.joinToString(", ")
+}
+
+@Composable
+private fun behaviorNameToDisplay(rawValue: String): String {
+    val behavior = PetBehavior.entries.find { it.name == rawValue } ?: return rawValue
+    return behavior.toDisplayName()
 }
 
 @Composable

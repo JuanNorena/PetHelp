@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.UserRole
@@ -88,14 +91,51 @@ fun ModeratorPanelScreen(
     viewModel: ModerationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val authViewModel: AuthViewModel = hiltViewModel()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadPendingPosts()
     }
 
     ModeratorAccessGate(navController = navController) {
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text(stringResource(R.string.btn_logout)) },
+                text = { Text("¿Deseas cerrar sesión del panel de moderación?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLogoutDialog = false
+                            authViewModel.logout()
+                        }
+                    ) {
+                        Text(stringResource(R.string.btn_logout))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                }
+            )
+        }
+
         Scaffold(
-            topBar = { TopAppBar(title = { Text("Panel de Moderación") }) }
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.moderation_panel_title)) },
+                    actions = {
+                        IconButton(onClick = { showLogoutDialog = true }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = stringResource(R.string.btn_logout)
+                            )
+                        }
+                    }
+                )
+            }
         ) { padding ->
             when {
                 uiState.isLoading && uiState.pendingPosts.isEmpty() -> {
