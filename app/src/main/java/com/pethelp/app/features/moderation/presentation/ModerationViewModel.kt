@@ -103,7 +103,8 @@ class ModerationViewModel @Inject constructor(
     fun approvePost(postId: String) {
         executeModerationAction(
             action = { postRepository.approvePost(postId) },
-            successMessage = "Publicación aprobada correctamente."
+            successMessage = "Publicación aprobada correctamente.",
+            moderatedPostId = postId
         )
     }
 
@@ -118,7 +119,8 @@ class ModerationViewModel @Inject constructor(
 
         executeModerationAction(
             action = { postRepository.rejectPost(postId, normalizedReason) },
-            successMessage = "Publicación rechazada correctamente."
+            successMessage = "Publicación rechazada correctamente.",
+            moderatedPostId = postId
         )
     }
 
@@ -128,7 +130,8 @@ class ModerationViewModel @Inject constructor(
 
     private fun executeModerationAction(
         action: () -> kotlinx.coroutines.flow.Flow<Resource<Unit>>,
-        successMessage: String
+        successMessage: String,
+        moderatedPostId: String? = null
     ) {
         viewModelScope.launch {
             action().collectLatest { resource ->
@@ -138,7 +141,25 @@ class ModerationViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        _uiState.value = _uiState.value.copy(isActionLoading = false)
+                        _uiState.value = _uiState.value.let { state ->
+                            val updatedPendingPosts = if (moderatedPostId == null) {
+                                state.pendingPosts
+                            } else {
+                                state.pendingPosts.filterNot { it.id == moderatedPostId }
+                            }
+
+                            val updatedSelectedPost = if (state.selectedPost?.id == moderatedPostId) {
+                                null
+                            } else {
+                                state.selectedPost
+                            }
+
+                            state.copy(
+                                isActionLoading = false,
+                                pendingPosts = updatedPendingPosts,
+                                selectedPost = updatedSelectedPost
+                            )
+                        }
                         _snackbarMessage.emit(successMessage)
                         _actionCompleted.emit(Unit)
                         loadPendingPosts(forceRefresh = true)

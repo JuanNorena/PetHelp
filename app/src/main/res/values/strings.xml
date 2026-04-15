@@ -46,6 +46,7 @@
     <string name="feed_title">PetHelp</string>
     <string name="feed_empty_posts_title">No hay publicaciones aún</string>
     <string name="feed_empty_posts_subtitle">Sé el primero en publicar\nuna mascota</string>
+    <string name="feed_empty_filtered">No hay publicaciones en esta categoría</string>
     <string name="feed_notifications_desc">Notificaciones</string>
     <string name="btn_new_post">Nueva publicación</string>
     <string name="view_list">Vista lista</string>
@@ -237,6 +238,7 @@
     <string name="profile_avatar_desc">Foto de perfil</string>
     <string name="common_back">Atrás</string>
     <string name="common_cancel">Cancelar</string>
+    <string name="common_retry">Reintentar</string>
 
     <string name="edit_profile_change_photo">Cambiar foto de perfil</string>
     <string name="edit_profile_bio_hint">Biografía</string>

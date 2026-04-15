@@ -117,7 +117,6 @@ class FirebasePostRepository @Inject constructor(
 
         val listener = postsCollection
             .whereEqualTo("status", PostStatus.PENDING.name)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     trySend(Resource.Error(error.localizedMessage ?: "Error al obtener publicaciones pendientes."))
@@ -126,6 +125,7 @@ class FirebasePostRepository @Inject constructor(
 
                 val posts = snapshots?.documents
                     ?.mapNotNull { snapshotToPost(it) }
+                    ?.sortedByDescending { it.createdAt }
                     ?: emptyList()
 
                 trySend(Resource.Success(posts))
