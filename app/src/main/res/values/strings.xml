@@ -87,6 +87,7 @@
     <string name="post_details_title">Detalles</string>
     <string name="post_pick_location">Seleccionar en el mapa</string>
     <string name="post_add_images">Agregar imágenes</string>
+    <string name="post_step_1_of_4">Paso 1 de 4</string>
     <string name="post_step_2_of_4">Paso 2 de 4</string>
     <string name="post_location_instruction">Indica dónde se encuentra el peludo para que personas cercanas puedan verlo.</string>
     <string name="post_my_location">Mi ubicación</string>
@@ -132,6 +133,7 @@
     <string name="post_summary_title">Título</string>
     <string name="post_summary_category">Categoría</string>
     <string name="post_summary_animal_type">Tipo de animal</string>
+    <string name="post_summary_breed">Raza</string>
     <string name="post_summary_location">Ubicación</string>
     <string name="post_summary_address">Dirección</string>
     <string name="post_summary_city">Ciudad</string>
@@ -348,7 +350,12 @@
     <string name="help_support_available">Nuestro equipo de soporte está disponible 24/7 para ayudarte con cualquier problema.</string>
     <string name="help_contact_us">Contáctanos</string>
 
-    <string name="btn_next_location">Siguiente: Ubicación</string>
+    <string name="post_animal_type_dog">Perro</string>
+    <string name="post_animal_type_cat">Gato</string>
+    <string name="post_animal_type_other">Otro</string>
+    <string name="post_ai_badge">IA</string>
+    <string name="post_next_button_location">Siguiente: Ubicación</string>
+    <string name="post_photo_limit_label">Toca para agregar hasta 5 fotos</string>
     <string name="post_create_title">Ayuda a un peludo</string>
     <string name="post_photo_instruction_prefix">Toca para agregar hasta </string>
     <string name="post_photo_instruction_suffix">5 fotos</string>
@@ -365,6 +372,7 @@
     <string name="post_location_selected">Seleccionada: %1$s</string>
     <string name="post_location_selected_label">Ubicación seleccionada</string>
     <string name="post_breed_label">Raza</string>
+    <string name="post_breed_placeholder">Ej: Golden Retriever, Criollo, etc.</string>
     <string name="post_age_label">Edad aproximada</string>
     <string name="post_gender_label">Sexo</string>
     <string name="post_behavior_label">Comportamiento</string>

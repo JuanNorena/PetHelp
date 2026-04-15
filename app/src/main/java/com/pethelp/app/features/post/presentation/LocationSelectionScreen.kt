@@ -2,6 +2,7 @@ package com.pethelp.app.features.post.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Search
@@ -28,10 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.maps.android.compose.*
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
@@ -43,6 +43,18 @@ fun LocationSelectionScreen(
     navController: NavController,
     postData: Screen.LocationSelection
 ) {
+    val isDark = isSystemInDarkTheme()
+    
+    // Colores dinámicos
+    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
+    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
+    val textColor = if (isDark) White else TextPrimary
+    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
+    val hintColor = if (isDark) White.copy(alpha = 0.5f) else TextHint
+    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
+    val warningContainerColor = if (isDark) PetHelpTertiaryDark.copy(alpha = 0.15f) else TertiaryLightContainer
+    val onWarningContainerColor = if (isDark) PetHelpTertiary else OnTertiaryLightContainer
+
     var street by remember { mutableStateOf(postData.street) }
     var neighborhood by remember { mutableStateOf(postData.neighborhood) }
     var city by remember { mutableStateOf(postData.city) }
@@ -67,16 +79,16 @@ fun LocationSelectionScreen(
     val isFormValid = street.isNotBlank() && neighborhood.isNotBlank() && city.isNotBlank()
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = backgroundColor,
         topBar = {
             Surface(
-                color = SurfaceLight,
+                color = surfaceColor,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
                         drawContent()
                         drawLine(
-                            color = PetHelpOutline,
+                            color = outlineColor,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
@@ -97,42 +109,42 @@ fun LocationSelectionScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(22.dp),
-                            tint = TextPrimary
+                            tint = textColor
                         )
                     }
                     Column(modifier = Modifier.padding(start = 4.dp)) {
                         Text(
                             text = stringResource(R.string.post_location),
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
                             text = stringResource(R.string.post_step_2_of_4),
                             fontSize = 12.sp,
-                            color = TextSecondary
+                            color = secondaryTextColor
                         )
                     }
                     Spacer(Modifier.weight(1f))
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = PetHelpPrimary.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp)
+                        tint = PetHelpPrimary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
         },
         bottomBar = {
             Surface(
-                color = SurfaceLight,
+                color = surfaceColor,
                 modifier = Modifier.drawWithContent {
                     drawContent()
                     drawLine(
-                        color = PetHelpOutline,
+                        color = outlineColor,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
                         strokeWidth = 1.dp.toPx()
@@ -143,7 +155,7 @@ fun LocationSelectionScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     Button(
                         onClick = {
@@ -153,6 +165,7 @@ fun LocationSelectionScreen(
                                     description = postData.description,
                                     category = postData.category,
                                     animalType = postData.animalType,
+                                    breed = postData.breed,
                                     size = postData.size,
                                     imageUris = postData.imageUris,
                                     street = street,
@@ -166,8 +179,8 @@ fun LocationSelectionScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp),
-                        shape = RoundedCornerShape(50),
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
                         enabled = isFormValid,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PetHelpPrimary,
@@ -175,7 +188,7 @@ fun LocationSelectionScreen(
                         )
                     ) {
                         Icon(
-                            painterResource(id = android.R.drawable.ic_menu_edit),
+                            Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
@@ -183,7 +196,7 @@ fun LocationSelectionScreen(
                         Text(
                             stringResource(R.string.btn_next_details),
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.Bold,
                             letterSpacing = 0.45.sp
                         )
                     }
@@ -204,7 +217,7 @@ fun LocationSelectionScreen(
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
                 color = PetHelpPrimary,
-                trackColor = SurfaceVariantLight
+                trackColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
             )
 
             Column(
@@ -216,7 +229,7 @@ fun LocationSelectionScreen(
                 Text(
                     stringResource(R.string.post_location_instruction),
                     fontSize = 16.sp,
-                    color = TextSecondary
+                    color = secondaryTextColor
                 )
 
                 // MAPA
@@ -225,12 +238,15 @@ fun LocationSelectionScreen(
                         .fillMaxWidth()
                         .height(240.dp),
                     shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, PetHelpOutline.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
+                            properties = MapProperties(
+                                mapStyleOptions = if (isDark) MapStyleOptions(MapStyles.DARK) else null
+                            ),
                             onMapClick = { latLng ->
                                 selectedLatitude = latLng.latitude
                                 selectedLongitude = latLng.longitude
@@ -257,7 +273,7 @@ fun LocationSelectionScreen(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(16.dp)
-                                .background(SurfaceLight, CircleShape)
+                                .background(surfaceColor, CircleShape)
                                 .size(40.dp)
                         ) {
                             Icon(
@@ -278,20 +294,22 @@ fun LocationSelectionScreen(
                             stringResource(R.string.post_street_label),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
+                            color = textColor
                         )
                         OutlinedTextField(
                             value = street,
                             onValueChange = { street = it },
                             placeholder = { Text(stringResource(R.string.post_street_hint)) },
                             modifier = Modifier.fillMaxWidth(),
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextHint) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = hintColor) },
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = PetHelpOutline,
+                                unfocusedBorderColor = outlineColor,
                                 focusedBorderColor = PetHelpPrimary,
-                                unfocusedPlaceholderColor = TextHint,
-                                focusedPlaceholderColor = TextHint
+                                unfocusedPlaceholderColor = hintColor,
+                                focusedPlaceholderColor = hintColor,
+                                unfocusedTextColor = textColor,
+                                focusedTextColor = textColor
                             )
                         )
                     }
@@ -306,7 +324,7 @@ fun LocationSelectionScreen(
                                 stringResource(R.string.post_neighborhood_label),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary
+                                color = textColor
                             )
                             OutlinedTextField(
                                 value = neighborhood,
@@ -314,10 +332,12 @@ fun LocationSelectionScreen(
                                 placeholder = { Text(stringResource(R.string.post_neighborhood_hint)) },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = PetHelpOutline,
+                                    unfocusedBorderColor = outlineColor,
                                     focusedBorderColor = PetHelpPrimary,
-                                    unfocusedPlaceholderColor = TextHint,
-                                    focusedPlaceholderColor = TextHint
+                                    unfocusedPlaceholderColor = hintColor,
+                                    focusedPlaceholderColor = hintColor,
+                                    unfocusedTextColor = textColor,
+                                    focusedTextColor = textColor
                                 )
                             )
                         }
@@ -327,7 +347,7 @@ fun LocationSelectionScreen(
                                 stringResource(R.string.post_city_label),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary
+                                color = textColor
                             )
                             OutlinedTextField(
                                 value = city,
@@ -335,10 +355,12 @@ fun LocationSelectionScreen(
                                 placeholder = { Text(stringResource(R.string.post_city_hint)) },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = PetHelpOutline,
+                                    unfocusedBorderColor = outlineColor,
                                     focusedBorderColor = PetHelpPrimary,
-                                    unfocusedPlaceholderColor = TextHint,
-                                    focusedPlaceholderColor = TextHint
+                                    unfocusedPlaceholderColor = hintColor,
+                                    focusedPlaceholderColor = hintColor,
+                                    unfocusedTextColor = textColor,
+                                    focusedTextColor = textColor
                                 )
                             )
                         }
@@ -347,7 +369,7 @@ fun LocationSelectionScreen(
 
                 // ADVERTENCIA DE PRIVACIDAD
                 Surface(
-                    color = TertiaryLightContainer,
+                    color = warningContainerColor,
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -359,13 +381,13 @@ fun LocationSelectionScreen(
                         Icon(
                             Icons.Outlined.Info,
                             contentDescription = null,
-                            tint = PetHelpTertiary,
+                            tint = onWarningContainerColor,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             stringResource(R.string.post_location_warning),
                             fontSize = 12.sp,
-                            color = OnTertiaryLightContainer,
+                            color = onWarningContainerColor,
                             lineHeight = 16.sp
                         )
                     }

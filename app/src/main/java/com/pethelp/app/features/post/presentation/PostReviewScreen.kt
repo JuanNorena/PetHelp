@@ -3,6 +3,7 @@ package com.pethelp.app.features.post.presentation
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,12 +46,22 @@ fun PostReviewScreen(
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDark = isSystemInDarkTheme()
+
+    // Colores dinámicos
+    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
+    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
+    val textColor = if (isDark) White else TextPrimary
+    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
+    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
+    val cardBackgroundColor = if (isDark) SurfaceVariantDark.copy(alpha = 0.3f) else SurfaceVariantLight.copy(alpha = 0.3f)
 
     LaunchedEffect(postData) {
         viewModel.updateTitle(postData.title)
         viewModel.updateDescription(postData.description)
         viewModel.updateCategory(PostCategory.valueOf(postData.category))
         viewModel.updateAnimalType(postData.animalType)
+        viewModel.updateBreed(postData.breed)
         viewModel.updateAge(AnimalAge.valueOf(postData.age))
         viewModel.updateGender(AnimalGender.valueOf(postData.gender))
         viewModel.updateSize(AnimalSize.valueOf(postData.size))
@@ -84,16 +95,16 @@ fun PostReviewScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = backgroundColor,
         topBar = {
             Surface(
-                color = SurfaceLight,
+                color = surfaceColor,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
                         drawContent()
                         drawLine(
-                            color = PetHelpOutline,
+                            color = outlineColor,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
@@ -116,21 +127,21 @@ fun PostReviewScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
                             modifier = Modifier.size(22.dp),
-                            tint = TextPrimary
+                            tint = textColor
                         )
                     }
                     Column(modifier = Modifier.padding(start = 4.dp)) {
                         Text(
                             text = stringResource(R.string.post_review_title),
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
                             text = stringResource(R.string.post_step_4_of_4),
                             fontSize = 12.sp,
-                            color = TextSecondary
+                            color = secondaryTextColor
                         )
                     }
                     Spacer(Modifier.weight(1f))
@@ -145,11 +156,11 @@ fun PostReviewScreen(
         },
         bottomBar = {
             Surface(
-                color = SurfaceLight,
+                color = surfaceColor,
                 modifier = Modifier.drawWithContent {
                     drawContent()
                     drawLine(
-                        color = PetHelpOutline,
+                        color = outlineColor,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
                         strokeWidth = 1.dp.toPx()
@@ -168,8 +179,8 @@ fun PostReviewScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp),
-                        shape = RoundedCornerShape(50),
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PetHelpPrimary
                         ),
@@ -213,7 +224,7 @@ fun PostReviewScreen(
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
                 color = PetHelpPrimary,
-                trackColor = SurfaceVariantLight
+                trackColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
             )
 
             Column(
@@ -225,15 +236,15 @@ fun PostReviewScreen(
                 Text(
                     stringResource(R.string.post_review_instruction),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary
+                    color = secondaryTextColor
                 )
                 
                 // Resumen de la publicación
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceVariantLight.copy(alpha = 0.3f)),
-                    border = BorderStroke(1.dp, PetHelpOutline.copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
                 ) {
                     Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(
@@ -243,13 +254,14 @@ fun PostReviewScreen(
                             color = PetHelpPrimary,
                             letterSpacing = (-0.5).sp
                         )
-                        SummaryRow(label = stringResource(R.string.post_summary_title), value = postData.title)
-                        SummaryRow(label = stringResource(R.string.post_summary_category), value = postData.category)
-                        SummaryRow(label = stringResource(R.string.post_summary_animal_type), value = postData.animalType)
+                        SummaryRow(label = stringResource(R.string.post_summary_title), value = postData.title, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_category), value = postData.category, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_animal_type), value = postData.animalType, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_breed), value = postData.breed, textColor = textColor, secondaryTextColor = secondaryTextColor)
                         
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
-                            color = PetHelpOutline.copy(alpha = 0.5f)
+                            color = outlineColor.copy(alpha = 0.5f)
                         )
                         
                         Text(
@@ -259,12 +271,12 @@ fun PostReviewScreen(
                             color = PetHelpPrimary,
                             letterSpacing = (-0.5).sp
                         )
-                        SummaryRow(label = stringResource(R.string.post_summary_address), value = "${postData.street}, ${postData.neighborhood}")
-                        SummaryRow(label = stringResource(R.string.post_summary_city), value = postData.city)
+                        SummaryRow(label = stringResource(R.string.post_summary_address), value = "${postData.street}, ${postData.neighborhood}", textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_city), value = postData.city, textColor = textColor, secondaryTextColor = secondaryTextColor)
 
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
-                            color = PetHelpOutline.copy(alpha = 0.5f)
+                            color = outlineColor.copy(alpha = 0.5f)
                         )
 
                         Text(
@@ -274,9 +286,9 @@ fun PostReviewScreen(
                             color = PetHelpPrimary,
                             letterSpacing = (-0.5).sp
                         )
-                        SummaryRow(label = stringResource(R.string.post_summary_age), value = postData.age)
-                        SummaryRow(label = stringResource(R.string.post_summary_gender), value = postData.gender)
-                        SummaryRow(label = stringResource(R.string.post_summary_size), value = postData.size)
+                        SummaryRow(label = stringResource(R.string.post_summary_age), value = postData.age, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_gender), value = postData.gender, textColor = textColor, secondaryTextColor = secondaryTextColor)
+                        SummaryRow(label = stringResource(R.string.post_summary_size), value = postData.size, textColor = textColor, secondaryTextColor = secondaryTextColor)
                         
                         val healthStates = mutableListOf<String>()
                         if (postData.vaccinated) healthStates.add(stringResource(R.string.post_vaccinated_label))
@@ -284,11 +296,11 @@ fun PostReviewScreen(
                         if (postData.sterilized) healthStates.add(stringResource(R.string.post_sterilized_label))
                         
                         if (healthStates.isNotEmpty()) {
-                            SummaryRow(label = stringResource(R.string.post_summary_health), value = healthStates.joinToString(", "))
+                            SummaryRow(label = stringResource(R.string.post_summary_health), value = healthStates.joinToString(", "), textColor = textColor, secondaryTextColor = secondaryTextColor)
                         }
 
                         if (postData.behavior.isNotEmpty()) {
-                            SummaryRow(label = stringResource(R.string.post_summary_behavior), value = postData.behavior.joinToString(", "))
+                            SummaryRow(label = stringResource(R.string.post_summary_behavior), value = postData.behavior.joinToString(", "), textColor = textColor, secondaryTextColor = secondaryTextColor)
                         }
                     }
                 }
@@ -300,18 +312,18 @@ fun PostReviewScreen(
 }
 
 @Composable
-fun SummaryRow(label: String, value: String) {
+fun SummaryRow(label: String, value: String, textColor: Color, secondaryTextColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = TextSecondary
+            color = secondaryTextColor
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = TextPrimary
+            color = textColor
         )
     }
 }
