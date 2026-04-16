@@ -1,42 +1,63 @@
 package com.pethelp.app.features.post.presentation
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Publish
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.pethelp.app.R
-import com.pethelp.app.core.domain.model.AnimalAge
-import com.pethelp.app.core.domain.model.AnimalGender
-import com.pethelp.app.core.domain.model.AnimalSize
-import com.pethelp.app.core.domain.model.PetBehavior
-import com.pethelp.app.core.domain.model.PostCategory
+import com.pethelp.app.core.domain.model.*
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,13 +69,36 @@ fun PostReviewScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDark = isSystemInDarkTheme()
 
-    // Colores dinámicos
-    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
+    // Paleta dinámica adaptada a Dark Mode
+    val backgroundColor = if (isDark) BackgroundDark else Color(0xFFF8F9FA)
+    val surfaceColor = if (isDark) SurfaceDark else White
+    val topBarColor = if (isDark) SurfaceDark else White
+    val bottomBarColor = if (isDark) SurfaceDark else White
+    
     val textColor = if (isDark) White else TextPrimary
     val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
     val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-    val cardBackgroundColor = if (isDark) SurfaceVariantDark.copy(alpha = 0.3f) else SurfaceVariantLight.copy(alpha = 0.3f)
+    
+    // Colores del banner de información
+    val infoBoxBg = if (isDark) Color(0xFF2D261A) else Color(0xFFFFF8ED)
+    val infoBoxBorder = if (isDark) Color(0xFF4D3D26) else Color(0xFFFFE7C2)
+    val infoIconColor = if (isDark) Color(0xFFFBBF24) else Color(0xFFF59E0B)
+    val infoTextColor = if (isDark) Color(0xFFFDE68A) else Color(0xFF92400E)
+
+    // Colores de Tags y contenedores internos
+    val innerContainerBg = if (isDark) SurfaceVariantDark.copy(alpha = 0.5f) else Color(0xFFF8F9FA)
+    val categoryTagBg = if (isDark) PetHelpPrimary.copy(alpha = 0.2f) else Color(0xFFE0F2F1)
+    val categoryTagText = if (isDark) PetHelpPrimary else PetHelpPrimary
+    val neutralTagBg = if (isDark) SurfaceVariantDark else Color(0xFFF5F5F5)
+    val neutralTagText = if (isDark) White.copy(alpha = 0.6f) else Color.Gray
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     LaunchedEffect(postData) {
         viewModel.updateTitle(postData.title)
@@ -86,293 +130,414 @@ fun PostReviewScreen(
         viewModel.updateLocation(postData.latitude, postData.longitude, postData.locationName)
     }
 
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            navController.navigate(Screen.Feed) {
-                popUpTo(Screen.CreatePost) { inclusive = true }
-            }
+    // Manejar el botón de atrás cuando se muestra el éxito
+    BackHandler(enabled = uiState.isSuccess) {
+        navController.navigate(Screen.Feed) {
+            popUpTo(Screen.Feed) { inclusive = true }
         }
     }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        topBar = {
-            Surface(
-                color = surfaceColor,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .drawWithContent {
-                        drawContent()
-                        drawLine(
-                            color = outlineColor,
-                            start = Offset(0f, size.height),
-                            end = Offset(size.width, size.height),
-                            strokeWidth = 1.dp.toPx()
-                        )
-                    }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .height(68.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = backgroundColor,
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Revisar y Publicar",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = textColor
+                            )
+                            Text(
+                                text = "Paso 4 de 4",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = secondaryTextColor
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = topBarColor,
+                        scrolledContainerColor = topBarColor
+                    ),
+                    modifier = Modifier.shadow(if (isDark) 0.dp else 1.dp)
+                )
+            },
+            bottomBar = {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = 8.dp,
+                    color = bottomBarColor,
+                    border = if (isDark) BorderStroke(0.5.dp, outlineColor) else null
                 ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.size(40.dp)
+                    Box(
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .padding(24.dp)
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            modifier = Modifier.size(22.dp),
-                            tint = textColor
-                        )
+                        Button(
+                            onClick = { viewModel.createPost() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PetHelpPrimary,
+                                contentColor = White
+                            ),
+                            enabled = !uiState.isLoading
+                        ) {
+                            if (uiState.isLoading) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = White)
+                            } else {
+                                Icon(Icons.Default.Publish, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Publicar Mascota", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
-                    Column(modifier = Modifier.padding(start = 4.dp)) {
-                        Text(
-                            text = stringResource(R.string.post_review_title),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textColor,
-                            letterSpacing = (-0.5).sp
-                        )
-                        Text(
-                            text = stringResource(R.string.post_step_4_of_4),
-                            fontSize = 12.sp,
-                            color = secondaryTextColor
-                        )
-                    }
-                    Spacer(Modifier.weight(1f))
-                    Icon(
-                        Icons.Default.Pets,
-                        contentDescription = null,
-                        tint = PetHelpPrimary,
-                        modifier = Modifier.size(22.dp)
-                    )
                 }
             }
-        },
-        bottomBar = {
-            Surface(
-                color = surfaceColor,
-                modifier = Modifier.drawWithContent {
-                    drawContent()
-                    drawLine(
-                        color = outlineColor,
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, 0f),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                // Cuadro de información (Adaptado a Dark Mode)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = infoBoxBg,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, infoBoxBorder)
                 ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = infoIconColor, modifier = Modifier.size(20.dp))
+                        Text(
+                            text = "Por favor verifica que la información sea correcta antes de publicar. Una vez publicado, podrás editarlo desde tu perfil si lo necesitas.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = infoTextColor,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+
+                // Card Principal de Datos
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = surfaceColor),
+                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        // SECCIÓN: Datos principales
+                        SectionHeader(
+                            title = "Datos principales", 
+                            icon = Icons.Default.Widgets, 
+                            textColor = textColor,
+                            onEdit = { 
+                                navController.popBackStack(Screen.CreatePost, inclusive = false)
+                            }
+                        )
+                        
+                        Row(
+                            modifier = Modifier.padding(vertical = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            AsyncImage(
+                                model = postData.imageUris.firstOrNull(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(16.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(text = postData.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Tag(text = categoryNameToDisplay(postData.category).uppercase(), color = categoryTagBg, textColor = categoryTagText)
+                                    Tag(text = postData.animalType.uppercase(), color = neutralTagBg, textColor = neutralTagText)
+                                }
+                                Tag(text = sizeNameToDisplay(postData.size).uppercase(), color = neutralTagBg, textColor = neutralTagText)
+                            }
+                        }
+
+                        Surface(
+                            color = innerContainerBg,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = postData.description,
+                                modifier = Modifier.padding(12.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = textColor.copy(alpha = 0.8f)
+                            )
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = outlineColor.copy(alpha = 0.3f))
+
+                        // SECCIÓN: Ubicación
+                        SectionHeader(
+                            title = "Ubicación", 
+                            icon = Icons.Default.LocationOn, 
+                            iconColor = Color(0xFFF87171), 
+                            textColor = textColor,
+                            onEdit = { 
+                                navController.popBackStack(Screen.LocationSelection::class, inclusive = false)
+                            }
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "${postData.street}, ${postData.neighborhood}, ${postData.city}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = secondaryTextColor
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = outlineColor.copy(alpha = 0.3f))
+
+                        // SECCIÓN: Detalles y Salud
+                        SectionHeader(
+                            title = "Detalles y Salud", 
+                            icon = Icons.Default.HealthAndSafety, 
+                            iconColor = Color(0xFF818CF8), 
+                            textColor = textColor,
+                            onEdit = { 
+                                navController.popBackStack(Screen.PostDetails::class, inclusive = false)
+                            }
+                        )
+                        
+                        Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                InfoLabel(label = "Edad y Sexo")
+                                Text(
+                                    "${ageNameToDisplay(postData.age)} • ${genderNameToDisplay(postData.gender)}", 
+                                    fontWeight = FontWeight.Bold, 
+                                    fontSize = 14.sp,
+                                    color = textColor
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                InfoLabel(label = "Salud")
+                                val health = mutableListOf<String>()
+                                if (postData.vaccinated) health.add("Vacunado")
+                                if (postData.dewormed) health.add("Desparasitado")
+                                if (postData.sterilized) health.add("Esterilizado")
+                                Text(
+                                    health.joinToString(", ").ifEmpty { "Sin datos" }, 
+                                    fontWeight = FontWeight.Bold, 
+                                    fontSize = 14.sp,
+                                    color = textColor
+                                )
+                            }
+                        }
+
+                        if (postData.behavior.isNotEmpty()) {
+                            Spacer(Modifier.height(16.dp))
+                            InfoLabel(label = "Comportamiento")
+                            Row(
+                                modifier = Modifier.padding(top = 4.dp), 
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                postData.behavior.forEach { b ->
+                                    Tag(text = behaviorNameToDisplay(b), color = neutralTagBg, textColor = secondaryTextColor)
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+
+        // --- Overlay de Publicación Exitosa (Figma Match) ---
+        AnimatedVisibility(
+            visible = uiState.isSuccess,
+            enter = fadeIn(animationSpec = tween(500)),
+            exit = fadeOut(animationSpec = tween(500))
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = backgroundColor
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Círculo Central con Check
+                    Box(
+                        modifier = Modifier.size(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Círculos de colores decorativos
+                        Box(modifier = Modifier.size(140.dp).background(PetHelpPrimary, CircleShape), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = White, modifier = Modifier.size(80.dp))
+                        }
+                        
+                        // Decoración flotante (Círculos pequeños simulados)
+                        Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 20.dp).size(24.dp).background(Color(0xFFFFCC80), CircleShape))
+                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp, end = 10.dp).size(16.dp).background(Color(0xFFF87171), CircleShape))
+                        Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 40.dp, start = 10.dp).size(12.dp).background(Color(0xFFC084FC), CircleShape))
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        text = "¡Publicación exitosa!",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Tu publicación ya está visible para miles de personas en PetHelp. Gracias por ayudar a este peludo.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = secondaryTextColor,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 24.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(64.dp))
+
+                    // Botón: Ver publicación
                     Button(
                         onClick = {
-                            viewModel.createPost()
+                            uiState.createdPostId?.let { id ->
+                                navController.navigate(Screen.PostDetail(id)) {
+                                    popUpTo(Screen.Feed)
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(8.dp, RoundedCornerShape(28.dp)),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isDark) White else Color(0xFF111827),
+                            contentColor = if (isDark) Color(0xFF111827) else White
+                        )
+                    ) {
+                        Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text("Ver publicación", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Botón: Volver a Inicio
+                    OutlinedButton(
+                        onClick = {
+                            navController.navigate(Screen.Feed) {
+                                popUpTo(Screen.Feed) { inclusive = true }
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpPrimary
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = if (isDark) White else Color(0xFF111827)
                         ),
-                        enabled = !uiState.isLoading
+                        border = BorderStroke(1.dp, if (isDark) White.copy(alpha = 0.3f) else Color(0xFFE5E7EB))
                     ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                stringResource(R.string.btn_publish),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Medium,
-                                letterSpacing = 0.45.sp
-                            )
-                        }
+                        Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text("Volver a Inicio", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
-        ) {
-            LinearProgressIndicator(
-                progress = { 1f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp)),
-                color = PetHelpPrimary,
-                trackColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                Text(
-                    stringResource(R.string.post_review_instruction),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = secondaryTextColor
-                )
-                
-                // Resumen de la publicación
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
-                ) {
-                    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            stringResource(R.string.post_summary_general),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = PetHelpPrimary,
-                            letterSpacing = (-0.5).sp
-                        )
-                        SummaryRow(label = stringResource(R.string.post_summary_title), value = postData.title, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_category), value = categoryNameToDisplay(postData.category), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_animal_type), value = postData.animalType, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_breed), value = postData.breed, textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = outlineColor.copy(alpha = 0.5f)
-                        )
-                        
-                        Text(
-                            stringResource(R.string.post_summary_location),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = PetHelpPrimary,
-                            letterSpacing = (-0.5).sp
-                        )
-                        SummaryRow(label = stringResource(R.string.post_summary_address), value = "${postData.street}, ${postData.neighborhood}", textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_city), value = postData.city, textColor = textColor, secondaryTextColor = secondaryTextColor)
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = outlineColor.copy(alpha = 0.5f)
-                        )
-
-                        Text(
-                            stringResource(R.string.post_summary_details),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = PetHelpPrimary,
-                            letterSpacing = (-0.5).sp
-                        )
-                        SummaryRow(label = stringResource(R.string.post_summary_age), value = ageNameToDisplay(postData.age), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_gender), value = genderNameToDisplay(postData.gender), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        SummaryRow(label = stringResource(R.string.post_summary_size), value = sizeNameToDisplay(postData.size), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        
-                        val healthStates = mutableListOf<String>()
-                        if (postData.vaccinated) healthStates.add(stringResource(R.string.post_vaccinated_label))
-                        if (postData.dewormed) healthStates.add(stringResource(R.string.post_dewormed_label))
-                        if (postData.sterilized) healthStates.add(stringResource(R.string.post_sterilized_label))
-                        
-                        if (healthStates.isNotEmpty()) {
-                            SummaryRow(label = stringResource(R.string.post_summary_health), value = healthStates.joinToString(", "), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        }
-
-                        if (postData.behavior.isNotEmpty()) {
-                            SummaryRow(label = stringResource(R.string.post_summary_behavior), value = behaviorNamesToDisplay(postData.behavior), textColor = textColor, secondaryTextColor = secondaryTextColor)
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
+}
+
+@Composable
+fun SectionHeader(title: String, icon: ImageVector, iconColor: Color = PetHelpPrimary, textColor: Color, onEdit: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = "Editar",
+            color = PetHelpPrimary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            modifier = Modifier.clickable { onEdit() }
+        )
+    }
+}
+
+@Composable
+fun Tag(text: String, color: Color, textColor: Color) {
+    Surface(
+        color = color,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+    }
+}
+
+@Composable
+fun InfoLabel(label: String) {
+    Text(label, fontSize = 12.sp, color = TextHint, modifier = Modifier.padding(bottom = 4.dp))
 }
 
 @Composable
 private fun categoryNameToDisplay(rawValue: String): String {
     val category = PostCategory.entries.find { it.name == rawValue } ?: return rawValue
     return when (category) {
-        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
-        PostCategory.LOST -> stringResource(R.string.category_lost)
-        PostCategory.FOUND -> stringResource(R.string.category_found)
-        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
-        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
+        PostCategory.ADOPTION -> "Adopción"
+        PostCategory.LOST -> "Perdidos"
+        PostCategory.FOUND -> "Encontrados"
+        PostCategory.TEMP_HOME -> "Hogar temporal"
+        PostCategory.VET_EVENT -> "Evento"
     }
 }
 
 @Composable
 private fun ageNameToDisplay(rawValue: String): String {
-    val age = AnimalAge.entries.find { it.name == rawValue } ?: return rawValue
-    return age.toDisplayName()
+    return AnimalAge.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
 }
 
 @Composable
 private fun genderNameToDisplay(rawValue: String): String {
-    val gender = AnimalGender.entries.find { it.name == rawValue } ?: return rawValue
-    return gender.toDisplayName()
+    return AnimalGender.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
 }
 
 @Composable
 private fun sizeNameToDisplay(rawValue: String): String {
-    val size = AnimalSize.entries.find { it.name == rawValue } ?: return rawValue
-    return when (size) {
-        AnimalSize.SMALL -> stringResource(R.string.tag_small)
-        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
-        AnimalSize.LARGE -> stringResource(R.string.tag_large)
-    }
-}
-
-@Composable
-private fun behaviorNamesToDisplay(values: List<String>): String {
-    val labels = mutableListOf<String>()
-    for (value in values) {
-        labels.add(behaviorNameToDisplay(value))
-    }
-    return labels.joinToString(", ")
+    return AnimalSize.entries.find { it.name == rawValue }?.displayName ?: rawValue
 }
 
 @Composable
 private fun behaviorNameToDisplay(rawValue: String): String {
-    val behavior = PetBehavior.entries.find { it.name == rawValue } ?: return rawValue
-    return behavior.toDisplayName()
-}
-
-@Composable
-fun SummaryRow(label: String, value: String, textColor: Color, secondaryTextColor: Color) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = secondaryTextColor
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = textColor
-        )
-    }
+    return PetBehavior.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
 }

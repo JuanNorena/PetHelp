@@ -11,6 +11,9 @@ import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.AnimalSize
+import com.pethelp.app.core.domain.model.AnimalAge
+import com.pethelp.app.core.domain.model.AnimalGender
+import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -478,11 +481,26 @@ class FirebasePostRepository @Inject constructor(
                 } catch (_: Exception) { PostStatus.PENDING },
                 animalType = doc.getString("animalType") ?: "",
                 breed = doc.getString("breed") ?: "",
+                age = try {
+                    AnimalAge.valueOf(doc.getString("age") ?: "YOUNG")
+                } catch (_: Exception) { AnimalAge.YOUNG },
+                gender = try {
+                    AnimalGender.valueOf(doc.getString("gender") ?: "UNKNOWN")
+                } catch (_: Exception) { AnimalGender.UNKNOWN },
                 size = try {
                     AnimalSize.valueOf(doc.getString("size") ?: "MEDIUM")
                 } catch (_: Exception) { AnimalSize.MEDIUM },
                 vaccinated = doc.getBoolean("vaccinated") ?: false,
+                dewormed = doc.getBoolean("dewormed") ?: false,
+                sterilized = doc.getBoolean("sterilized") ?: false,
+                specialCares = doc.getBoolean("specialCares") ?: false,
+                behavior = (doc.get("behavior") as? List<*>)?.mapNotNull { 
+                    try { PetBehavior.valueOf(it.toString()) } catch (_: Exception) { null }
+                } ?: emptyList(),
                 imageUrls = (doc.get("imageUrls") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                street = doc.getString("street") ?: "",
+                neighborhood = doc.getString("neighborhood") ?: "",
+                city = doc.getString("city") ?: "",
                 latitude = doc.getDouble("latitude") ?: 0.0,
                 longitude = doc.getDouble("longitude") ?: 0.0,
                 locationName = doc.getString("locationName") ?: "",
@@ -507,9 +525,18 @@ class FirebasePostRepository @Inject constructor(
         "status" to post.status.name,
         "animalType" to post.animalType,
         "breed" to post.breed,
+        "age" to post.age.name,
+        "gender" to post.gender.name,
         "size" to post.size.name,
         "vaccinated" to post.vaccinated,
+        "dewormed" to post.dewormed,
+        "sterilized" to post.sterilized,
+        "specialCares" to post.specialCares,
+        "behavior" to post.behavior.map { it.name },
         "imageUrls" to post.imageUrls,
+        "street" to post.street,
+        "neighborhood" to post.neighborhood,
+        "city" to post.city,
         "latitude" to post.latitude,
         "longitude" to post.longitude,
         "locationName" to post.locationName,

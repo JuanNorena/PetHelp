@@ -22,6 +22,7 @@ data class Post(
     val vaccinated: Boolean  = false,
     val dewormed: Boolean    = false,
     val sterilized: Boolean  = false,
+    val specialCares: Boolean = false,
     val behavior: List<PetBehavior> = emptyList(),
     val imageUrls: List<String> = emptyList(),
     val street: String       = "",
@@ -48,7 +49,10 @@ enum class PostCategory(val displayName: String) {
 }
 
 enum class PostStatus(val displayName: String) {
-    PENDING("Pendiente de verificación"),
+    ACTIVE("Activa"),
+    PAUSED("Pausada"),
+    ADOPTED("Adoptada"),
+    PENDING("Pendiente"),
     VERIFIED("Verificada"),
     REJECTED("Rechazada"),
     RESOLVED("Resuelta/Finalizada")

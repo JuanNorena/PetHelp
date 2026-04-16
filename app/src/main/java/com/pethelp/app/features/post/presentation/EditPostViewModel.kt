@@ -14,12 +14,15 @@ import javax.inject.Inject
 data class EditPostUiState(
     val post: Post? = null,
     val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null,
+    
     // Editable fields
     val title: String = "",
     val description: String = "",
     val category: PostCategory = PostCategory.ADOPTION,
+    val status: PostStatus = PostStatus.ACTIVE,
     val animalType: String = "",
     val breed: String = "",
     val age: AnimalAge = AnimalAge.YOUNG,
@@ -28,10 +31,15 @@ data class EditPostUiState(
     val vaccinated: Boolean = false,
     val dewormed: Boolean = false,
     val sterilized: Boolean = false,
+    val specialCares: Boolean = false,
     val behavior: List<PetBehavior> = emptyList(),
+    val imageUrls: List<String> = emptyList(),
+    val locationName: String = "",
     val street: String = "",
     val neighborhood: String = "",
-    val city: String = ""
+    val city: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
 @HiltViewModel
@@ -45,8 +53,13 @@ class EditPostViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EditPostUiState())
     val uiState: StateFlow<EditPostUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _eventFlow = MutableSharedFlow<EditPostEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
+    sealed class EditPostEvent {
+        data class ShowSnackbar(val message: String) : EditPostEvent()
+        object PostUpdated : EditPostEvent()
+    }
 
     init {
         loadPost()
@@ -60,8 +73,7 @@ class EditPostViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoading = true) }
                     }
                     is Resource.Success -> {
-                        val post = resource.data
-                        if (post != null) {
+                        resource.data?.let { post ->
                             _uiState.update {
                                 it.copy(
                                     post = post,
@@ -69,6 +81,7 @@ class EditPostViewModel @Inject constructor(
                                     title = post.title,
                                     description = post.description,
                                     category = post.category,
+                                    status = post.status,
                                     animalType = post.animalType,
                                     breed = post.breed,
                                     age = post.age,
@@ -77,14 +90,19 @@ class EditPostViewModel @Inject constructor(
                                     vaccinated = post.vaccinated,
                                     dewormed = post.dewormed,
                                     sterilized = post.sterilized,
+                                    specialCares = post.specialCares,
                                     behavior = post.behavior,
+                                    imageUrls = post.imageUrls,
+                                    locationName = post.locationName,
                                     street = post.street,
                                     neighborhood = post.neighborhood,
-                                    city = post.city
+                                    city = post.city,
+                                    latitude = post.latitude,
+                                    longitude = post.longitude
                                 )
                             }
-                        } else {
-                            _uiState.update { it.copy(isLoading = false, error = "Post not found") }
+                        } ?: run {
+                            _uiState.update { it.copy(isLoading = false, error = "No se encontró la publicación") }
                         }
                     }
                     is Resource.Error -> {
@@ -95,84 +113,100 @@ class EditPostViewModel @Inject constructor(
         }
     }
 
-    fun updateTitle(title: String) {
-        _uiState.update { it.copy(title = title) }
+    fun onTitleChange(newTitle: String) {
+        _uiState.update { it.copy(title = newTitle) }
     }
 
-    fun updateDescription(description: String) {
-        _uiState.update { it.copy(description = description) }
-    }
-
-    fun updateCategory(category: PostCategory) {
-        _uiState.update { it.copy(category = category) }
-    }
-
-    fun updateAnimalType(type: String) {
-        _uiState.update { it.copy(animalType = type) }
-    }
-
-    fun updateBreed(breed: String) {
-        _uiState.update { it.copy(breed = breed) }
-    }
-
-    fun updateAge(age: AnimalAge) {
-        _uiState.update { it.copy(age = age) }
-    }
-
-    fun updateGender(gender: AnimalGender) {
-        _uiState.update { it.copy(gender = gender) }
-    }
-
-    fun updateSize(size: AnimalSize) {
-        _uiState.update { it.copy(size = size) }
-    }
-
-    fun updateVaccinated(vaccinated: Boolean) {
-        _uiState.update { it.copy(vaccinated = vaccinated) }
-    }
-
-    fun updateDewormed(dewormed: Boolean) {
-        _uiState.update { it.copy(dewormed = dewormed) }
-    }
-
-    fun updateSterilized(sterilized: Boolean) {
-        _uiState.update { it.copy(sterilized = sterilized) }
-    }
-
-    fun toggleBehavior(behavior: PetBehavior) {
-        _uiState.update { currentState ->
-            val currentBehaviors = currentState.behavior.toMutableList()
-            if (currentBehaviors.contains(behavior)) {
-                currentBehaviors.remove(behavior)
-            } else {
-                currentBehaviors.add(behavior)
-            }
-            currentState.copy(behavior = currentBehaviors)
+    fun onDescriptionChange(newDescription: String) {
+        if (newDescription.length <= 500) {
+            _uiState.update { it.copy(description = newDescription) }
         }
     }
 
-    fun updateLocation(street: String, neighborhood: String, city: String) {
-        _uiState.update { it.copy(street = street, neighborhood = neighborhood, city = city) }
+    fun onAnimalTypeChange(type: String) {
+        _uiState.update { it.copy(animalType = type) }
     }
 
-    fun saveChanges() {
-        val currentPost = _uiState.value.post ?: return
+    fun onAgeChange(age: AnimalAge) {
+        _uiState.update { it.copy(age = age) }
+    }
+
+    fun onGenderChange(gender: AnimalGender) {
+        _uiState.update { it.copy(gender = gender) }
+    }
+
+    fun onSizeChange(size: AnimalSize) {
+        _uiState.update { it.copy(size = size) }
+    }
+
+    fun onStatusChange(status: PostStatus) {
+        _uiState.update { it.copy(status = status) }
+    }
+
+    fun onVaccinatedChange(value: Boolean) {
+        _uiState.update { it.copy(vaccinated = value) }
+    }
+
+    fun onDewormedChange(value: Boolean) {
+        _uiState.update { it.copy(dewormed = value) }
+    }
+
+    fun onSterilizedChange(value: Boolean) {
+        _uiState.update { it.copy(sterilized = value) }
+    }
+
+    fun onSpecialCaresChange(value: Boolean) {
+        _uiState.update { it.copy(specialCares = value) }
+    }
+
+    fun improveDescriptionWithAI() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) } // Reuse isSaving or add isProcessingAI
+            // Simulate AI call
+            kotlinx.coroutines.delay(1500)
+            val currentDesc = _uiState.value.description
+            if (currentDesc.isNotBlank()) {
+                val improvedDesc = "✨ Descripción optimizada por PetHelp IA ✨\n\n$currentDesc\n\nEsta adorable mascota busca un hogar lleno de amor. Es muy sociable y está esperando por ti."
+                _uiState.update { it.copy(description = improvedDesc.take(500), isSaving = false) }
+                _eventFlow.emit(EditPostEvent.ShowSnackbar("¡Descripción mejorada con éxito!"))
+            } else {
+                _uiState.update { it.copy(isSaving = false) }
+                _eventFlow.emit(EditPostEvent.ShowSnackbar("Escribe algo primero para poder mejorarlo."))
+            }
+        }
+    }
+
+    fun addImage(uri: String) {
+        _uiState.update { it.copy(imageUrls = it.imageUrls + uri) }
+    }
+
+    fun removeImage(imageUrl: String) {
+        _uiState.update { it.copy(imageUrls = it.imageUrls.filter { url -> url != imageUrl }) }
+    }
+
+    fun onShowSnackbar(message: String) {
+        viewModelScope.launch {
+            _eventFlow.emit(EditPostEvent.ShowSnackbar(message))
+        }
+    }
+
+    fun savePost() {
+        val currentState = _uiState.value
+        val currentPost = currentState.post ?: return
+
         val updatedPost = currentPost.copy(
-            title = _uiState.value.title,
-            description = _uiState.value.description,
-            category = _uiState.value.category,
-            animalType = _uiState.value.animalType,
-            breed = _uiState.value.breed,
-            age = _uiState.value.age,
-            gender = _uiState.value.gender,
-            size = _uiState.value.size,
-            vaccinated = _uiState.value.vaccinated,
-            dewormed = _uiState.value.dewormed,
-            sterilized = _uiState.value.sterilized,
-            behavior = _uiState.value.behavior,
-            street = _uiState.value.street,
-            neighborhood = _uiState.value.neighborhood,
-            city = _uiState.value.city,
+            title = currentState.title,
+            description = currentState.description,
+            status = currentState.status,
+            animalType = currentState.animalType,
+            age = currentState.age,
+            gender = currentState.gender,
+            size = currentState.size,
+            vaccinated = currentState.vaccinated,
+            dewormed = currentState.dewormed,
+            sterilized = currentState.sterilized,
+            specialCares = currentState.specialCares,
+            imageUrls = currentState.imageUrls,
             updatedAt = System.currentTimeMillis()
         )
 
@@ -180,15 +214,15 @@ class EditPostViewModel @Inject constructor(
             postRepository.updatePost(updatedPost).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
+                        _uiState.update { it.copy(isSaving = true) }
                     }
                     is Resource.Success -> {
-                        _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-                        _snackbarMessage.emit("Cambios guardados exitosamente")
+                        _uiState.update { it.copy(isSaving = false) }
+                        _eventFlow.emit(EditPostEvent.PostUpdated)
                     }
                     is Resource.Error -> {
-                        _uiState.update { it.copy(isLoading = false, error = resource.message) }
-                        _snackbarMessage.emit(resource.message ?: "Error al guardar cambios")
+                        _uiState.update { it.copy(isSaving = false) }
+                        _eventFlow.emit(EditPostEvent.ShowSnackbar(resource.message ?: "Error al guardar cambios"))
                     }
                 }
             }

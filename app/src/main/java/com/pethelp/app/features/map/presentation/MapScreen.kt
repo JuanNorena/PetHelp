@@ -1,8 +1,11 @@
 package com.pethelp.app.features.map.presentation
 
+import java.util.Locale
 import android.Manifest
+import android.location.Location
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -23,13 +26,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -38,6 +50,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.domain.model.Post
+import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.launch
@@ -58,6 +72,10 @@ fun MapScreen(
     val postsResource by viewModel.filteredPosts.collectAsState()
     val categories by viewModel.availableCategories.collectAsState()
 
+    var selectedPost by remember { mutableStateOf<Post?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var showSheet by remember { mutableStateOf(false) }
+
     val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
     val textColor = if (isDark) White else TextPrimary
     val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
@@ -70,6 +88,11 @@ fun MapScreen(
     val armenia = LatLng(4.535, -75.675)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(armenia, 14f)
+    }
+
+    // Punto de referencia para calcular distancias (posición actual o centro del mapa)
+    val referenceLocation = remember(cameraPositionState.position) {
+        cameraPositionState.position.target
     }
 
     var mapType by remember { mutableStateOf(MapType.NORMAL) }
@@ -169,12 +192,35 @@ fun MapScreen(
                                 PetMapMarker(
                                     position = LatLng(post.latitude, post.longitude),
                                     imageUrl = post.imageUrls.firstOrNull() ?: "",
+                                    title = post.title,
+                                    isSelected = selectedPost?.id == post.id,
                                     onClick = {
-                                        navController.navigate("post_detail/${post.id}")
+                                        selectedPost = post
+                                        showSheet = true
                                     }
                                 )
                             }
                         }
+                    }
+                }
+
+                // ── BOTTOM SHEET DE DETALLES ────────────────────────────────────────
+                if (showSheet && selectedPost != null) {
+                    ModalBottomSheet(
+                        onDismissRequest = { showSheet = false },
+                        sheetState = sheetState,
+                        containerColor = surfaceColor,
+                        dragHandle = { BottomSheetDefaults.DragHandle(color = outlineColor) }
+                    ) {
+                        NearbyPetsSheetContent(
+                            selectedPost = selectedPost!!,
+                            allPosts = (postsResource as? Resource.Success)?.data ?: emptyList(),
+                            navController = navController,
+                            userLocation = referenceLocation,
+                            onPostClick = { 
+                                selectedPost = it
+                            }
+                        )
                     }
                 }
 
@@ -311,7 +357,15 @@ fun MapScreen(
                         Surface(
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
-                                .padding(start = 16.dp, bottom = 24.dp),
+                                .padding(start = 16.dp, bottom = 24.dp)
+                                .clickable { 
+                                    postsResource.data?.let { data ->
+                                        if (data.isNotEmpty()) {
+                                            selectedPost = data.first()
+                                            showSheet = true
+                                        }
+                                    }
+                                },
                             shape = RoundedCornerShape(20.dp),
                             color = surfaceColor,
                             shadowElevation = 4.dp,
@@ -393,26 +447,266 @@ fun MapControlBtn(icon: ImageVector, bgColor: Color, iconColor: Color, onClick: 
 }
 
 @Composable
-fun PetMapMarker(position: LatLng, imageUrl: String, onClick: () -> Unit) {
+fun PetMapMarker(
+    position: LatLng, 
+    imageUrl: String, 
+    title: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val markerState = rememberMarkerState(position = position)
+    
     MarkerComposable(
-        state = rememberMarkerState(position = position),
-        onClick = { onClick(); true }
+        state = markerState,
+        onClick = { onClick(); true },
+        title = title
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .shadow(4.dp, CircleShape)
-                .background(White, CircleShape)
-                .padding(2.dp)
-        ) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                    .size(if (isSelected) 56.dp else 44.dp)
+                    .shadow(4.dp, CircleShape)
+                    .background(White, CircleShape)
+                    .border(
+                        width = if (isSelected) 3.dp else 1.dp,
+                        color = if (isSelected) PetHelpPrimary else White,
+                        shape = CircleShape
+                    )
+                    .padding(2.dp)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .allowHardware(false)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            
+            if (isSelected) {
+                Surface(
+                    modifier = Modifier.padding(top = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = White,
+                    shadowElevation = 2.dp
+                ) {
+                    Text(
+                        text = title,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NearbyPetsSheetContent(
+    selectedPost: Post,
+    allPosts: List<Post>,
+    navController: NavController,
+    userLocation: LatLng,
+    onPostClick: (Post) -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    val textColor = if (isDark) White else TextPrimary
+    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
+    
+    // Función para calcular distancia
+    fun getDistanceLabel(postLat: Double, postLng: Double): String {
+        val results = FloatArray(1)
+        Location.distanceBetween(
+            userLocation.latitude, userLocation.longitude,
+            postLat, postLng,
+            results
+        )
+        val distanceInKm = results[0] / 1000
+        return if (distanceInKm < 1) {
+            "a ${(results[0]).toInt()} m"
+        } else {
+            "a ${String.format(Locale.getDefault(), "%.1f", distanceInKm)} km"
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Encabezado "Cerca de ti"
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            Icon(Icons.Default.NearMe, null, tint = PetHelpPrimary, modifier = Modifier.size(18.dp))
+            Text(
+                " Cerca de ti",
+                color = PetHelpPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
             )
+        }
+
+        // Tarjeta principal de la mascota seleccionada
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = if (isDark) SurfaceVariantDark else Color(0xFFF8F9FA),
+            border = BorderStroke(1.dp, if (isDark) PetHelpOutlineDark else Color(0xFFEEEEEE))
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = selectedPost.imageUrls.firstOrNull(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        selectedPost.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = textColor
+                    )
+                    Text(
+                        "${selectedPost.category.displayName} · ${selectedPost.breed}",
+                        fontSize = 13.sp,
+                        color = secondaryTextColor
+                    )
+                }
+
+                Button(
+                    onClick = { navController.navigate("post_detail/${selectedPost.id}") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                    shape = RoundedCornerShape(50),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Text("Ver detalle", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        // Sección "Otros cerca"
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Otros cerca",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = textColor
+            )
+            Text(
+                "Ver todos",
+                color = PetHelpPrimary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { /* TODO */ }
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Lista de otras mascotas
+        val otherPosts = allPosts.filter { it.id != selectedPost.id }.take(3)
+        if (otherPosts.isEmpty()) {
+            Text(
+                "No hay más mascotas cerca en este momento.",
+                color = secondaryTextColor,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            otherPosts.forEach { post ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { onPostClick(post) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = post.imageUrls.firstOrNull(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(post.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
+                            Text("  ${post.breed}", fontSize = 12.sp, color = secondaryTextColor)
+                        }
+                        Text(
+                            text = getDistanceLabel(post.latitude, post.longitude),
+                            fontSize = 12.sp, 
+                            color = secondaryTextColor
+                        )
+                    }
+
+                    // Badge de categoría
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = when(post.category) {
+                            PostCategory.ADOPTION -> PetHelpPrimary.copy(alpha = 0.1f)
+                            PostCategory.LOST -> PetHelpDestructive.copy(alpha = 0.1f)
+                            else -> PetHelpSecondary.copy(alpha = 0.1f)
+                        }
+                    ) {
+                        Text(
+                            text = post.category.name,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = when(post.category) {
+                                PostCategory.ADOPTION -> PetHelpPrimary
+                                PostCategory.LOST -> PetHelpDestructive
+                                else -> PetHelpSecondary
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(8.dp))
+        TextButton(
+            onClick = { /* Expandir */ },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Icon(Icons.Default.KeyboardArrowUp, null, tint = secondaryTextColor)
+            Text(" Más mascotas cerca", color = secondaryTextColor, fontSize = 13.sp)
         }
     }
 }

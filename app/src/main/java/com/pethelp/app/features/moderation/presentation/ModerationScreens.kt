@@ -492,6 +492,9 @@ private fun StatusBadge(status: PostStatus) {
         PostStatus.VERIFIED -> Color(0xFFE8F7EE) to Color(0xFF146C2E)
         PostStatus.REJECTED -> Color(0xFFFFECEB) to Color(0xFFA12622)
         PostStatus.RESOLVED -> Color(0xFFEFF4FF) to Color(0xFF174EA6)
+        PostStatus.ACTIVE -> Color(0xFFE0F2FE) to Color(0xFF0369A1)
+        PostStatus.PAUSED -> Color(0xFFF3F4F6) to Color(0xFF4B5563)
+        PostStatus.ADOPTED -> Color(0xFFF0FDF4) to Color(0xFF166534)
     }
 
     Row(

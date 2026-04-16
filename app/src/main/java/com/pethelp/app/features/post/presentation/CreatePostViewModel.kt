@@ -49,6 +49,7 @@ data class CreatePostUiState(
     val locationName: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val createdPostId: String? = null,
     val error: String? = null
 )
 
@@ -246,8 +247,11 @@ class CreatePostViewModel @Inject constructor(
                     when (resource) {
                         is Resource.Loading -> _uiState.value = _uiState.value.copy(isLoading = true)
                         is Resource.Success -> {
-                            _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                            _snackbarMessage.emit("¡Publicación creada exitosamente!")
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false, 
+                                isSuccess = true,
+                                createdPostId = resource.data?.id
+                            )
                         }
                         is Resource.Error -> {
                             _uiState.value = _uiState.value.copy(

@@ -4,19 +4,20 @@
  * Este archivo contiene:
  * - `PostDetailScreen`: muestra la información completa de una publicación, comentarios, votos y solicitud de adopción.
  * - `CreatePostScreen`: permite crear una publicación nueva con fotos, texto y categoría.
- * - `EditPostScreen`: permite editar una publicación existente.
+ * - `EditPostScreen`: permite editar una publicación existente con un diseño renovado.
  */
 package com.pethelp.app.features.post.presentation
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -55,10 +57,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
 import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.*
 import com.pethelp.app.core.navigation.Screen
@@ -1331,6 +1329,7 @@ private fun behaviorToDisplayName(behavior: PetBehavior): String {
 // ─── EDITAR PUBLICACIÓN ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostScreen(
     postId: String,
@@ -1339,21 +1338,36 @@ fun EditPostScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val isDark = isSystemInDarkTheme()
 
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            navController.popBackStack()
+    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
+    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
+    val textColor = if (isDark) White else TextPrimary
+    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
+    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> uri?.let { viewModel.addImage(it.toString()) } }
+    )
+
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is EditPostViewModel.EditPostEvent.PostUpdated -> {
+                    navController.popBackStack()
+                }
+                is EditPostViewModel.EditPostEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+            }
         }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = if (isSystemInDarkTheme()) BackgroundDark else BackgroundLight,
+        containerColor = backgroundColor,
         topBar = {
-            val surfaceColor = if (isSystemInDarkTheme()) SurfaceDark else SurfaceLight
-            val textColor = if (isSystemInDarkTheme()) White else TextPrimary
-            val outlineColor = if (isSystemInDarkTheme()) PetHelpOutlineDark else PetHelpOutline
-            
             Surface(
                 color = surfaceColor,
                 modifier = Modifier
@@ -1376,441 +1390,371 @@ fun EditPostScreen(
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            modifier = Modifier.size(22.dp),
-                            tint = textColor
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = textColor)
                     }
                     Text(
-                        text = stringResource(R.string.edit_post_title),
+                        text = "Editar Publicación",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor,
-                        letterSpacing = (-0.5).sp,
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                     Spacer(Modifier.weight(1f))
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = null,
-                        tint = PetHelpPrimary,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Icon(Icons.Default.Edit, contentDescription = null, tint = PetHelpPrimary)
                 }
             }
         },
         bottomBar = {
-            val surfaceColor = if (isSystemInDarkTheme()) SurfaceDark else SurfaceLight
-            val outlineColor = if (isSystemInDarkTheme()) PetHelpOutlineDark else PetHelpOutline
-            
             Surface(
                 color = surfaceColor,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .drawWithContent {
-                        drawContent()
-                        drawLine(
-                            color = outlineColor,
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = 1.dp.toPx()
-                        )
-                    }
+                modifier = Modifier.drawWithContent {
+                    drawContent()
+                    drawLine(color = outlineColor, start = Offset(0f, 0f), end = Offset(size.width, 0f), strokeWidth = 1.dp.toPx())
+                }
             ) {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                        .padding(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Button(
-                        onClick = { viewModel.saveChanges() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp),
-                        shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpPrimary
-                        ),
-                        enabled = !uiState.isLoading
+                    OutlinedButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, PetHelpOutline)
                     ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        Text("Cancelar", color = textColor, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { viewModel.savePost() },
+                        modifier = Modifier.weight(1.5f).height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                        enabled = !uiState.isSaving
+                    ) {
+                        if (uiState.isSaving) {
+                            CircularProgressIndicator(color = White, modifier = Modifier.size(24.dp))
                         } else {
-                            Icon(
-                                Icons.Default.Save,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                stringResource(R.string.btn_save_changes),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Medium,
-                                letterSpacing = 0.45.sp
-                            )
+                            Icon(Icons.Default.Save, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Guardar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
                 }
             }
         }
     ) { padding ->
-        if (uiState.post == null && uiState.isLoading) {
+        if (uiState.isLoading) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = PetHelpPrimary)
             }
-        } else if (uiState.error != null) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(uiState.error!!, color = PetHelpDestructive, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(16.dp))
-                Button(onClick = { /* retry? */ }) {
-                    Text("Reintentar")
-                }
-            }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(28.dp)
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(24.dp),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
-                // ── Título y descripción ────────────────────────────────────
+                // ── FOTOS ─────────────────────────────────────────────────
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                stringResource(R.string.post_title_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            OutlinedTextField(
-                                value = uiState.title,
-                                onValueChange = { viewModel.updateTitle(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = PetHelpPrimary,
-                                    unfocusedBorderColor = PetHelpOutline
-                                )
-                            )
-                        }
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                stringResource(R.string.post_description_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            OutlinedTextField(
-                                value = uiState.description,
-                                onValueChange = { viewModel.updateDescription(it) },
-                                modifier = Modifier.fillMaxWidth().height(154.dp),
-                                shape = RoundedCornerShape(24.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = PetHelpPrimary,
-                                    unfocusedBorderColor = PetHelpOutline
-                                )
-                            )
-                        }
-                    }
-                }
-
-                // ── Categoría ──────────────────────────────────────────────
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            stringResource(R.string.post_summary_category),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextSecondary
-                        )
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(PostCategory.entries) { category ->
-                                SelectableChip(
-                                    label = categoryToDisplayName(category),
-                                    selected = uiState.category == category,
-                                    accentColor = PetHelpPrimary,
-                                    onClick = { viewModel.updateCategory(category) }
-                                )
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text("Fotos de la mascota", fontWeight = FontWeight.Bold, color = textColor)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            itemsIndexed(uiState.imageUrls) { index, url ->
+                                Box(modifier = Modifier.size(120.dp).clip(RoundedCornerShape(16.dp))) {
+                                    AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                    if (index == 0) {
+                                        Surface(
+                                            modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
+                                            color = PetHelpPrimary,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Principal", color = White, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.removeImage(url) },
+                                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(Color.Black.copy(0.4f), CircleShape)
+                                    ) {
+                                        Icon(Icons.Default.Close, contentDescription = null, tint = White, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            }
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(surfaceColor)
+                                        .border(1.dp, PetHelpOutline, RoundedCornerShape(16.dp))
+                                        .clickable {
+                                            if (uiState.imageUrls.size < 5) {
+                                                photoPickerLauncher.launch(
+                                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                )
+                                            } else {
+                                                viewModel.onShowSnackbar("Máximo 5 fotos permitidas")
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = PetHelpPrimary)
+                                        Text("Agregar", color = PetHelpPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                    }
+                                }
                             }
                         }
+                        Text("Mantén presionado para reordenar las fotos", fontSize = 12.sp, color = secondaryTextColor)
                     }
                 }
 
-                // ── Info de la mascota ──────────────────────────────────────
+                // ── INFO BÁSICA ───────────────────────────────────────────
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        // Tipo de animal
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                stringResource(R.string.post_animal_type_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            OutlinedTextField(
-                                value = uiState.animalType,
-                                onValueChange = { viewModel.updateAnimalType(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                        }
+                    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                        EditField(label = "Nombre", value = uiState.title, onValueChange = viewModel::onTitleChange, textColor = textColor, outlineColor = outlineColor)
 
-                        // Raza (Breed)
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                stringResource(R.string.post_breed_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            OutlinedTextField(
-                                value = uiState.breed,
-                                onValueChange = { viewModel.updateBreed(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                        }
-
-                        // Edad (Chips)
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(
-                                stringResource(R.string.post_age_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                AnimalAge.entries.forEach { age ->
+                            Text("Tipo de mascota", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                listOf("Perro", "Gato", "Otro").forEach { type ->
                                     SelectableChip(
-                                        label = ageToDisplayName(age),
-                                        selected = uiState.age == age,
+                                        label = type,
+                                        selected = uiState.animalType == type,
                                         accentColor = PetHelpPrimary,
-                                        onClick = { viewModel.updateAge(age) },
+                                        onClick = { viewModel.onAnimalTypeChange(type) },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
                         }
 
-                        // Sexo (Chips)
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(
-                                stringResource(R.string.post_gender_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                AnimalGender.entries.forEach { gender ->
-                                    SelectableChip(
-                                        label = genderToDisplayName(gender),
-                                        selected = uiState.gender == gender,
-                                        accentColor = PetHelpPrimary,
-                                        onClick = { viewModel.updateGender(gender) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Edad", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                                DropdownSelector(
+                                    currentValue = ageToDisplayName(uiState.age),
+                                    options = AnimalAge.entries.map { ageToDisplayName(it) to it },
+                                    onSelect = { viewModel.onAgeChange(it) },
+                                    textColor = textColor,
+                                    outlineColor = outlineColor
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Sexo", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                                DropdownSelector(
+                                    currentValue = genderToDisplayName(uiState.gender),
+                                    options = AnimalGender.entries.map { genderToDisplayName(it) to it },
+                                    onSelect = { viewModel.onGenderChange(it) },
+                                    textColor = textColor,
+                                    outlineColor = outlineColor
+                                )
                             }
                         }
 
-                        // Tamaño (Chips)
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(
-                                stringResource(R.string.post_size_label),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
+                            Text("Tamaño", fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(if (isDark) SurfaceVariantDark else SurfaceVariantLight).padding(4.dp)
                             ) {
                                 AnimalSize.entries.forEach { size ->
-                                    SelectableChip(
-                                        label = sizeToDisplayName(size),
-                                        selected = uiState.size == size,
-                                        accentColor = PetHelpPrimary,
-                                        onClick = { viewModel.updateSize(size) },
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                    val isSelected = uiState.size == size
+                                    Box(
+                                        modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(if (isSelected) PetHelpPrimary else Color.Transparent).clickable { viewModel.onSizeChange(size) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(sizeToDisplayName(size), color = if (isSelected) White else secondaryTextColor, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium, fontSize = 13.sp)
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // ── Comportamiento ──────────────────────────────────────────
+                // ── DESCRIPCIÓN ───────────────────────────────────────────
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            stringResource(R.string.post_behavior_label),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextSecondary
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Descripción", fontWeight = FontWeight.Bold, color = textColor)
+                            TextButton(onClick = { viewModel.improveDescriptionWithAI() }, contentPadding = PaddingValues(0.dp)) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = PetHelpTertiary)
+                                Spacer(Modifier.width(4.dp))
+                                Text("Mejorar con IA", color = PetHelpTertiary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        OutlinedTextField(
+                            value = uiState.description,
+                            onValueChange = viewModel::onDescriptionChange,
+                            modifier = Modifier.fillMaxWidth().height(160.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PetHelpPrimary, unfocusedBorderColor = outlineColor, focusedTextColor = textColor, unfocusedTextColor = textColor),
+                            supportingText = { Text("${uiState.description.length}/500", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) }
                         )
-                        @OptIn(ExperimentalLayoutApi::class)
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                    }
+                }
+
+                // ── UBICACIÓN ─────────────────────────────────────────────
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text("Ubicación", fontWeight = FontWeight.Bold, color = textColor)
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isDark) SurfaceVariantDark else SurfaceVariantLight,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            PetBehavior.entries.forEach { behavior ->
-                                val isSelected = uiState.behavior.contains(behavior)
-                                SelectableChip(
-                                    label = behaviorToDisplayName(behavior),
-                                    selected = isSelected,
-                                    accentColor = PetHelpSecondary,
-                                    onClick = { viewModel.toggleBehavior(behavior) }
-                                )
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = PetHelpDestructive)
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(uiState.locationName.ifBlank { "Sin ubicación" }, fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+                                    Text("${uiState.street}, ${uiState.neighborhood}", fontSize = 12.sp, color = secondaryTextColor)
+                                }
+                                TextButton(onClick = { 
+                                    navController.navigate(
+                                        Screen.LocationSelection(
+                                            title = uiState.title,
+                                            description = uiState.description,
+                                            category = uiState.category.name,
+                                            animalType = uiState.animalType,
+                                            breed = uiState.breed,
+                                            size = uiState.size.name,
+                                            imageUris = uiState.imageUrls,
+                                            street = uiState.street,
+                                            neighborhood = uiState.neighborhood,
+                                            city = uiState.city,
+                                            latitude = uiState.latitude,
+                                            longitude = uiState.longitude,
+                                            locationName = uiState.locationName
+                                        )
+                                    )
+                                }) {
+                                    Text("Cambiar", color = PetHelpPrimary, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
                 }
 
-                // ── Ubicación ───────────────────────────────────────────────
+                // ── ESTADO ────────────────────────────────────────────────
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            stringResource(R.string.post_location),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.post_street_label), fontSize = 13.sp, color = TextSecondary)
-                            OutlinedTextField(
-                                value = uiState.street,
-                                onValueChange = { viewModel.updateLocation(it, uiState.neighborhood, uiState.city) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                        }
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.post_neighborhood_label), fontSize = 13.sp, color = TextSecondary)
-                            OutlinedTextField(
-                                value = uiState.neighborhood,
-                                onValueChange = { viewModel.updateLocation(uiState.street, it, uiState.city) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                        }
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.post_city_label), fontSize = 13.sp, color = TextSecondary)
-                            OutlinedTextField(
-                                value = uiState.city,
-                                onValueChange = { viewModel.updateLocation(uiState.street, uiState.neighborhood, it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp)
-                            )
+                        Text("Estado de la publicación", fontWeight = FontWeight.Bold, color = textColor)
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            listOf(
+                                Triple(PostStatus.ACTIVE, "Activa", "Visible para todos los usuarios."),
+                                Triple(PostStatus.PAUSED, "Pausada", "Nadie podrá verla temporalmente."),
+                                Triple(PostStatus.ADOPTED, "Adoptada", "Se marcará como un final feliz.")
+                            ).forEach { (status, title, desc) ->
+                                val isSelected = uiState.status == status
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (isSelected) PetHelpPrimary.copy(0.1f) else Color.Transparent).border(1.dp, if (isSelected) PetHelpPrimary else outlineColor, RoundedCornerShape(16.dp)).clickable { viewModel.onStatusChange(status) }.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = isSelected, onClick = { viewModel.onStatusChange(status) }, colors = RadioButtonDefaults.colors(selectedColor = PetHelpPrimary))
+                                    Spacer(Modifier.width(12.dp))
+                                    Column {
+                                        Text(title, fontWeight = FontWeight.Bold, color = textColor)
+                                        Text(desc, fontSize = 12.sp, color = secondaryTextColor)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                // ── Salud ──────────────────────────────────────────────────
+                // ── SALUD ─────────────────────────────────────────────────
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            stringResource(R.string.post_health_status),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
+                        Text("Información de salud", fontWeight = FontWeight.Bold, color = textColor)
+                        val gridItems = listOf(
+                            HealthItemData(uiState.vaccinated, "Vacunado", Icons.Default.Vaccines, viewModel::onVaccinatedChange),
+                            HealthItemData(uiState.sterilized, "Esterilizado", Icons.Default.ContentCut, viewModel::onSterilizedChange),
+                            HealthItemData(uiState.dewormed, "Desparasitado", Icons.Default.BugReport, viewModel::onDewormedChange),
+                            HealthItemData(uiState.specialCares, "Cuidados Esp.", Icons.Default.MedicalServices, viewModel::onSpecialCaresChange)
                         )
-                        val isDark = isSystemInDarkTheme()
-                        val textColor = if (isDark) White else TextPrimary
-                        val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-                        val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
-                        val surfaceVariantColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
-
-                        HealthToggle(
-                            label = stringResource(R.string.post_vaccinated_label),
-                            checked = uiState.vaccinated,
-                            onCheckedChange = { viewModel.updateVaccinated(it) },
-                            textColor = textColor,
-                            surfaceColor = surfaceColor,
-                            outlineColor = outlineColor,
-                            surfaceVariantColor = surfaceVariantColor
-                        )
-                        HealthToggle(
-                            label = stringResource(R.string.post_dewormed_label),
-                            checked = uiState.dewormed,
-                            onCheckedChange = { viewModel.updateDewormed(it) },
-                            textColor = textColor,
-                            surfaceColor = surfaceColor,
-                            outlineColor = outlineColor,
-                            surfaceVariantColor = surfaceVariantColor
-                        )
-                        HealthToggle(
-                            label = stringResource(R.string.post_sterilized_label),
-                            checked = uiState.sterilized,
-                            onCheckedChange = { viewModel.updateSterilized(it) },
-                            textColor = textColor,
-                            surfaceColor = surfaceColor,
-                            outlineColor = outlineColor,
-                            surfaceVariantColor = surfaceVariantColor
-                        )
+                        
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            for (i in 0 until gridItems.size step 2) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    HealthGridItem(gridItems[i], modifier = Modifier.weight(1f), isDark = isDark)
+                                    if (i + 1 < gridItems.size) {
+                                        HealthGridItem(gridItems[i+1], modifier = Modifier.weight(1f), isDark = isDark)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                
-                item { Spacer(Modifier.height(16.dp)) }
+
+                item { Spacer(Modifier.height(40.dp)) }
             }
         }
     }
 }
 
+private data class HealthItemData(
+    val isSelected: Boolean,
+    val label: String,
+    val icon: ImageVector,
+    val onToggle: (Boolean) -> Unit
+)
+
 @Composable
-private fun HealthToggle(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    textColor: Color = TextPrimary,
-    surfaceColor: Color = SurfaceLight,
-    outlineColor: Color = PetHelpOutline,
-    surfaceVariantColor: Color = SurfaceVariantLight
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(if (checked) PetHelpPrimary.copy(alpha = 0.05f) else surfaceColor)
-            .border(1.dp, if (checked) PetHelpPrimary.copy(alpha = 0.3f) else outlineColor, RoundedCornerShape(20.dp))
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+private fun HealthGridItem(item: HealthItemData, modifier: Modifier, isDark: Boolean) {
+    val isSelected = item.isSelected
+    Surface(
+        modifier = modifier.height(64.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = if (isSelected) PetHelpPrimary.copy(0.1f) else (if (isDark) SurfaceDark else White),
+        border = BorderStroke(1.dp, if (isSelected) PetHelpPrimary else (if (isDark) PetHelpOutlineDark else PetHelpOutline)),
+        onClick = { item.onToggle(!isSelected) }
     ) {
-        Text(label, color = textColor, fontWeight = FontWeight.Medium, fontSize = 15.sp)
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = PetHelpPrimary,
-                uncheckedThumbColor = TextSecondary,
-                uncheckedTrackColor = surfaceVariantColor
-            )
+        Row(modifier = Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(item.icon, contentDescription = null, tint = if (isSelected) PetHelpPrimary else TextHint, modifier = Modifier.size(20.dp))
+            Text(item.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (isSelected) PetHelpPrimary else (if (isDark) White else TextPrimary))
+        }
+    }
+}
+
+@Composable
+private fun EditField(label: String, value: String, onValueChange: (String) -> Unit, textColor: Color, outlineColor: Color) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, fontWeight = FontWeight.Bold, color = textColor, fontSize = 14.sp)
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PetHelpPrimary, unfocusedBorderColor = outlineColor, focusedTextColor = textColor, unfocusedTextColor = textColor)
         )
+    }
+}
+
+@Composable
+private fun <T> DropdownSelector(currentValue: String, options: List<Pair<String, T>>, onSelect: (T) -> Unit, textColor: Color, outlineColor: Color) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedTextField(
+            value = currentValue,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = PetHelpPrimary) },
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = outlineColor, unfocusedBorderColor = outlineColor, focusedTextColor = textColor, unfocusedTextColor = textColor),
+            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                .also { interactionSource ->
+                    LaunchedEffect(interactionSource) {
+                        interactionSource.interactions.collect { if (it is androidx.compose.foundation.interaction.PressInteraction.Release) expanded = true }
+                    }
+                }
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.fillMaxWidth(0.4f)) {
+            options.forEach { (label, value) ->
+                DropdownMenuItem(text = { Text(label) }, onClick = { onSelect(value); expanded = false })
+            }
+        }
     }
 }

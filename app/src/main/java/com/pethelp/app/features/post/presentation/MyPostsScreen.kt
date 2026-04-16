@@ -402,7 +402,7 @@ private fun MyPostCard(
 @Composable
 private fun PostStatusBadge(status: PostStatus) {
     val (bgColor, textColor, label) = when (status) {
-        PostStatus.VERIFIED -> Triple(
+        PostStatus.VERIFIED, PostStatus.ACTIVE -> Triple(
             PetHelpPrimary.copy(alpha = 0.12f), PetHelpPrimary, stringResource(R.string.status_active_caps)
         )
         PostStatus.PENDING -> Triple(
@@ -411,8 +411,11 @@ private fun PostStatusBadge(status: PostStatus) {
         PostStatus.REJECTED -> Triple(
             PetHelpDestructive.copy(alpha = 0.12f), PetHelpDestructive, stringResource(R.string.status_rejected_caps)
         )
-        PostStatus.RESOLVED -> Triple(
-            Color.Gray.copy(alpha = 0.15f), Color.Gray, stringResource(R.string.status_resolved_caps)
+        PostStatus.RESOLVED, PostStatus.ADOPTED -> Triple(
+            Color.Gray.copy(alpha = 0.15f), Color.Gray, status.displayName.uppercase()
+        )
+        PostStatus.PAUSED -> Triple(
+            Color.Gray.copy(alpha = 0.12f), Color.Gray, status.displayName.uppercase()
         )
     }
     Box(
@@ -479,7 +482,7 @@ private fun PostActionRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (post.status) {
-            PostStatus.VERIFIED -> {
+            PostStatus.VERIFIED, PostStatus.ACTIVE -> {
                 ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
                 ActionIconButton(Icons.Default.PauseCircle, stringResource(R.string.action_pause), onPauseClick)
                 ActionIconButton(Icons.Default.CheckCircle, stringResource(R.string.action_resolve), onResolvedClick)
@@ -515,7 +518,19 @@ private fun PostActionRow(
                     enabled = !isDeleting
                 )
             }
-            PostStatus.RESOLVED -> {
+            PostStatus.PAUSED -> {
+                ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
+                ActionIconButton(Icons.Default.PlayCircle, "Reanudar", onPauseClick) // Reusando onPauseClick para alternar
+                Spacer(Modifier.weight(1f))
+                ActionIconButton(
+                    icon = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.action_delete),
+                    onClick = onDeleteClick,
+                    tint = PetHelpDestructive,
+                    enabled = !isDeleting
+                )
+            }
+            PostStatus.RESOLVED, PostStatus.ADOPTED -> {
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
