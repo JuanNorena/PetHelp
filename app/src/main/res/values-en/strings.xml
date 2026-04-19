@@ -523,6 +523,14 @@ a pet</string>
     <string name="security_this_device">This device</string>
     <string name="security_danger_zone">Danger Zone</string>
     <string name="security_delete_account_desc">Deleting your account is irreversible. You will lose your full adoption and chat history.</string>
+    <string name="security_change_password_confirm_body">Do you confirm you want to change your password? For security reasons, you may need to sign in again after the change.</string>
+    <string name="security_change_password_confirm_action">Confirm change</string>
+    <string name="security_biometric_prompt_title">Security verification</string>
+    <string name="security_biometric_prompt_subtitle">Confirm your identity to continue</string>
+    <string name="security_biometric_prompt_description">You can use Face ID, fingerprint, or your device credential.</string>
+    <string name="security_biometric_not_enrolled">No biometrics are configured on this device.</string>
+    <string name="security_biometric_unavailable">Biometric authentication is not available on this device.</string>
+    <string name="security_biometric_error">Could not verify your identity: %1$s</string>
 
     <!-- Privacy -->
     <string name="privacy_title">Privacy</string>

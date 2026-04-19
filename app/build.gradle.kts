@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,7 +10,6 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
-import java.util.Properties
 
 val localProperties = Properties().apply {
     val localPropertiesFile = rootProject.file("local.properties")
@@ -184,6 +185,9 @@ dependencies {
 
     // ── Permisos ──────────────────────────────────────────────────────────────
     implementation(libs.accompanist.permissions)
+
+    // ── Seguridad local (biometría / credencial del dispositivo) ─────────────
+    implementation(libs.androidx.biometric)
 
     // ── Testing ───────────────────────────────────────────────────────────────
     testImplementation(libs.junit)

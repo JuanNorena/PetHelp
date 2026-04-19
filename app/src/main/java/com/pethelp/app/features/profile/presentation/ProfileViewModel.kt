@@ -152,8 +152,15 @@ class ProfileViewModel @Inject constructor(
         authRepository.logout()
     }
 
-    fun updatePassword(newPassword: String) {
-        authRepository.updatePassword(newPassword).onEach { resource ->
+    fun updatePassword(currentPassword: String, newPassword: String) {
+        if (currentPassword.isBlank() || newPassword.isBlank()) {
+            viewModelScope.launch {
+                _snackbarMessage.emit(UiText.StringResource(R.string.error_field_required))
+            }
+            return
+        }
+
+        profileRepository.changePassword(currentPassword, newPassword).onEach { resource ->
             when (resource) {
                 is Resource.Loading -> { /* Show loading in UI if needed */ }
                 is Resource.Success -> {
@@ -171,13 +178,14 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun deleteAccount() {
+    fun deleteAccount(onSuccess: (() -> Unit)? = null) {
          profileRepository.deleteAccount().onEach { resource ->
             when(resource) {
                 is Resource.Loading -> {}
                 is Resource.Success -> {
                     viewModelScope.launch {
                         _snackbarMessage.emit(UiText.StringResource(R.string.profile_account_deleted))
+                        onSuccess?.invoke()
                     }
                 }
                 is Resource.Error -> {

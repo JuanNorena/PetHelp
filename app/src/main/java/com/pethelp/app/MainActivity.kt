@@ -1,7 +1,6 @@
 package com.pethelp.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,9 +28,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import android.content.Context
 import android.content.res.Configuration
 import java.util.Locale
+import androidx.fragment.app.FragmentActivity
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Instalar Splash Screen antes de super.onCreate()

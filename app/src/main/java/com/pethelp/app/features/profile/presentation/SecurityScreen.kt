@@ -24,10 +24,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.security.BiometricAuthGate
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,12 +41,61 @@ fun SecurityScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var showPasswordConfirmDialog by remember { mutableStateOf(false) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
-    
+    val activity = context as? FragmentActivity
+    val promptExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
+
+    fun requireSensitiveAuth(onAuthorized: () -> Unit) {
+        if (activity == null) {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.security_biometric_unavailable))
+            }
+            return
+        }
+
+        when (BiometricAuthGate.availability(context)) {
+            BiometricAuthGate.Availability.AVAILABLE -> {
+                BiometricAuthGate.authenticate(
+                    activity = activity,
+                    executor = promptExecutor,
+                    title = context.getString(R.string.security_biometric_prompt_title),
+                    subtitle = context.getString(R.string.security_biometric_prompt_subtitle),
+                    description = context.getString(R.string.security_biometric_prompt_description),
+                    onSuccess = onAuthorized,
+                    onError = { errorCode, errorMessage ->
+                        val isUserCancel = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+                            errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+                            errorCode == BiometricPrompt.ERROR_CANCELED
+                        if (!isUserCancel) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.security_biometric_error, errorMessage)
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+
+            BiometricAuthGate.Availability.NONE_ENROLLED -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.security_biometric_not_enrolled))
+                }
+            }
+
+            else -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.security_biometric_unavailable))
+                }
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collect { uiText ->
             snackbarHostState.showSnackbar(uiText.asString(context))
@@ -120,8 +174,12 @@ fun SecurityScreen(
                     
                     Button(
                         onClick = { 
-                            if (newPassword.isNotBlank()) {
+                            if (currentPassword.isNotBlank() && newPassword.isNotBlank()) {
                                 showPasswordConfirmDialog = true
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.error_field_required))
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -157,7 +215,7 @@ fun SecurityScreen(
                     },
                     text = { 
                         Text(
-                            "¿Confirmas que deseas cambiar tu contraseña? Por seguridad, es posible que debas iniciar sesión de nuevo tras el cambio.",
+                            stringResource(R.string.security_change_password_confirm_body),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
@@ -167,7 +225,12 @@ fun SecurityScreen(
                     confirmButton = {
                         Button(
                             onClick = { 
-                                viewModel.updatePassword(newPassword)
+                                // Capturar valores antes de limpiar (el flow biométrico es asincrónico)
+                                val savedCurrentPassword = currentPassword
+                                val savedNewPassword = newPassword
+                                requireSensitiveAuth {
+                                    viewModel.updatePassword(savedCurrentPassword, savedNewPassword)
+                                }
                                 showPasswordConfirmDialog = false
                                 currentPassword = ""
                                 newPassword = ""
@@ -176,7 +239,7 @@ fun SecurityScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Text("Confirmar cambio", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.security_change_password_confirm_action), fontWeight = FontWeight.Bold)
                         }
                     },
                     dismissButton = {
@@ -256,11 +319,14 @@ fun SecurityScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                viewModel.deleteAccount()
-                                showDeleteDialog = false
-                                navController.navigate(Screen.Login) {
-                                    popUpTo(0)
+                                requireSensitiveAuth {
+                                    viewModel.deleteAccount(onSuccess = {
+                                        navController.navigate(Screen.Login) {
+                                            popUpTo(0)
+                                        }
+                                    })
                                 }
+                                showDeleteDialog = false
                             },
                             colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {

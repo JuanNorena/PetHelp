@@ -420,6 +420,14 @@
     <string name="security_this_device">Este dispositivo</string>
     <string name="security_danger_zone">Zona de Peligro</string>
     <string name="security_delete_account_desc">Eliminar tu cuenta es irreversible. Perderás todo tu historial de adopciones y chats.</string>
+    <string name="security_change_password_confirm_body">¿Confirmas que deseas cambiar tu contraseña? Por seguridad, es posible que debas iniciar sesión de nuevo tras el cambio.</string>
+    <string name="security_change_password_confirm_action">Confirmar cambio</string>
+    <string name="security_biometric_prompt_title">Verificación de seguridad</string>
+    <string name="security_biometric_prompt_subtitle">Confirma tu identidad para continuar</string>
+    <string name="security_biometric_prompt_description">Puedes usar Face ID, huella o la credencial del dispositivo.</string>
+    <string name="security_biometric_not_enrolled">No tienes biometría configurada en este dispositivo.</string>
+    <string name="security_biometric_unavailable">No fue posible usar autenticación biométrica en este dispositivo.</string>
+    <string name="security_biometric_error">No se pudo verificar tu identidad: %1$s</string>
 
     <!-- ── Privacidad (Privacy) ────────────────────────── -->
     <string name="privacy_title">Privacidad</string>
