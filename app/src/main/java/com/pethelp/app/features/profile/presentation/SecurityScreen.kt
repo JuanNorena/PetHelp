@@ -40,9 +40,11 @@ fun SecurityScreen(
     var newPassword by remember { mutableStateOf("") }
     var showPasswordConfirmDialog by remember { mutableStateOf(false) }
     
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.snackbarMessage.collect { uiText ->
+            snackbarHostState.showSnackbar(uiText.asString(context))
         }
     }
 

@@ -10,7 +10,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.pethelp.app.R
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.*
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
@@ -67,36 +67,13 @@ fun PostReviewScreen(
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isDark = isSystemInDarkTheme()
-
-    // Paleta dinámica adaptada a Dark Mode
-    val backgroundColor = if (isDark) BackgroundDark else Color(0xFFF8F9FA)
-    val surfaceColor = if (isDark) SurfaceDark else White
-    val topBarColor = if (isDark) SurfaceDark else White
-    val bottomBarColor = if (isDark) SurfaceDark else White
-    
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
-    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-    
-    // Colores del banner de información
-    val infoBoxBg = if (isDark) Color(0xFF2D261A) else Color(0xFFFFF8ED)
-    val infoBoxBorder = if (isDark) Color(0xFF4D3D26) else Color(0xFFFFE7C2)
-    val infoIconColor = if (isDark) Color(0xFFFBBF24) else Color(0xFFF59E0B)
-    val infoTextColor = if (isDark) Color(0xFFFDE68A) else Color(0xFF92400E)
-
-    // Colores de Tags y contenedores internos
-    val innerContainerBg = if (isDark) SurfaceVariantDark.copy(alpha = 0.5f) else Color(0xFFF8F9FA)
-    val categoryTagBg = if (isDark) PetHelpPrimary.copy(alpha = 0.2f) else Color(0xFFE0F2F1)
-    val categoryTagText = if (isDark) PetHelpPrimary else PetHelpPrimary
-    val neutralTagBg = if (isDark) SurfaceVariantDark else Color(0xFFF5F5F5)
-    val neutralTagText = if (isDark) White.copy(alpha = 0.6f) else Color.Gray
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collectLatest { message ->
-            snackbarHostState.showSnackbar(message)
+            snackbarHostState.showSnackbar(message.asString(context))
         }
     }
 
@@ -139,43 +116,46 @@ fun PostReviewScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = backgroundColor,
+            containerColor = MaterialTheme.colorScheme.background,
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "Revisar y Publicar",
+                                text = stringResource(R.string.post_review_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = textColor
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Paso 4 de 4",
+                                text = stringResource(R.string.post_step_4_of_4),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = secondaryTextColor
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = textColor)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = topBarColor,
-                        scrolledContainerColor = topBarColor
-                    ),
-                    modifier = Modifier.shadow(if (isDark) 0.dp else 1.dp)
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
             },
             bottomBar = {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
-                    color = bottomBarColor,
-                    border = if (isDark) BorderStroke(0.5.dp, outlineColor) else null
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ) {
                     Box(
                         modifier = Modifier
@@ -189,17 +169,17 @@ fun PostReviewScreen(
                                 .height(56.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PetHelpPrimary,
-                                contentColor = White
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             enabled = !uiState.isLoading
                         ) {
                             if (uiState.isLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = White)
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                             } else {
                                 Icon(Icons.Default.Publish, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Publicar Mascota", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.btn_publish_pet), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -217,20 +197,20 @@ fun PostReviewScreen(
                 // Cuadro de información (Adaptado a Dark Mode)
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = infoBoxBg,
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, infoBoxBorder)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = infoIconColor, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(20.dp))
                         Text(
-                            text = "Por favor verifica que la información sea correcta antes de publicar. Una vez publicado, podrás editarlo desde tu perfil si lo necesitas.",
+                            text = stringResource(R.string.post_review_info_desc),
                             style = MaterialTheme.typography.bodySmall,
-                            color = infoTextColor,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             lineHeight = 18.sp
                         )
                     }
@@ -240,15 +220,15 @@ fun PostReviewScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = surfaceColor),
-                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         // SECCIÓN: Datos principales
                         SectionHeader(
-                            title = "Datos principales", 
+                            title = stringResource(R.string.post_review_section_main), 
                             icon = Icons.Default.Widgets, 
-                            textColor = textColor,
+                            textColor = MaterialTheme.colorScheme.onSurface,
                             onEdit = { 
                                 navController.popBackStack(Screen.CreatePost, inclusive = false)
                             }
@@ -267,17 +247,17 @@ fun PostReviewScreen(
                                 contentScale = ContentScale.Crop
                             )
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(text = postData.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
+                                Text(text = postData.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Tag(text = categoryNameToDisplay(postData.category).uppercase(), color = categoryTagBg, textColor = categoryTagText)
-                                    Tag(text = postData.animalType.uppercase(), color = neutralTagBg, textColor = neutralTagText)
+                                    Tag(text = UiText.fromCategory(PostCategory.valueOf(postData.category)).asString().uppercase(), color = MaterialTheme.colorScheme.primaryContainer, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Tag(text = postData.animalType.uppercase(), color = MaterialTheme.colorScheme.surfaceVariant, textColor = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
-                                Tag(text = sizeNameToDisplay(postData.size).uppercase(), color = neutralTagBg, textColor = neutralTagText)
+                                Tag(text = UiText.fromSize(AnimalSize.valueOf(postData.size)).asString().uppercase(), color = MaterialTheme.colorScheme.surfaceVariant, textColor = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
 
                         Surface(
-                            color = innerContainerBg,
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -285,18 +265,18 @@ fun PostReviewScreen(
                                 text = postData.description,
                                 modifier = Modifier.padding(12.dp),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = textColor.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = outlineColor.copy(alpha = 0.3f))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
                         // SECCIÓN: Ubicación
                         SectionHeader(
-                            title = "Ubicación", 
+                            title = stringResource(R.string.post_review_section_location), 
                             icon = Icons.Default.LocationOn, 
-                            iconColor = Color(0xFFF87171), 
-                            textColor = textColor,
+                            iconColor = MaterialTheme.colorScheme.error, 
+                            textColor = MaterialTheme.colorScheme.onSurface,
                             onEdit = { 
                                 navController.popBackStack(Screen.LocationSelection::class, inclusive = false)
                             }
@@ -305,17 +285,17 @@ fun PostReviewScreen(
                         Text(
                             text = "${postData.street}, ${postData.neighborhood}, ${postData.city}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = secondaryTextColor
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = outlineColor.copy(alpha = 0.3f))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
                         // SECCIÓN: Detalles y Salud
                         SectionHeader(
-                            title = "Detalles y Salud", 
+                            title = stringResource(R.string.post_review_section_health), 
                             icon = Icons.Default.HealthAndSafety, 
-                            iconColor = Color(0xFF818CF8), 
-                            textColor = textColor,
+                            iconColor = MaterialTheme.colorScheme.secondary, 
+                            textColor = MaterialTheme.colorScheme.onSurface,
                             onEdit = { 
                                 navController.popBackStack(Screen.PostDetails::class, inclusive = false)
                             }
@@ -323,39 +303,39 @@ fun PostReviewScreen(
                         
                         Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
-                                InfoLabel(label = "Edad y Sexo")
+                                InfoLabel(label = stringResource(R.string.post_review_label_age_gender))
                                 Text(
-                                    "${ageNameToDisplay(postData.age)} • ${genderNameToDisplay(postData.gender)}", 
+                                    "${UiText.fromAge(AnimalAge.valueOf(postData.age)).asString()} • ${UiText.fromGender(AnimalGender.valueOf(postData.gender)).asString()}", 
                                     fontWeight = FontWeight.Bold, 
                                     fontSize = 14.sp,
-                                    color = textColor
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                InfoLabel(label = "Salud")
+                                InfoLabel(label = stringResource(R.string.post_review_label_health))
                                 val health = mutableListOf<String>()
-                                if (postData.vaccinated) health.add("Vacunado")
-                                if (postData.dewormed) health.add("Desparasitado")
-                                if (postData.sterilized) health.add("Esterilizado")
+                                if (postData.vaccinated) health.add(stringResource(R.string.post_review_vaccinated))
+                                if (postData.dewormed) health.add(stringResource(R.string.post_review_dewormed))
+                                if (postData.sterilized) health.add(stringResource(R.string.post_review_sterilized))
                                 Text(
-                                    health.joinToString(", ").ifEmpty { "Sin datos" }, 
+                                    health.joinToString(", ").ifEmpty { stringResource(R.string.post_review_no_data) }, 
                                     fontWeight = FontWeight.Bold, 
                                     fontSize = 14.sp,
-                                    color = textColor
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
 
                         if (postData.behavior.isNotEmpty()) {
                             Spacer(Modifier.height(16.dp))
-                            InfoLabel(label = "Comportamiento")
+                            InfoLabel(label = stringResource(R.string.post_review_label_behavior))
                             Row(
                                 modifier = Modifier.padding(top = 4.dp), 
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 postData.behavior.forEach { b ->
-                                    Tag(text = behaviorNameToDisplay(b), color = neutralTagBg, textColor = secondaryTextColor)
+                                    Tag(text = UiText.fromBehavior(PetBehavior.valueOf(b)).asString(), color = MaterialTheme.colorScheme.surfaceVariant, textColor = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -373,7 +353,7 @@ fun PostReviewScreen(
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = backgroundColor
+                color = MaterialTheme.colorScheme.background
             ) {
                 Column(
                     modifier = Modifier
@@ -388,32 +368,32 @@ fun PostReviewScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         // Círculos de colores decorativos
-                        Box(modifier = Modifier.size(140.dp).background(PetHelpPrimary, CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Check, contentDescription = null, tint = White, modifier = Modifier.size(80.dp))
+                        Box(modifier = Modifier.size(140.dp).background(MaterialTheme.colorScheme.primary, CircleShape), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(80.dp))
                         }
                         
                         // Decoración flotante (Círculos pequeños simulados)
-                        Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 20.dp).size(24.dp).background(Color(0xFFFFCC80), CircleShape))
-                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp, end = 10.dp).size(16.dp).background(Color(0xFFF87171), CircleShape))
-                        Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 40.dp, start = 10.dp).size(12.dp).background(Color(0xFFC084FC), CircleShape))
+                        Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 20.dp).size(24.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
+                        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp, end = 10.dp).size(16.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+                        Box(modifier = Modifier.align(Alignment.TopStart).padding(top = 40.dp, start = 10.dp).size(12.dp).background(MaterialTheme.colorScheme.secondary, CircleShape))
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = "¡Publicación exitosa!",
+                        text = stringResource(R.string.post_success_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = textColor,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Tu publicación ya está visible para miles de personas en PetHelp. Gracias por ayudar a este peludo.",
+                        text = stringResource(R.string.post_success_desc),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = secondaryTextColor,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         lineHeight = 24.sp
                     )
@@ -435,13 +415,13 @@ fun PostReviewScreen(
                             .shadow(8.dp, RoundedCornerShape(28.dp)),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isDark) White else Color(0xFF111827),
-                            contentColor = if (isDark) Color(0xFF111827) else White
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface
                         )
                     ) {
                         Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
-                        Text("Ver publicación", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_view_post), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -458,13 +438,13 @@ fun PostReviewScreen(
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = if (isDark) White else Color(0xFF111827)
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ),
-                        border = BorderStroke(1.dp, if (isDark) White.copy(alpha = 0.3f) else Color(0xFFE5E7EB))
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
-                        Text("Volver a Inicio", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_back_home), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -473,15 +453,15 @@ fun PostReviewScreen(
 }
 
 @Composable
-fun SectionHeader(title: String, icon: ImageVector, iconColor: Color = PetHelpPrimary, textColor: Color, onEdit: () -> Unit) {
+fun SectionHeader(title: String, icon: ImageVector, iconColor: Color = MaterialTheme.colorScheme.primary, textColor: Color, onEdit: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
         Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = textColor)
         Spacer(Modifier.weight(1f))
         Text(
-            text = "Editar",
-            color = PetHelpPrimary,
+            text = stringResource(R.string.common_edit),
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
             modifier = Modifier.clickable { onEdit() }
@@ -507,37 +487,5 @@ fun Tag(text: String, color: Color, textColor: Color) {
 
 @Composable
 fun InfoLabel(label: String) {
-    Text(label, fontSize = 12.sp, color = TextHint, modifier = Modifier.padding(bottom = 4.dp))
-}
-
-@Composable
-private fun categoryNameToDisplay(rawValue: String): String {
-    val category = PostCategory.entries.find { it.name == rawValue } ?: return rawValue
-    return when (category) {
-        PostCategory.ADOPTION -> "Adopción"
-        PostCategory.LOST -> "Perdidos"
-        PostCategory.FOUND -> "Encontrados"
-        PostCategory.TEMP_HOME -> "Hogar temporal"
-        PostCategory.VET_EVENT -> "Evento"
-    }
-}
-
-@Composable
-private fun ageNameToDisplay(rawValue: String): String {
-    return AnimalAge.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
-}
-
-@Composable
-private fun genderNameToDisplay(rawValue: String): String {
-    return AnimalGender.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
-}
-
-@Composable
-private fun sizeNameToDisplay(rawValue: String): String {
-    return AnimalSize.entries.find { it.name == rawValue }?.displayName ?: rawValue
-}
-
-@Composable
-private fun behaviorNameToDisplay(rawValue: String): String {
-    return PetBehavior.entries.find { it.name == rawValue }?.toDisplayName() ?: rawValue
+    Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
 }

@@ -1,12 +1,10 @@
 package com.pethelp.app.features.auth.presentation
 
 import com.pethelp.app.core.domain.model.User
+import com.pethelp.app.core.common.UiText
 
 /**
  * Representa los posibles estados de la UI de autenticación.
- *
- * Se usa como state en el AuthViewModel y se observa desde
- * las pantallas Splash, Login, Register y ForgotPassword.
  */
 sealed class AuthUiState {
 
@@ -22,6 +20,6 @@ sealed class AuthUiState {
     /** No hay sesión activa (usuario no autenticado). */
     data object Unauthenticated : AuthUiState()
 
-    /** Error con mensaje descriptivo para mostrar en la UI. */
-    data class Error(val message: String) : AuthUiState()
+    /** Error con mensaje localizado para mostrar en la UI. */
+    data class Error(val uiText: UiText) : AuthUiState()
 }

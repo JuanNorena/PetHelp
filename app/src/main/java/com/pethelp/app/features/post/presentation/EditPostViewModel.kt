@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.domain.model.*
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -16,7 +17,7 @@ data class EditPostUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
+    val error: UiText? = null,
     
     // Editable fields
     val title: String = "",
@@ -57,7 +58,7 @@ class EditPostViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     sealed class EditPostEvent {
-        data class ShowSnackbar(val message: String) : EditPostEvent()
+        data class ShowSnackbar(val message: UiText) : EditPostEvent()
         object PostUpdated : EditPostEvent()
     }
 
@@ -102,11 +103,11 @@ class EditPostViewModel @Inject constructor(
                                 )
                             }
                         } ?: run {
-                            _uiState.update { it.copy(isLoading = false, error = "No se encontró la publicación") }
+                            _uiState.update { it.copy(isLoading = false, error = UiText.DynamicString("No se encontró la publicación")) }
                         }
                     }
                     is Resource.Error -> {
-                        _uiState.update { it.copy(isLoading = false, error = resource.message) }
+                        _uiState.update { it.copy(isLoading = false, error = resource.uiText) }
                     }
                 }
             }
@@ -168,10 +169,10 @@ class EditPostViewModel @Inject constructor(
             if (currentDesc.isNotBlank()) {
                 val improvedDesc = "✨ Descripción optimizada por PetHelp IA ✨\n\n$currentDesc\n\nEsta adorable mascota busca un hogar lleno de amor. Es muy sociable y está esperando por ti."
                 _uiState.update { it.copy(description = improvedDesc.take(500), isSaving = false) }
-                _eventFlow.emit(EditPostEvent.ShowSnackbar("¡Descripción mejorada con éxito!"))
+                _eventFlow.emit(EditPostEvent.ShowSnackbar(UiText.DynamicString("¡Descripción mejorada con éxito!")))
             } else {
                 _uiState.update { it.copy(isSaving = false) }
-                _eventFlow.emit(EditPostEvent.ShowSnackbar("Escribe algo primero para poder mejorarlo."))
+                _eventFlow.emit(EditPostEvent.ShowSnackbar(UiText.DynamicString("Escribe algo primero para poder mejorarlo.")))
             }
         }
     }
@@ -186,7 +187,7 @@ class EditPostViewModel @Inject constructor(
 
     fun onShowSnackbar(message: String) {
         viewModelScope.launch {
-            _eventFlow.emit(EditPostEvent.ShowSnackbar(message))
+            _eventFlow.emit(EditPostEvent.ShowSnackbar(UiText.DynamicString(message)))
         }
     }
 
@@ -222,7 +223,7 @@ class EditPostViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(isSaving = false) }
-                        _eventFlow.emit(EditPostEvent.ShowSnackbar(resource.message ?: "Error al guardar cambios"))
+                        _eventFlow.emit(EditPostEvent.ShowSnackbar(resource.uiText ?: UiText.DynamicString("Error al guardar cambios")))
                     }
                 }
             }

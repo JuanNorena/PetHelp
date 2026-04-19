@@ -2,10 +2,12 @@ package com.pethelp.app.features.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pethelp.app.R
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.data.repository.UserPreferencesRepository
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.preferences.AppLanguageManager
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,8 +33,8 @@ class ProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     private val _preferredLanguage = MutableStateFlow(AppLanguageManager.DEFAULT_LANGUAGE)
     val preferredLanguage: StateFlow<String> = _preferredLanguage.asStateFlow()
@@ -69,8 +71,11 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.value = ProfileUiState.Error(resource.message ?: "Error loading profile")
-                    _snackbarMessage.emit(resource.message ?: "Error loading profile")
+                    val message = resource.uiText ?: UiText.DynamicString("Error loading profile")
+                    _uiState.value = ProfileUiState.Error(message)
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(message)
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -81,11 +86,16 @@ class ProfileViewModel @Inject constructor(
              when (resource) {
                 is Resource.Loading -> { /* Keep current state, maybe show saving indicator */ }
                 is Resource.Success -> {
-                    _snackbarMessage.emit("Perfil actualizado correctamente")
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(UiText.StringResource(R.string.profile_updated_success))
+                    }
                     // It will also trigger loadUserProfile because of the snapshot listener
                 }
                 is Resource.Error -> {
-                    _snackbarMessage.emit(resource.message ?: "Error al actualizar perfil")
+                    val errorText = resource.uiText ?: UiText.DynamicString("Error al actualizar perfil")
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(errorText)
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -96,7 +106,7 @@ class ProfileViewModel @Inject constructor(
 
         if (imageUri.isBlank()) {
             viewModelScope.launch {
-                _snackbarMessage.emit("Selecciona una imagen válida.")
+                _snackbarMessage.emit(UiText.StringResource(R.string.profile_invalid_image))
             }
             return
         }
@@ -120,11 +130,11 @@ class ProfileViewModel @Inject constructor(
                         photoUploadError = null
                     )
                     viewModelScope.launch {
-                        _snackbarMessage.emit("Foto de perfil actualizada correctamente.")
+                        _snackbarMessage.emit(UiText.StringResource(R.string.profile_photo_updated))
                     }
                 }
                 is Resource.Error -> {
-                    val message = resource.message ?: "Error al subir la foto de perfil."
+                    val message = resource.uiText ?: UiText.StringResource(R.string.profile_photo_update_error)
                     val latest = _uiState.value as? ProfileUiState.Success ?: currentState
                     _uiState.value = latest.copy(
                         isUploadingPhoto = false,
@@ -147,10 +157,15 @@ class ProfileViewModel @Inject constructor(
             when (resource) {
                 is Resource.Loading -> { /* Show loading in UI if needed */ }
                 is Resource.Success -> {
-                    _snackbarMessage.emit("Contraseña actualizada correctamente")
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(UiText.StringResource(R.string.profile_password_updated))
+                    }
                 }
                 is Resource.Error -> {
-                    _snackbarMessage.emit(resource.message ?: "Error al actualizar contraseña")
+                    val errorText = resource.uiText ?: UiText.DynamicString("Error al actualizar contraseña")
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(errorText)
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -161,10 +176,15 @@ class ProfileViewModel @Inject constructor(
             when(resource) {
                 is Resource.Loading -> {}
                 is Resource.Success -> {
-                    _snackbarMessage.emit("Cuenta eliminada correctamente")
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(UiText.StringResource(R.string.profile_account_deleted))
+                    }
                 }
                 is Resource.Error -> {
-                     _snackbarMessage.emit(resource.message ?: "Error al eliminar cuenta")
+                     val errorText = resource.uiText ?: UiText.DynamicString("Error al eliminar cuenta")
+                     viewModelScope.launch {
+                         _snackbarMessage.emit(errorText)
+                     }
                 }
             }
          }.launchIn(viewModelScope)
@@ -173,21 +193,16 @@ class ProfileViewModel @Inject constructor(
     fun changeAppLanguage(languageTag: String) {
         viewModelScope.launch {
             if (!appLanguageManager.isSupportedLanguage(languageTag)) {
-                _snackbarMessage.emit("Idioma no soportado")
+                _snackbarMessage.emit(UiText.StringResource(R.string.language_not_supported))
                 return@launch
             }
 
             val normalizedLanguage = appLanguageManager.normalizeLanguage(languageTag)
-
             appLanguageManager.setPreferredLanguage(normalizedLanguage)
-
-            _snackbarMessage.emit(
-                if (normalizedLanguage == AppLanguageManager.LANGUAGE_ENGLISH) {
-                    "Language changed to English"
-                } else {
-                    "Idioma cambiado a español"
-                }
-            )
+            
+            // Note: The UI strings will update automatically because 
+            // the Activity's configuration changes or the composable recomposes 
+            // with the new locale context.
         }
     }
 

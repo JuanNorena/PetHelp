@@ -24,18 +24,18 @@ private val LightColorScheme = lightColorScheme(
     onPrimaryContainer  = OnPrimaryContainer,
     secondary           = PetHelpSecondary,
     onSecondary         = White,
-    secondaryContainer  = Color(0xFFFFEDD5), // Naranja muy suave equivalente al Tint 10%
+    secondaryContainer  = SecondaryLightContainer,
     onSecondaryContainer= DarkSurface,
     tertiary            = PetHelpTertiary,
     onTertiary          = White,
-    tertiaryContainer   = Color(0xFFF3E8FF), // Púrpura muy suave
+    tertiaryContainer   = TertiaryLightContainer,
     background          = BackgroundLight,
     surface             = SurfaceLight,
     error               = PetHelpDestructive,
-    onBackground        = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
-    onSurface           = Color(0xFF2D2D2D), // Texto primario (#2D2D2D)
+    onBackground        = TextPrimary,
+    onSurface           = TextPrimary,
     outlineVariant      = PetHelpOutline,
-    surfaceVariant      = Color(0xFFF5F5F5),
+    surfaceVariant      = SurfaceVariantLight,
 )
 
 // TODO: IMPLEMENTAR EL CAMBIO DE IDIOMA EN TODO EL PROYECTO
@@ -48,18 +48,18 @@ private val DarkColorScheme = darkColorScheme(
     onPrimaryContainer  = PrimaryLightContainer,
     secondary           = PetHelpSecondaryDark,
     onSecondary         = DarkSurface,
-    secondaryContainer  = Color(0xFFCC9138),
+    secondaryContainer  = SecondaryDarkContainer,
     onSecondaryContainer= White,
     tertiary            = PetHelpTertiaryDark,
     onTertiary          = DarkSurface,
-    tertiaryContainer   = Color(0xFF7E57C2),
+    tertiaryContainer   = TertiaryDarkContainer,
     background          = BackgroundDark,
     surface             = SurfaceDark,
     error               = PetHelpDestructiveDark,
     onBackground        = White,
     onSurface           = White,
     outlineVariant      = PetHelpOutlineDark,
-    surfaceVariant      = Color(0xFF383838),
+    surfaceVariant      = SurfaceVariantDark,
 )
 
 /**

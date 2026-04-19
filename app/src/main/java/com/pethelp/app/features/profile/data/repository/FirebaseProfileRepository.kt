@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.domain.upload.ImageUploader
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
@@ -34,7 +35,7 @@ class FirebaseProfileRepository @Inject constructor(
 
         val firebaseUser = firebaseAuth.currentUser
         if (firebaseUser == null) {
-            trySend(Resource.Error("No hay sesión activa."))
+            trySend(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
             close()
             return@callbackFlow
         }
@@ -43,7 +44,7 @@ class FirebaseProfileRepository @Inject constructor(
             .document(firebaseUser.uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    trySend(Resource.Error(error.localizedMessage ?: "Error al obtener el perfil."))
+                    trySend(Resource.Error(UiText.DynamicString(error.localizedMessage ?: "Error al obtener el perfil.")))
                     return@addSnapshotListener
                 }
                 if (snapshot != null && snapshot.exists()) {
@@ -51,10 +52,10 @@ class FirebaseProfileRepository @Inject constructor(
                     if (user != null) {
                         trySend(Resource.Success(user))
                     } else {
-                        trySend(Resource.Error("Error al leer los datos del perfil."))
+                        trySend(Resource.Error(UiText.DynamicString("Error al leer los datos del perfil.")))
                     }
                 } else {
-                    trySend(Resource.Error("El usuario no existe en la base de datos."))
+                    trySend(Resource.Error(UiText.DynamicString("El usuario no existe en la base de datos.")))
                 }
             }
 
@@ -66,7 +67,7 @@ class FirebaseProfileRepository @Inject constructor(
 
         val firebaseUser = firebaseAuth.currentUser
         if (firebaseUser == null) {
-            emit(Resource.Error("No hay sesión activa."))
+            emit(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
             return@flow
         }
 
@@ -102,7 +103,7 @@ class FirebaseProfileRepository @Inject constructor(
 
             emit(Resource.Success(user))
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error al actualizar el perfil."))
+            emit(Resource.Error(UiText.DynamicString(e.localizedMessage ?: "Error al actualizar el perfil.")))
         }
     }
 
@@ -111,12 +112,12 @@ class FirebaseProfileRepository @Inject constructor(
         try {
             val firebaseUser = firebaseAuth.currentUser
             if (firebaseUser == null) {
-                emit(Resource.Error("No hay sesión activa."))
+                emit(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
                 return@flow
             }
 
             if (imageUri.isBlank()) {
-                emit(Resource.Error("Selecciona una imagen válida."))
+                emit(Resource.Error(UiText.DynamicString("Selecciona una imagen válida.")))
                 return@flow
             }
 
@@ -137,7 +138,7 @@ class FirebaseProfileRepository @Inject constructor(
 
             emit(Resource.Success(uploadedPhotoUrl))
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error al subir la foto."))
+            emit(Resource.Error(UiText.DynamicString(e.localizedMessage ?: "Error al subir la foto.")))
         }
     }
 
@@ -146,7 +147,7 @@ class FirebaseProfileRepository @Inject constructor(
         val firebaseUser = firebaseAuth.currentUser
         
         if (firebaseUser == null || firebaseUser.email == null) {
-            emit(Resource.Error("No hay sesión activa."))
+            emit(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
             return@flow
         }
         
@@ -156,11 +157,11 @@ class FirebaseProfileRepository @Inject constructor(
             firebaseUser.updatePassword(newPassword).await()
             emit(Resource.Success(Unit))
         } catch (e: FirebaseAuthInvalidCredentialsException) {
-            emit(Resource.Error("La contraseña actual es incorrecta."))
+            emit(Resource.Error(UiText.DynamicString("La contraseña actual es incorrecta.")))
         } catch (e: FirebaseAuthRecentLoginRequiredException) {
-            emit(Resource.Error("Debes volver a iniciar sesión para cambiar la contraseña."))
+            emit(Resource.Error(UiText.DynamicString("Debes volver a iniciar sesión para cambiar la contraseña.")))
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error al cambiar la contraseña."))
+            emit(Resource.Error(UiText.DynamicString(e.localizedMessage ?: "Error al cambiar la contraseña.")))
         }
     }
 
@@ -169,7 +170,7 @@ class FirebaseProfileRepository @Inject constructor(
         val firebaseUser = firebaseAuth.currentUser
         
         if (firebaseUser == null) {
-            emit(Resource.Error("No hay sesión activa."))
+            emit(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
             return@flow
         }
         
@@ -184,9 +185,9 @@ class FirebaseProfileRepository @Inject constructor(
             firebaseUser.delete().await()
             emit(Resource.Success(Unit))
         } catch (e: FirebaseAuthRecentLoginRequiredException) {
-            emit(Resource.Error("Debes volver a iniciar sesión para eliminar la cuenta."))
+            emit(Resource.Error(UiText.DynamicString("Debes volver a iniciar sesión para eliminar la cuenta.")))
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error al eliminar la cuenta."))
+            emit(Resource.Error(UiText.DynamicString(e.localizedMessage ?: "Error al eliminar la cuenta.")))
         }
     }
 

@@ -15,8 +15,12 @@ import com.pethelp.app.features.map.presentation.MapScreen
 import com.pethelp.app.features.moderation.presentation.ModeratorDetailScreen
 import com.pethelp.app.features.moderation.presentation.ModeratorPanelScreen
 import com.pethelp.app.features.notifications.presentation.NotificationsScreen
+import com.pethelp.app.features.post.presentation.AdoptionRequestScreen
+import com.pethelp.app.features.post.presentation.AdoptionRequestsScreen
+import com.pethelp.app.features.post.presentation.AdoptionSuccessScreen
 import com.pethelp.app.features.post.presentation.CreatePostScreen
 import com.pethelp.app.features.post.presentation.EditPostScreen
+import com.pethelp.app.features.post.presentation.FavoritesScreen
 import com.pethelp.app.features.post.presentation.LocationSelectionScreen
 import com.pethelp.app.features.post.presentation.MyPostsScreen
 import com.pethelp.app.features.post.presentation.PostDetailScreen
@@ -24,6 +28,7 @@ import com.pethelp.app.features.post.presentation.PostDetailsScreen
 import com.pethelp.app.features.post.presentation.PostReviewScreen
 import com.pethelp.app.features.profile.presentation.EditProfileScreen
 import com.pethelp.app.features.profile.presentation.HelpCenterScreen
+import com.pethelp.app.features.profile.presentation.LanguageScreen
 import com.pethelp.app.features.profile.presentation.PrivacyScreen
 import com.pethelp.app.features.profile.presentation.ProfileScreen
 import com.pethelp.app.features.profile.presentation.ProfileVisibilityScreen
@@ -79,6 +84,23 @@ fun PetHelpNavGraph(
             PostDetailScreen(postId = route.postId, navController = navController)
         }
 
+        composable<Screen.AdoptionRequest> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.AdoptionRequest>()
+            AdoptionRequestScreen(
+                postId = route.postId,
+                petName = route.petName,
+                navController = navController
+            )
+        }
+
+        composable<Screen.AdoptionRequests> {
+            AdoptionRequestsScreen(navController = navController)
+        }
+
+        composable<Screen.AdoptionSuccess> {
+            AdoptionSuccessScreen(navController = navController)
+        }
+
         // ── Crear / Editar / Mis publicaciones ───────────────────────────────
         composable<Screen.CreatePost> {
             CreatePostScreen(navController = navController)
@@ -117,11 +139,17 @@ fun PetHelpNavGraph(
         composable<Screen.Profile> {
             ProfileScreen(navController = navController)
         }
+        composable<Screen.Favorites> {
+            FavoritesScreen(navController = navController)
+        }
         composable<Screen.EditProfile> {
             EditProfileScreen(navController = navController)
         }
         composable<Screen.Settings> {
             SettingsScreen(navController = navController)
+        }
+        composable<Screen.Language> {
+            LanguageScreen(navController = navController)
         }
         composable<Screen.Security> {
             SecurityScreen(navController = navController)

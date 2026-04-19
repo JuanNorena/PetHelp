@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +77,7 @@ fun UserGuideScreen(navController: NavController) {
             // CARD 2: CÓMO EMPEZAR
             GuideStepCard(
                 icon = Icons.Default.PersonAdd,
-                iconColor = Color(0xFF3B82F6),
+                iconColor = MaterialTheme.colorScheme.primary,
                 title = stringResource(R.string.user_guide_start_title),
                 body = stringResource(R.string.user_guide_start_body)
             )
@@ -86,7 +87,7 @@ fun UserGuideScreen(navController: NavController) {
             // CARD 3: ADOPTAR
             GuideStepCard(
                 icon = Icons.Default.FavoriteBorder,
-                iconColor = Color(0xFFF43F5E),
+                iconColor = MaterialTheme.colorScheme.secondary,
                 title = stringResource(R.string.user_guide_adopt_title),
                 body = stringResource(R.string.user_guide_adopt_body)
             )
@@ -96,7 +97,7 @@ fun UserGuideScreen(navController: NavController) {
             // CARD 4: PUBLICAR
             GuideStepCard(
                 icon = Icons.Default.CameraAlt,
-                iconColor = Color(0xFFF59E0B),
+                iconColor = MaterialTheme.colorScheme.tertiary,
                 title = stringResource(R.string.user_guide_publish_title),
                 body = stringResource(R.string.user_guide_publish_body)
             )
@@ -106,7 +107,7 @@ fun UserGuideScreen(navController: NavController) {
             // CARD 5: SEGURIDAD
             GuideStepCard(
                 icon = Icons.Default.Shield,
-                iconColor = Color(0xFF10B981),
+                iconColor = MaterialTheme.colorScheme.primary,
                 title = stringResource(R.string.user_guide_security_title),
                 body = stringResource(R.string.user_guide_security_body)
             )

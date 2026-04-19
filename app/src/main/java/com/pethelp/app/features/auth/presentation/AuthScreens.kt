@@ -57,10 +57,7 @@ import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.PetHelpPrimaryDark
-import com.pethelp.app.core.ui.theme.PetHelpPrimary
-import com.pethelp.app.core.ui.theme.PetHelpTertiary
-import com.pethelp.app.core.ui.theme.PetHelpSecondary
+import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 
 private fun authenticatedDestination(role: UserRole): Screen {
@@ -95,26 +92,29 @@ fun SplashScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
                     )
                 )
         )
 
         // manchas desenfocadas de colores primario/secundario/terciario
         BlurredCircle(
-            color = PetHelpPrimary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = PetHelpSecondary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
         )
         BlurredCircle(
-            color = PetHelpTertiary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
             size = 224.dp,
             offsetX = 80.dp,
             offsetY = 629.dp
@@ -140,7 +140,7 @@ fun SplashScreen(
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = (-1.2).sp
                 ),
-                color = PetHelpPrimaryDark
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.height(12.dp))
@@ -152,7 +152,7 @@ fun SplashScreen(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium
                 ),
-                color = Color(0xFF6A7282)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -166,7 +166,7 @@ fun SplashScreen(
             Button(
                 onClick = { navController.navigate(Screen.Login) },
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 10.dp,
                     pressedElevation = 4.dp
@@ -177,13 +177,13 @@ fun SplashScreen(
                     .shadow(
                         elevation = 15.dp,
                         shape = RoundedCornerShape(50),
-                        ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
-                        spotColor = PetHelpPrimary.copy(alpha = 0.3f)
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     )
             ) {
                 Text(
                     text = stringResource(R.string.btn_start),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -204,11 +204,11 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             .shadow(
                 elevation = 20.dp,
                 shape = RoundedCornerShape(24.dp),
-                ambientColor = Color.Black.copy(alpha = 0.10f),
-                spotColor = Color.Black.copy(alpha = 0.10f)
+                ambientColor = Color.Black.copy(alpha = 0.08f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
             )
             .background(
-                color = Color.White.copy(alpha = 0.40f),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.60f),
                 shape = RoundedCornerShape(24.dp)
             ),
         contentAlignment = Alignment.Center
@@ -218,7 +218,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.Pets,
                 contentDescription = null,
-                tint = PetHelpPrimary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .size(64.dp)
                     .align(Alignment.Center)
@@ -227,7 +227,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
-                tint = PetHelpSecondary,
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
                     .size(36.dp)
                     .align(Alignment.TopStart)
@@ -237,7 +237,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Filled.TouchApp,
                 contentDescription = null,
-                tint = PetHelpTertiary,
+                tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier
                     .size(36.dp)
                     .align(Alignment.BottomEnd)
@@ -278,10 +278,11 @@ fun LoginScreen(
 
     // ── Snackbar (Material Design best practice para mensajes de error) ──
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collectLatest { message ->
+        viewModel.snackbarMessage.collectLatest { uiText ->
             snackbarHostState.showSnackbar(
-                message = message,
+                message = uiText.asString(context),
                 duration = SnackbarDuration.Short
             )
         }
@@ -304,20 +305,23 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
                     )
                 )
         )
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpPrimary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = PetHelpSecondary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
@@ -340,11 +344,11 @@ fun LoginScreen(
                     .shadow(
                         elevation = 20.dp,
                         shape = CircleShape,
-                        ambientColor = Color(0xFFF3F4F6),
-                        spotColor = Color(0xFFF3F4F6)
+                        ambientColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        spotColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 Image(
                     painter = painterResource(R.drawable.img_happy_puppy),
@@ -366,7 +370,7 @@ fun LoginScreen(
                     fontSize = 30.sp,
                     letterSpacing = (-0.75).sp
                 ),
-                color = Color(0xFF101828)
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(Modifier.height(8.dp))
@@ -378,7 +382,7 @@ fun LoginScreen(
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 ),
-                color = Color(0xFF6A7282)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(32.dp))
@@ -390,7 +394,7 @@ fun LoginScreen(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.email_hint),
-                        color = Color(0xFF99A1AF),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp
                     )
                 },
@@ -398,7 +402,7 @@ fun LoginScreen(
                     Icon(
                         imageVector = Icons.Filled.Email,
                         contentDescription = null,
-                        tint = Color(0xFF99A1AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 },
@@ -406,13 +410,13 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color(0xFF101828),
-                    unfocusedTextColor = Color(0xFF101828),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = PetHelpPrimary,
-                    unfocusedBorderColor = Color(0xFFE5E7EB),
-                    cursorColor = PetHelpPrimary
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -433,7 +437,7 @@ fun LoginScreen(
                 placeholder = {
                     Text(
                         text = stringResource(R.string.password_hint),
-                        color = Color(0xFF99A1AF),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp
                     )
                 },
@@ -441,7 +445,7 @@ fun LoginScreen(
                     Icon(
                         imageVector = Icons.Filled.Lock,
                         contentDescription = null,
-                        tint = Color(0xFF99A1AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 },
@@ -451,7 +455,7 @@ fun LoginScreen(
                             imageVector = if (passwordVisible) Icons.Filled.Visibility
                             else Icons.Filled.VisibilityOff,
                             contentDescription = null,
-                            tint = Color(0xFF99A1AF)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -461,13 +465,13 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color(0xFF101828),
-                    unfocusedTextColor = Color(0xFF101828),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = PetHelpPrimary,
-                    unfocusedBorderColor = Color(0xFFE5E7EB),
-                    cursorColor = PetHelpPrimary
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -481,14 +485,14 @@ fun LoginScreen(
 
             Spacer(Modifier.height(4.dp))
 
-            // ── ¿Olvidaste tu contraseña? ──
+            // ¿Olvidaste tu contraseña?
             Text(
                 text = stringResource(R.string.forgot_password_link),
                 style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 ),
-                color = PetHelpPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .align(Alignment.End)
                     .clickable { navController.navigate(Screen.ForgotPassword) }
@@ -505,7 +509,7 @@ fun LoginScreen(
                 enabled = email.isNotBlank() && password.isNotBlank()
                         && uiState !is AuthUiState.Loading,
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 10.dp,
                     pressedElevation = 4.dp
@@ -516,20 +520,20 @@ fun LoginScreen(
                     .shadow(
                         elevation = 15.dp,
                         shape = RoundedCornerShape(50),
-                        ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
-                        spotColor = PetHelpPrimary.copy(alpha = 0.3f)
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     )
             ) {
                 if (uiState is AuthUiState.Loading) {
                     CircularProgressIndicator(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
                         text = stringResource(R.string.btn_login),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -552,7 +556,7 @@ fun LoginScreen(
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp
                     ),
-                    color = Color(0xFF6A7282)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = stringResource(R.string.no_account_action),
@@ -560,7 +564,7 @@ fun LoginScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     ),
-                    color = PetHelpPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable {
                         navController.navigate(Screen.Register)
                     }
@@ -577,8 +581,8 @@ fun LoginScreen(
         ) { data ->
             Snackbar(
                 snackbarData = data,
-                containerColor = Color(0xFF323232),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                 shape = RoundedCornerShape(12.dp)
             )
         }
@@ -602,10 +606,11 @@ fun RegisterScreen(
 
     // ── Snackbar ──
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collectLatest { message ->
+        viewModel.snackbarMessage.collectLatest { uiText ->
             snackbarHostState.showSnackbar(
-                message = message,
+                message = uiText.asString(context),
                 duration = SnackbarDuration.Short
             )
         }
@@ -639,20 +644,23 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
                     )
                 )
         )
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpPrimary.copy(alpha = 0.05f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
             size = 320.dp,
             offsetX = 153.dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = PetHelpSecondary.copy(alpha = 0.05f),
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = 597.dp
@@ -698,7 +706,7 @@ fun RegisterScreen(
                             lineHeight = 38.sp,
                             letterSpacing = (-0.5).sp
                         ),
-                        color = Color(0xFF101828)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     Spacer(Modifier.height(32.dp))
@@ -752,8 +760,8 @@ fun RegisterScreen(
                             checked = termsAccepted,
                             onCheckedChange = { termsAccepted = it },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = PetHelpPrimary,
-                                uncheckedColor = Color(0xFFD1D5DC)
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.outlineVariant
                             )
                         )
                         Text(
@@ -762,7 +770,7 @@ fun RegisterScreen(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             ),
-                            color = Color(0xFF4A5565)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = stringResource(R.string.terms_link),
@@ -770,7 +778,7 @@ fun RegisterScreen(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium
                             ),
-                            color = PetHelpPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickable { showTermsDialog = true }
                         )
                     }
@@ -787,8 +795,8 @@ fun RegisterScreen(
                         enabled = isFormValid && uiState !is AuthUiState.Loading,
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpPrimary,
-                            disabledContainerColor = Color(0xFFD1D5DC).copy(alpha = 0.5f)
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         ),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = if (isFormValid) 10.dp else 0.dp,
@@ -800,14 +808,14 @@ fun RegisterScreen(
                     ) {
                         if (uiState is AuthUiState.Loading) {
                             CircularProgressIndicator(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
                             Text(
                                 text = stringResource(R.string.btn_register_me),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
@@ -829,8 +837,8 @@ fun RegisterScreen(
         ) { data ->
             Snackbar(
                 snackbarData = data,
-                containerColor = Color(0xFF323232),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                 shape = RoundedCornerShape(12.dp)
             )
         }
@@ -850,10 +858,11 @@ fun ForgotPasswordScreen(
 
     // ── Snackbar ──
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collectLatest { message ->
+        viewModel.snackbarMessage.collectLatest { uiText ->
             snackbarHostState.showSnackbar(
-                message = message,
+                message = uiText.asString(context),
                 duration = SnackbarDuration.Short
             )
         }
@@ -866,20 +875,23 @@ fun ForgotPasswordScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFFAFAFA), Color(0xFFE8F5E9))
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        )
                     )
                 )
         )
 
         // manchas desenfocadas
         BlurredCircle(
-            color = PetHelpPrimary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
             offsetX = (-80).dp,
             offsetY = (-80).dp
         )
         BlurredCircle(
-            color = PetHelpSecondary.copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f),
             size = 288.dp,
             offsetX = 185.dp,
             offsetY = 160.dp
@@ -925,7 +937,7 @@ fun ForgotPasswordScreen(
                         fontSize = 30.sp,
                         letterSpacing = (-0.75).sp
                     ),
-                    color = Color(0xFF101828)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -937,7 +949,7 @@ fun ForgotPasswordScreen(
                         fontSize = 16.sp,
                         lineHeight = 26.sp
                     ),
-                    color = Color(0xFF6A7282)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(32.dp))
@@ -961,7 +973,7 @@ fun ForgotPasswordScreen(
                         onClick = { viewModel.sendPasswordReset(email.trim()) },
                         enabled = email.isNotBlank() && uiState !is AuthUiState.Loading,
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 10.dp,
                             pressedElevation = 4.dp
@@ -972,20 +984,20 @@ fun ForgotPasswordScreen(
                             .shadow(
                                 elevation = 15.dp,
                                 shape = RoundedCornerShape(50),
-                                ambientColor = PetHelpPrimary.copy(alpha = 0.3f),
-                                spotColor = PetHelpPrimary.copy(alpha = 0.3f)
+                                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
                     ) {
                         if (uiState is AuthUiState.Loading) {
                             CircularProgressIndicator(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
                             Text(
                                 text = stringResource(R.string.btn_send_reset),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
@@ -1020,8 +1032,8 @@ fun ForgotPasswordScreen(
         ) { data ->
             Snackbar(
                 snackbarData = data,
-                containerColor = Color(0xFF323232),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                 shape = RoundedCornerShape(12.dp)
             )
         }
@@ -1033,7 +1045,7 @@ fun ForgotPasswordScreen(
 private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -1045,7 +1057,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                 modifier = Modifier
                     .size(64.dp)
                     .background(
-                        color = Color(0xFFC8E6C9),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -1053,7 +1065,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.Email,
                     contentDescription = null,
-                    tint = PetHelpPrimaryDark,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -1066,7 +1078,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 ),
-                color = PetHelpPrimaryDark
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.height(8.dp))
@@ -1083,7 +1095,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
                     fontSize = 16.sp,
                     lineHeight = 24.sp
                 ),
-                color = Color(0xFF388E3C),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -1093,12 +1105,12 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
             OutlinedButton(
                 onClick = onBackToStart,
                 shape = RoundedCornerShape(50),
-                border = BorderStroke(1.dp, PetHelpPrimaryDark),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = stringResource(R.string.btn_back_to_start),
-                    color = PetHelpPrimaryDark,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp
@@ -1121,7 +1133,7 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(160.dp)
                 .background(
-                    color = Color(0xFFE0F2F1),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                     shape = CircleShape
                 )
         )
@@ -1148,7 +1160,7 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
         Icon(
             imageVector = Icons.Filled.VpnKey,
             contentDescription = null,
-            tint = Color(0xFF78909C),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             modifier = Modifier.size(64.dp)
         )
         // Pata pequeña con fondo blanco (esquina inferior derecha)
@@ -1163,14 +1175,14 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
                     ambientColor = Color.Black.copy(alpha = 0.1f),
                     spotColor = Color.Black.copy(alpha = 0.1f)
                 )
-                .background(Color.White, CircleShape)
+                .background(MaterialTheme.colorScheme.surface, CircleShape)
                 .rotate(12f),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.Pets,
                 contentDescription = null,
-                tint = PetHelpSecondary,
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -1193,14 +1205,14 @@ private fun BackButton(onClick: () -> Unit) {
                 spotColor = Color.Black.copy(alpha = 0.1f)
             )
             .background(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shape = CircleShape
             )
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Atrás",
-            tint = Color(0xFF101828),
+            contentDescription = stringResource(R.string.common_back),
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp)
         )
     }
@@ -1222,13 +1234,13 @@ private fun AuthTextField(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(text = placeholder, color = Color(0xFF99A1AF), fontSize = 16.sp)
+            Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
         },
         leadingIcon = {
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                tint = Color(0xFF99A1AF),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         },
@@ -1239,7 +1251,7 @@ private fun AuthTextField(
                         imageVector = if (passwordVisible) Icons.Filled.Visibility
                         else Icons.Filled.VisibilityOff,
                         contentDescription = null,
-                        tint = Color(0xFF99A1AF)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1250,13 +1262,13 @@ private fun AuthTextField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(14.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color(0xFF101828),
-            unfocusedTextColor = Color(0xFF101828),
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedBorderColor = PetHelpPrimary,
-            unfocusedBorderColor = Color(0xFFE5E7EB),
-            cursorColor = PetHelpPrimary
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            cursorColor = MaterialTheme.colorScheme.primary
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -1280,10 +1292,10 @@ private fun PasswordStrengthIndicator(password: String) {
         else                 -> 1f
     }
     val strengthColor = when {
-        strength <= 0.25f -> Color(0xFFE57373)
-        strength <= 0.5f  -> PetHelpSecondary
-        strength <= 0.75f -> Color(0xFFFFD54F)
-        else              -> PetHelpPrimary
+        strength <= 0.25f -> MaterialTheme.colorScheme.error
+        strength <= 0.5f  -> MaterialTheme.colorScheme.secondary
+        strength <= 0.75f -> MaterialTheme.colorScheme.tertiary
+        else              -> MaterialTheme.colorScheme.primary
     }
 
     if (password.isNotEmpty()) {
@@ -1293,14 +1305,14 @@ private fun PasswordStrengthIndicator(password: String) {
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LinearProgressIndicator(
+                LinearProgressIndicator(
                 progress = { strength },
                 modifier = Modifier
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(50)),
                 color = strengthColor,
-                trackColor = Color(0xFFF3F4F6),
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         }
     }
@@ -1318,7 +1330,7 @@ private fun TermsAndConditionsDialog(
     ) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .fillMaxHeight(0.85f)
@@ -1331,11 +1343,11 @@ private fun TermsAndConditionsDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     ),
-                    color = Color(0xFF1A1A2E),
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 12.dp)
                 )
 
-                HorizontalDivider(color = Color(0xFFE5E7EB))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 // ── Scrollable content ──
                 Text(
@@ -1343,14 +1355,14 @@ private fun TermsAndConditionsDialog(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         lineHeight = 22.sp
                     ),
-                    color = Color(0xFF4B5563),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 )
 
-                HorizontalDivider(color = Color(0xFFE5E7EB))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 // ── Buttons ──
                 Row(
@@ -1362,21 +1374,21 @@ private fun TermsAndConditionsDialog(
                     OutlinedButton(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(50),
-                        border = BorderStroke(1.dp, Color(0xFFD1D5DB))
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         Text(
                             text = stringResource(R.string.terms_dialog_close),
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Button(
                         onClick = onAccept,
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
                             text = stringResource(R.string.terms_dialog_accept),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.SemiBold
                         )
                     }

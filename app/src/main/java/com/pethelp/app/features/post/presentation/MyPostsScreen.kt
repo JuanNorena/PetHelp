@@ -27,16 +27,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pethelp.app.R
+import com.pethelp.app.core.common.UiText
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.BackgroundLight
-import com.pethelp.app.core.ui.theme.PetHelpDestructive
-import com.pethelp.app.core.ui.theme.PetHelpPrimary
-import com.pethelp.app.core.ui.theme.PetHelpSecondary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,9 +47,11 @@ fun MyPostsScreen(
     val filteredPosts by viewModel.filteredPosts.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { msg ->
-            snackbarHostState.showSnackbar(msg)
+        viewModel.snackbarMessage.collect { uiText ->
+            snackbarHostState.showSnackbar(uiText.asString(context))
         }
     }
 
@@ -97,14 +96,14 @@ fun MyPostsScreen(
             when {
                 uiState.isLoading && uiState.allPosts.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = PetHelpPrimary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 uiState.error != null && uiState.allPosts.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = uiState.error!!,
-                            color = PetHelpDestructive,
+                            text = uiState.error!!.asString(),
+                            color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(24.dp)
                         )
@@ -346,7 +345,7 @@ private fun MyPostCard(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp),
-                                tint = PetHelpPrimary
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(Modifier.width(4.dp))
                             Text(
@@ -401,21 +400,22 @@ private fun MyPostCard(
 
 @Composable
 private fun PostStatusBadge(status: PostStatus) {
-    val (bgColor, textColor, label) = when (status) {
-        PostStatus.VERIFIED, PostStatus.ACTIVE -> Triple(
-            PetHelpPrimary.copy(alpha = 0.12f), PetHelpPrimary, stringResource(R.string.status_active_caps)
+    val (bgColor, textColor) = when (status) {
+        PostStatus.VERIFIED, PostStatus.ACTIVE -> Pair(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.primary
         )
-        PostStatus.PENDING -> Triple(
-            PetHelpSecondary.copy(alpha = 0.15f), PetHelpSecondary, stringResource(R.string.status_pending_caps)
+        PostStatus.PENDING -> Pair(
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.secondary
         )
-        PostStatus.REJECTED -> Triple(
-            PetHelpDestructive.copy(alpha = 0.12f), PetHelpDestructive, stringResource(R.string.status_rejected_caps)
+        PostStatus.REJECTED -> Pair(
+            MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+            MaterialTheme.colorScheme.error
         )
-        PostStatus.RESOLVED, PostStatus.ADOPTED -> Triple(
-            Color.Gray.copy(alpha = 0.15f), Color.Gray, status.displayName.uppercase()
-        )
-        PostStatus.PAUSED -> Triple(
-            Color.Gray.copy(alpha = 0.12f), Color.Gray, status.displayName.uppercase()
+        PostStatus.RESOLVED, PostStatus.ADOPTED, PostStatus.PAUSED -> Pair(
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.outline
         )
     }
     Box(
@@ -424,7 +424,7 @@ private fun PostStatusBadge(status: PostStatus) {
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Text(
-            text = label,
+            text = UiText.fromStatus(status).asString(),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             color = textColor,
@@ -439,12 +439,12 @@ private fun RejectionReasonBox(reason: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = PetHelpDestructive.copy(alpha = 0.08f),
+                color = MaterialTheme.colorScheme.errorContainer,
                 shape = RoundedCornerShape(8.dp)
             )
             .border(
                 width = 1.dp,
-                color = PetHelpDestructive.copy(alpha = 0.3f),
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -453,7 +453,7 @@ private fun RejectionReasonBox(reason: String) {
         Icon(
             imageVector = Icons.Default.Warning,
             contentDescription = null,
-            tint = PetHelpDestructive,
+            tint = MaterialTheme.colorScheme.error,
             modifier = Modifier
                 .size(16.dp)
                 .padding(top = 1.dp)
@@ -462,7 +462,7 @@ private fun RejectionReasonBox(reason: String) {
         Text(
             text = reason,
             fontSize = 12.sp,
-            color = PetHelpDestructive,
+            color = MaterialTheme.colorScheme.onErrorContainer,
             lineHeight = 16.sp
         )
     }
@@ -491,7 +491,7 @@ private fun PostActionRow(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
-                    tint = PetHelpDestructive,
+                    tint = MaterialTheme.colorScheme.error,
                     enabled = !isDeleting
                 )
             }
@@ -503,7 +503,7 @@ private fun PostActionRow(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
-                    tint = PetHelpDestructive,
+                    tint = MaterialTheme.colorScheme.error,
                     enabled = !isDeleting
                 )
             }
@@ -514,19 +514,19 @@ private fun PostActionRow(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
-                    tint = PetHelpDestructive,
+                    tint = MaterialTheme.colorScheme.error,
                     enabled = !isDeleting
                 )
             }
             PostStatus.PAUSED -> {
                 ActionIconButton(Icons.Default.Edit, stringResource(R.string.action_edit), onEditClick)
-                ActionIconButton(Icons.Default.PlayCircle, "Reanudar", onPauseClick) // Reusando onPauseClick para alternar
+                ActionIconButton(Icons.Default.PlayCircle, stringResource(R.string.action_resume), onPauseClick)
                 Spacer(Modifier.weight(1f))
                 ActionIconButton(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
-                    tint = PetHelpDestructive,
+                    tint = MaterialTheme.colorScheme.error,
                     enabled = !isDeleting
                 )
             }
@@ -536,7 +536,7 @@ private fun PostActionRow(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.action_delete),
                     onClick = onDeleteClick,
-                    tint = PetHelpDestructive,
+                    tint = MaterialTheme.colorScheme.error,
                     enabled = !isDeleting
                 )
             }
@@ -574,7 +574,7 @@ private fun DeleteConfirmationDialog(
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = null,
-                tint = PetHelpDestructive
+                tint = MaterialTheme.colorScheme.error
             )
         },
         title = {
@@ -589,7 +589,7 @@ private fun DeleteConfirmationDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = PetHelpDestructive)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text(stringResource(R.string.action_delete))
             }

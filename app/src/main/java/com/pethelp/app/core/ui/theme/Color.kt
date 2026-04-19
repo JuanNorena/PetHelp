@@ -11,6 +11,9 @@ val PrimaryLightContainer = Color(0xFFE5F8F7)  // Tint 10% simulado
 val PrimaryDarkContainer  = Color(0xFF009690)  // Variante oscura
 val OnPrimaryContainer    = Color(0xFF00BCB4)  // Texto sobre contenedor claro
 
+val SecondaryLightContainer = Color(0xFFFFEDD5) // Naranja muy suave
+val SecondaryDarkContainer  = Color(0xFFCC9138) // Variante oscura
+
 // ── Acento — Secundario (Naranja Cálido)
 val PetHelpSecondary     = Color(0xFFFFB547)   // Naranja (#FFB547)
 val PetHelpSecondaryDark = Color(0xFFCC9138)   // Active / Dark variant (#CC9138)
@@ -40,14 +43,63 @@ val TextHint             = Color(0xFF9E9E9E)   // (#9E9E9E)
 // ── Contenedores Terciarios (Específicos para avisos)
 val TertiaryLightContainer   = Color(0xFFF3E8FF)
 val OnTertiaryLightContainer = Color(0xFF6B21A8)
+val TertiaryDarkContainer    = Color(0xFF7E57C2)
 
 // ── Auxiliares ────────────────────────────────────────────────────────────────
 val White                = Color(0xFFFFFFFF)
 val PetHelpDestructive   = Color(0xFFFF4747)   // Rojo destructivo (#FF4747)
 val PetHelpDestructiveDark = Color(0xFFCC3333) // Rojo oscuro para tema oscuro
+val BadgeRed             = Color(0xFFFB2C36)
+
+// ── Colores de Acento para Iconos y Categorías ────────────────────────────────
+val AccentBlue           = Color(0xFF3B82F6)
+val AccentGreen          = Color(0xFF10B981)
+val AccentPurple         = Color(0xFF8B5CF6)
+val AccentRed            = Color(0xFFF87171)
+val AccentGray           = Color(0xFF64748B)
+val AccentTeal           = Color(0xFF2DD4BF)
+val AccentIndigo         = Color(0xFF6366F1)
+val AccentAmber          = Color(0xFFFBBF24)
+val AccentCyan           = Color(0xFF06B6D4)
+
+// ── Colores de UI y Fondos Específicos ────────────────────────────────────────
+val SurfaceLow           = Color(0xFFFAFAFA)
+val SurfaceMedium        = Color(0xFFF3F4F6)
+val SurfaceHigh          = Color(0xFFE5E7EB)
+val GradientStart        = Color(0xFFFAFAFA)
+val GradientEnd          = Color(0xFFE8F5E9)
+
+// ── Colores de Texto y Semánticos ─────────────────────────────────────────────
+val StatusSuccess        = Color(0xFF146C2E)
+val StatusSuccessBg      = Color(0xFFE8F5E9)
+val StatusSuccessBorder  = Color(0xFFC8E6C9)
+val StatusSuccessText    = Color(0xFF388E3C)
+
+// Status: Warning (Pending)
+val StatusWarning        = Color(0xFF7A2E0E)
+val StatusWarningBg      = Color(0xFFFFF4E5)
+
+// Status: Error (Rejected)
+val StatusError          = Color(0xFFA12622)
+val StatusErrorBg        = Color(0xFFFFECEB)
+val ErrorText            = Color(0xFFB42318)
+
+// Status: Info (Active)
+val StatusInfo           = Color(0xFF0369A1)
+val StatusInfoBg         = Color(0xFFE0F2FE)
+
+// Status: Indigo (Resolved)
+val StatusIndigo         = Color(0xFF4338CA)
+val StatusIndigoBg       = Color(0xFFEEF2FF)
+
+// Status: Neutral (Paused)
+val StatusNeutral        = Color(0xFF4B5563)
+val StatusNeutralBg      = Color(0xFFF3F4F6)
+
+val BorderDefault        = Color(0xFFE5E7EB)
+val BorderLight          = Color(0xFFD1D5DC)
 
 // Alias para compatibilidad con pantallas
-val Orange = PetHelpSecondary
 val Teal = Color(0xFF00BFA5)
 
 object MapStyles {

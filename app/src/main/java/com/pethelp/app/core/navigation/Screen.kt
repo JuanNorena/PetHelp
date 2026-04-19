@@ -20,6 +20,8 @@ sealed class Screen {
     @Serializable data object Feed : Screen()
     
     @Serializable data class PostDetail(val postId: String) : Screen()
+    @Serializable data class AdoptionRequest(val postId: String, val petName: String) : Screen()
+    @Serializable data object AdoptionSuccess : Screen()
     
     @Serializable data object CreatePost : Screen()
     @Serializable data class LocationSelection(
@@ -60,11 +62,14 @@ sealed class Screen {
     data class EditPost(val postId: String) : Screen()
     
     @Serializable data object Notifications : Screen()
+    @Serializable data object AdoptionRequests : Screen()
     @Serializable data object Map : Screen()
     @Serializable data object Chat : Screen()
     @Serializable data object Profile : Screen()
+    @Serializable data object Favorites : Screen()
     @Serializable data object EditProfile : Screen()
     @Serializable data object Settings : Screen()
+    @Serializable data object Language : Screen()
     @Serializable data object Security : Screen()
     @Serializable data object Privacy : Screen()
     @Serializable data object ProfileVisibility : Screen()

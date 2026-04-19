@@ -29,8 +29,6 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.PetHelpPrimary
-import com.pethelp.app.core.ui.theme.PetHelpSecondary
 
 @Composable
 fun PetHelpBottomNavBar(navController: NavController) {

@@ -57,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.pethelp.app.R
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Post
@@ -127,7 +128,7 @@ fun FeedScreen(
 
                     items(PostCategory.entries) { category ->
                         FilterChipUI(
-                            label = categoryToDisplayName(category),
+                            label = UiText.fromCategory(category).asString(),
                             selected = uiState.selectedCategory == category,
                             onClick = { viewModel.selectCategory(category) }
                         )
@@ -163,7 +164,7 @@ fun FeedScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = uiState.error.orEmpty(),
+                            text = uiState.error?.asString() ?: "",
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 24.dp)
@@ -322,14 +323,14 @@ private fun FeedPostCard(
                 )
 
                 Text(
-                    text = categoryToDisplayName(post.category),
+                    text = UiText.fromCategory(post.category).asString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TagChip(label = genderToDisplayName(post.gender))
-                    TagChip(label = sizeToDisplayName(post.size))
+                    TagChip(label = UiText.fromGender(post.gender).asString())
+                    TagChip(label = UiText.fromSize(post.size).asString())
                 }
 
                 if (post.locationName.isNotBlank()) {
@@ -405,35 +406,6 @@ private fun TagChip(label: String) {
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium
         )
-    }
-}
-
-@Composable
-private fun categoryToDisplayName(category: PostCategory): String {
-    return when (category) {
-        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
-        PostCategory.LOST -> stringResource(R.string.category_lost)
-        PostCategory.FOUND -> stringResource(R.string.category_found)
-        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
-        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
-    }
-}
-
-@Composable
-private fun genderToDisplayName(gender: AnimalGender): String {
-    return when (gender) {
-        AnimalGender.MALE -> stringResource(R.string.post_gender_male)
-        AnimalGender.FEMALE -> stringResource(R.string.post_gender_female)
-        AnimalGender.UNKNOWN -> stringResource(R.string.post_gender_unknown)
-    }
-}
-
-@Composable
-private fun sizeToDisplayName(size: AnimalSize): String {
-    return when (size) {
-        AnimalSize.SMALL -> stringResource(R.string.tag_small)
-        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
-        AnimalSize.LARGE -> stringResource(R.string.tag_large)
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.features.post.domain.repository.PostRepository
@@ -31,7 +32,7 @@ data class MyPostsUiState(
     val allPosts: List<Post> = emptyList(),
     val selectedTab: MyPostsTab = MyPostsTab.ACTIVE,
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val error: UiText? = null,
     val postPendingDelete: Post? = null,
     val isDeleting: Boolean = false
 )
@@ -45,8 +46,8 @@ class MyPostsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MyPostsUiState())
     val uiState: StateFlow<MyPostsUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     val filteredPosts: StateFlow<List<Post>> = uiState
         .map { state ->
@@ -79,7 +80,7 @@ class MyPostsViewModel @Inject constructor(
                         )
                     }
                     is Resource.Error -> _uiState.update {
-                        it.copy(isLoading = false, error = resource.message)
+                        it.copy(isLoading = false, error = resource.uiText)
                     }
                 }
             }
@@ -107,11 +108,11 @@ class MyPostsViewModel @Inject constructor(
                     is Resource.Loading -> { /* isDeleting ya fue puesto en true */ }
                     is Resource.Success -> {
                         _uiState.update { it.copy(isDeleting = false) }
-                        _snackbarMessage.emit("Publicación eliminada.")
+                        _snackbarMessage.emit(UiText.DynamicString("Publicación eliminada."))
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(isDeleting = false) }
-                        _snackbarMessage.emit(resource.message ?: "Error al eliminar.")
+                        _snackbarMessage.emit(resource.uiText ?: UiText.DynamicString("Error al eliminar."))
                     }
                 }
             }
@@ -122,8 +123,8 @@ class MyPostsViewModel @Inject constructor(
         viewModelScope.launch {
             postRepository.togglePostStatus(postId, isPaused = true).collect { resource ->
                 when (resource) {
-                    is Resource.Success -> _snackbarMessage.emit("Publicación pausada y enviada a revisión.")
-                    is Resource.Error   -> _snackbarMessage.emit(resource.message ?: "Error al pausar.")
+                    is Resource.Success -> _snackbarMessage.emit(UiText.DynamicString("Publicación pausada y enviada a revisión."))
+                    is Resource.Error   -> _snackbarMessage.emit(resource.uiText ?: UiText.DynamicString("Error al pausar."))
                     is Resource.Loading -> { /* no-op */ }
                 }
             }
@@ -134,8 +135,8 @@ class MyPostsViewModel @Inject constructor(
         viewModelScope.launch {
             postRepository.markAsResolved(postId).collect { resource ->
                 when (resource) {
-                    is Resource.Success -> _snackbarMessage.emit("¡Publicación marcada como resuelta!")
-                    is Resource.Error   -> _snackbarMessage.emit(resource.message ?: "Error al marcar como resuelta.")
+                    is Resource.Success -> _snackbarMessage.emit(UiText.DynamicString("¡Publicación marcada como resuelta!"))
+                    is Resource.Error   -> _snackbarMessage.emit(resource.uiText ?: UiText.DynamicString("Error al marcar como resuelta."))
                     is Resource.Loading -> { /* no-op */ }
                 }
             }

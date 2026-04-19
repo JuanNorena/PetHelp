@@ -2,9 +2,12 @@ package com.pethelp.app.features.moderation.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pethelp.app.R
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.features.post.domain.repository.PostRepository
+import com.pethelp.app.core.domain.model.PostStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -17,12 +20,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+data class ModerationStats(
+    val pendingCount: Int = 0,
+    val approvedToday: Int = 0,
+    val rejectedToday: Int = 0,
+    val approvalRate: Int = 0,
+    val totalUsers: Int = 0,
+    val totalAdoptions: Int = 0,
+    val activeReports: Int = 0
+)
+
 data class ModerationUiState(
     val pendingPosts: List<Post> = emptyList(),
+    val moderatedPostsToday: List<Post> = emptyList(),
+    val stats: ModerationStats = ModerationStats(),
     val selectedPost: Post? = null,
     val isLoading: Boolean = false,
     val isActionLoading: Boolean = false,
-    val error: String? = null
+    val error: UiText? = null,
+    val reportedUsers: List<com.pethelp.app.core.domain.model.User> = emptyList()
 )
 
 @HiltViewModel
@@ -33,14 +49,82 @@ class ModerationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ModerationUiState())
     val uiState: StateFlow<ModerationUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     private val _actionCompleted = MutableSharedFlow<Unit>()
     val actionCompleted: SharedFlow<Unit> = _actionCompleted.asSharedFlow()
 
     private var pendingPostsJob: Job? = null
+    private var moderatedPostsJob: Job? = null
     private var postDetailJob: Job? = null
+
+    init {
+        loadDashboardData()
+    }
+
+    fun loadDashboardData() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            loadPendingPosts()
+            loadModeratedPostsToday()
+            loadGlobalMetrics()
+        }
+    }
+
+    private fun loadGlobalMetrics() {
+        viewModelScope.launch {
+            postRepository.getGlobalMetrics().collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        val metrics = resource.data
+                        _uiState.value = _uiState.value.let { state ->
+                            state.copy(
+                                stats = state.stats.copy(
+                                    totalUsers = metrics?.get("totalUsers") as? Int ?: 0,
+                                    totalAdoptions = metrics?.get("totalAdoptions") as? Int ?: 0,
+                                    activeReports = metrics?.get("activeReports") as? Int ?: 0
+                                )
+                            )
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    fun loadModeratedPostsToday() {
+        moderatedPostsJob?.cancel()
+        moderatedPostsJob = viewModelScope.launch {
+            postRepository.getModeratedPostsToday().collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        val posts = resource.data ?: emptyList()
+                        _uiState.value = _uiState.value.copy(
+                            moderatedPostsToday = posts,
+                            stats = calculateStats(_uiState.value.pendingPosts.size, posts)
+                        )
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun calculateStats(pendingCount: Int, moderatedToday: List<Post>): ModerationStats {
+        val approved = moderatedToday.count { it.status == PostStatus.VERIFIED }
+        val rejected = moderatedToday.count { it.status == PostStatus.REJECTED }
+        val total = approved + rejected
+        val rate = if (total > 0) (approved * 100) / total else 0
+        
+        return ModerationStats(
+            pendingCount = pendingCount,
+            approvedToday = approved,
+            rejectedToday = rejected,
+            approvalRate = rate
+        )
+    }
 
     fun loadPendingPosts(forceRefresh: Boolean = false) {
         if (pendingPostsJob != null && !forceRefresh) return
@@ -54,8 +138,10 @@ class ModerationViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
+                        val posts = resource.data ?: emptyList()
                         _uiState.value = _uiState.value.copy(
-                            pendingPosts = resource.data ?: emptyList(),
+                            pendingPosts = posts,
+                            stats = calculateStats(posts.size, _uiState.value.moderatedPostsToday),
                             isLoading = false,
                             error = null
                         )
@@ -64,7 +150,7 @@ class ModerationViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = resource.message
+                            error = resource.uiText
                         )
                     }
                 }
@@ -92,7 +178,7 @@ class ModerationViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = resource.message
+                            error = resource.uiText
                         )
                     }
                 }
@@ -103,7 +189,7 @@ class ModerationViewModel @Inject constructor(
     fun approvePost(postId: String) {
         executeModerationAction(
             action = { postRepository.approvePost(postId) },
-            successMessage = "Publicación aprobada correctamente.",
+            successMessage = UiText.StringResource(R.string.moderation_post_approved_success),
             moderatedPostId = postId
         )
     }
@@ -112,14 +198,14 @@ class ModerationViewModel @Inject constructor(
         val normalizedReason = reason.trim()
         if (normalizedReason.isBlank()) {
             viewModelScope.launch {
-                _snackbarMessage.emit("Debes ingresar un motivo para rechazar.")
+                _snackbarMessage.emit(UiText.StringResource(R.string.moderation_reject_reason_required))
             }
             return
         }
 
         executeModerationAction(
             action = { postRepository.rejectPost(postId, normalizedReason) },
-            successMessage = "Publicación rechazada correctamente.",
+            successMessage = UiText.StringResource(R.string.moderation_post_rejected_success),
             moderatedPostId = postId
         )
     }
@@ -130,7 +216,7 @@ class ModerationViewModel @Inject constructor(
 
     private fun executeModerationAction(
         action: () -> kotlinx.coroutines.flow.Flow<Resource<Unit>>,
-        successMessage: String,
+        successMessage: UiText,
         moderatedPostId: String? = null
     ) {
         viewModelScope.launch {
@@ -163,14 +249,15 @@ class ModerationViewModel @Inject constructor(
                         _snackbarMessage.emit(successMessage)
                         _actionCompleted.emit(Unit)
                         loadPendingPosts(forceRefresh = true)
+                        loadModeratedPostsToday()
                     }
 
                     is Resource.Error -> {
                         _uiState.value = _uiState.value.copy(
                             isActionLoading = false,
-                            error = resource.message
+                            error = resource.uiText
                         )
-                        _snackbarMessage.emit(resource.message ?: "No fue posible completar la acción.")
+                        _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.moderation_action_error))
                     }
                 }
             }

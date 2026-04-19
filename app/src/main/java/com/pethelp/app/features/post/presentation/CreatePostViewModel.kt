@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.AnimalAge
 import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.AnimalSize
@@ -50,7 +51,7 @@ data class CreatePostUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val createdPostId: String? = null,
-    val error: String? = null
+    val error: UiText? = null
 )
 
 /**
@@ -82,8 +83,8 @@ class CreatePostViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CreatePostUiState())
     val uiState: StateFlow<CreatePostUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
@@ -151,7 +152,7 @@ class CreatePostViewModel @Inject constructor(
         val current = _uiState.value.imageUris
         if (current.size >= Constants.MAX_IMAGES_PER_POST) {
             viewModelScope.launch {
-                _snackbarMessage.emit("Máximo ${Constants.MAX_IMAGES_PER_POST} fotos permitidas.")
+                _snackbarMessage.emit(UiText.DynamicString("Máximo ${Constants.MAX_IMAGES_PER_POST} fotos permitidas."))
             }
             return
         }
@@ -179,25 +180,25 @@ class CreatePostViewModel @Inject constructor(
         val currentUser = firebaseAuth.currentUser
 
         if (currentUser == null) {
-            viewModelScope.launch { _snackbarMessage.emit("Debes iniciar sesión para publicar.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.DynamicString("Debes iniciar sesión para publicar.")) }
             return
         }
 
         // Validaciones
         if (state.title.isBlank()) {
-            viewModelScope.launch { _snackbarMessage.emit("Ingresa un título para la publicación.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.DynamicString("Ingresa un título para la publicación.")) }
             return
         }
         if (state.description.isBlank()) {
-            viewModelScope.launch { _snackbarMessage.emit("Ingresa una descripción.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.DynamicString("Ingresa una descripción.")) }
             return
         }
         if (state.imageUris.isEmpty()) {
-            viewModelScope.launch { _snackbarMessage.emit("Agrega al menos una foto para continuar.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.DynamicString("Agrega al menos una foto para continuar.")) }
             return
         }
         if (state.latitude == 0.0 && state.longitude == 0.0) {
-            viewModelScope.launch { _snackbarMessage.emit("Selecciona una ubicación en el mapa.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.DynamicString("Selecciona una ubicación en el mapa.")) }
             return
         }
 
@@ -208,7 +209,7 @@ class CreatePostViewModel @Inject constructor(
                 val uploadedUrls = if (state.imageUris.isNotEmpty()) {
                     val total = state.imageUris.size
                     state.imageUris.mapIndexed { index, uri ->
-                        _snackbarMessage.emit("Subiendo foto ${index + 1} de $total...")
+                        _snackbarMessage.emit(UiText.DynamicString("Subiendo foto ${index + 1} de $total..."))
                         imageUploader.uploadImage(
                             localUri = uri.toString(),
                             folder = Constants.CLOUDINARY_FOLDER_POSTS
@@ -256,16 +257,16 @@ class CreatePostViewModel @Inject constructor(
                         is Resource.Error -> {
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
-                                error = resource.message
+                                error = resource.uiText
                             )
-                            _snackbarMessage.emit(resource.message ?: "Error al crear la publicación.")
+                            _snackbarMessage.emit(resource.uiText ?: UiText.DynamicString("Error al crear la publicación."))
                         }
                     }
                 }
             } catch (e: Exception) {
                 val message = e.localizedMessage ?: "No se pudieron subir las imágenes."
-                _uiState.value = _uiState.value.copy(isLoading = false, error = message)
-                _snackbarMessage.emit(message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = UiText.DynamicString(message))
+                _snackbarMessage.emit(UiText.DynamicString(message))
             }
         }
     }

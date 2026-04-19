@@ -1,5 +1,7 @@
 package com.pethelp.app.features.map.presentation
 
+import androidx.compose.ui.res.stringResource
+import com.pethelp.app.R
 import java.util.Locale
 import android.Manifest
 import android.location.Location
@@ -52,6 +54,7 @@ import com.google.maps.android.compose.*
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.launch
@@ -76,10 +79,10 @@ fun MapScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showSheet by remember { mutableStateOf(false) }
 
-    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
-    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outlineVariant
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -114,23 +117,23 @@ fun MapScreen(
                     Surface(
                         modifier = Modifier.size(48.dp),
                         shape = CircleShape,
-                        color = PetHelpPrimary.copy(alpha = 0.1f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ) {
                         Icon(
                             Icons.Default.Pets,
                             contentDescription = null,
-                            tint = PetHelpPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(12.dp)
                         )
                     }
                     Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text("PetHelp", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("Mapa de mascotas", color = secondaryTextColor, fontSize = 12.sp)
+                        Text(stringResource(R.string.map_drawer_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.map_drawer_subtitle), color = secondaryTextColor, fontSize = 12.sp)
                     }
                 }
                 HorizontalDivider(color = outlineColor)
                 NavigationDrawerItem(
-                    label = { Text("Mi Ubicación") },
+                    label = { Text(stringResource(R.string.map_drawer_my_location)) },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -142,7 +145,7 @@ fun MapScreen(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Capas de Mapa") },
+                    label = { Text(stringResource(R.string.map_drawer_layers)) },
                     selected = false,
                     onClick = {
                         mapType = if (mapType == MapType.NORMAL) MapType.SATELLITE else MapType.NORMAL
@@ -153,7 +156,7 @@ fun MapScreen(
                 )
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = outlineColor)
                 NavigationDrawerItem(
-                    label = { Text("Configuración") },
+                    label = { Text(stringResource(R.string.map_drawer_settings)) },
                     selected = false,
                     onClick = { /* Navegar a ajustes */ },
                     icon = { Icon(Icons.Default.Settings, null) },
@@ -240,7 +243,7 @@ fun MapScreen(
                         shape = RoundedCornerShape(26.dp),
                         color = surfaceColor,
                         shadowElevation = 6.dp,
-                        border = if (isDark) BorderStroke(1.dp, outlineColor) else null
+                        border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -257,7 +260,7 @@ fun MapScreen(
                             Box(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
                                 if (searchQuery.isEmpty()) {
                                     Text(
-                                        text = "Buscar mascotas...",
+                                        text = stringResource(R.string.map_search_hint),
                                         color = secondaryTextColor,
                                         fontSize = 14.sp
                                     )
@@ -266,7 +269,7 @@ fun MapScreen(
                                     value = searchQuery,
                                     onValueChange = { viewModel.onSearchQueryChange(it) },
                                     textStyle = TextStyle(color = textColor, fontSize = 14.sp),
-                                    cursorBrush = SolidColor(PetHelpPrimary),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true
                                 )
@@ -280,13 +283,13 @@ fun MapScreen(
 
                             Surface(
                                 shape = CircleShape,
-                                color = PetHelpPrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(38.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Search,
                                     null,
-                                    tint = White,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.padding(8.dp)
                                 )
                             }
@@ -299,12 +302,11 @@ fun MapScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(end = 16.dp)
                     ) {
-                        items(categories) { categoryLabel ->
+                        items(categories) { categoryUiText ->
                             PetMapFilterChip(
-                                label = categoryLabel,
-                                isSelected = selectedCategory == categoryLabel,
-                                isDark = isDark,
-                                onClick = { viewModel.onCategorySelect(categoryLabel) }
+                                label = categoryUiText.asString(),
+                                isSelected = selectedCategory == categoryUiText,
+                                onClick = { viewModel.onCategorySelect(categoryUiText) }
                             )
                         }
                     }
@@ -317,7 +319,7 @@ fun MapScreen(
                         .padding(end = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    MapControlBtn(Icons.Default.MyLocation, surfaceColor, PetHelpPrimary) {
+                    MapControlBtn(Icons.Default.MyLocation, surfaceColor, MaterialTheme.colorScheme.primary) {
                         scope.launch {
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(armenia, 15f)
@@ -332,7 +334,7 @@ fun MapScreen(
                         shape = RoundedCornerShape(12.dp),
                         color = surfaceColor,
                         shadowElevation = 4.dp,
-                        border = if (isDark) BorderStroke(1.dp, outlineColor) else null
+                        border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = {
@@ -369,15 +371,15 @@ fun MapScreen(
                             shape = RoundedCornerShape(20.dp),
                             color = surfaceColor,
                             shadowElevation = 4.dp,
-                            border = if (isDark) BorderStroke(1.dp, outlineColor) else null
+                            border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(modifier = Modifier.size(8.dp).background(PetHelpPrimary, CircleShape))
+                                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                                 Text(
-                                    " $count mascotas cerca",
+                                    " " + stringResource(R.string.map_nearby_indicator, count),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textColor
@@ -392,21 +394,21 @@ fun MapScreen(
 }
 
 @Composable
-fun PetMapFilterChip(label: String, isSelected: Boolean, isDark: Boolean, onClick: () -> Unit) {
+fun PetMapFilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
     val icon = when (label) {
-        "Adopción" -> Icons.Default.Pets
-        "Perdidos" -> Icons.Default.Warning
-        "Encontrados" -> Icons.Default.CheckCircle
-        "Hogar temporal" -> Icons.Default.Home
-        "Eventos veterinarios" -> Icons.Default.MedicalServices
+        stringResource(R.string.category_adoption) -> Icons.Default.Pets
+        stringResource(R.string.category_lost) -> Icons.Default.Warning
+        stringResource(R.string.category_found) -> Icons.Default.CheckCircle
+        stringResource(R.string.category_temp_home) -> Icons.Default.Home
+        stringResource(R.string.category_vet_event) -> Icons.Default.MedicalServices
         else -> Icons.Default.Map
     }
 
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) PetHelpPrimary else (if (isDark) SurfaceDark else White),
-        border = if (!isSelected) BorderStroke(1.dp, if (isDark) PetHelpOutlineDark else PetHelpOutline) else null,
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
         shadowElevation = 2.dp
     ) {
         Row(
@@ -417,12 +419,12 @@ fun PetMapFilterChip(label: String, isSelected: Boolean, isDark: Boolean, onClic
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (isSelected) White else PetHelpPrimary,
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp)
             )
             Text(
                 text = label,
-                color = if (isSelected) White else (if (isDark) White else TextPrimary),
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -438,7 +440,7 @@ fun MapControlBtn(icon: ImageVector, bgColor: Color, iconColor: Color, onClick: 
         color = bgColor,
         shadowElevation = 4.dp,
         onClick = onClick,
-        border = if (isSystemInDarkTheme()) BorderStroke(1.dp, PetHelpOutlineDark) else null
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = iconColor, modifier = Modifier.size(20.dp))
@@ -467,10 +469,10 @@ fun PetMapMarker(
                 modifier = Modifier
                     .size(if (isSelected) 56.dp else 44.dp)
                     .shadow(4.dp, CircleShape)
-                    .background(White, CircleShape)
+                    .background(MaterialTheme.colorScheme.surface, CircleShape)
                     .border(
                         width = if (isSelected) 3.dp else 1.dp,
-                        color = if (isSelected) PetHelpPrimary else White,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                         shape = CircleShape
                     )
                     .padding(2.dp)
@@ -493,7 +495,7 @@ fun PetMapMarker(
                 Surface(
                     modifier = Modifier.padding(top = 4.dp),
                     shape = RoundedCornerShape(8.dp),
-                    color = White,
+                    color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 2.dp
                 ) {
                     Text(
@@ -501,7 +503,7 @@ fun PetMapMarker(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -517,11 +519,11 @@ fun NearbyPetsSheetContent(
     userLocation: LatLng,
     onPostClick: (Post) -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     
     // Función para calcular distancia
+    val context = LocalContext.current
     fun getDistanceLabel(postLat: Double, postLng: Double): String {
         val results = FloatArray(1)
         Location.distanceBetween(
@@ -531,9 +533,9 @@ fun NearbyPetsSheetContent(
         )
         val distanceInKm = results[0] / 1000
         return if (distanceInKm < 1) {
-            "a ${(results[0]).toInt()} m"
+            context.getString(R.string.map_distance_m, results[0].toInt())
         } else {
-            "a ${String.format(Locale.getDefault(), "%.1f", distanceInKm)} km"
+            context.getString(R.string.map_distance_km, distanceInKm)
         }
     }
 
@@ -549,10 +551,10 @@ fun NearbyPetsSheetContent(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 16.dp)
         ) {
-            Icon(Icons.Default.NearMe, null, tint = PetHelpPrimary, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.NearMe, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
             Text(
-                " Cerca de ti",
-                color = PetHelpPrimary,
+                " " + stringResource(R.string.map_sheet_near_you),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -562,8 +564,8 @@ fun NearbyPetsSheetContent(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            color = if (isDark) SurfaceVariantDark else Color(0xFFF8F9FA),
-            border = BorderStroke(1.dp, if (isDark) PetHelpOutlineDark else Color(0xFFEEEEEE))
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
@@ -590,7 +592,7 @@ fun NearbyPetsSheetContent(
                         color = textColor
                     )
                     Text(
-                        "${selectedPost.category.displayName} · ${selectedPost.breed}",
+                        "${UiText.fromCategory(selectedPost.category).asString()} · ${selectedPost.breed}",
                         fontSize = 13.sp,
                         color = secondaryTextColor
                     )
@@ -598,11 +600,11 @@ fun NearbyPetsSheetContent(
 
                 Button(
                     onClick = { navController.navigate("post_detail/${selectedPost.id}") },
-                    colors = ButtonDefaults.buttonColors(containerColor = PetHelpPrimary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(50),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
-                    Text("Ver detalle", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.map_sheet_view_details), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -616,14 +618,14 @@ fun NearbyPetsSheetContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Otros cerca",
+                stringResource(R.string.map_sheet_others_nearby),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = textColor
             )
             Text(
-                "Ver todos",
-                color = PetHelpPrimary,
+                stringResource(R.string.map_sheet_view_all),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { /* TODO */ }
@@ -636,7 +638,7 @@ fun NearbyPetsSheetContent(
         val otherPosts = allPosts.filter { it.id != selectedPost.id }.take(3)
         if (otherPosts.isEmpty()) {
             Text(
-                "No hay más mascotas cerca en este momento.",
+                stringResource(R.string.map_sheet_no_more_nearby),
                 color = secondaryTextColor,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -679,20 +681,20 @@ fun NearbyPetsSheetContent(
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = when(post.category) {
-                            PostCategory.ADOPTION -> PetHelpPrimary.copy(alpha = 0.1f)
-                            PostCategory.LOST -> PetHelpDestructive.copy(alpha = 0.1f)
-                            else -> PetHelpSecondary.copy(alpha = 0.1f)
+                            PostCategory.ADOPTION -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            PostCategory.LOST -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                            else -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
                         }
                     ) {
                         Text(
-                            text = post.category.name,
+                            text = UiText.fromCategory(post.category).asString(),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = when(post.category) {
-                                PostCategory.ADOPTION -> PetHelpPrimary
-                                PostCategory.LOST -> PetHelpDestructive
-                                else -> PetHelpSecondary
+                                PostCategory.ADOPTION -> MaterialTheme.colorScheme.primary
+                                PostCategory.LOST -> MaterialTheme.colorScheme.error
+                                else -> MaterialTheme.colorScheme.secondary
                             }
                         )
                     }
@@ -706,7 +708,7 @@ fun NearbyPetsSheetContent(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Icon(Icons.Default.KeyboardArrowUp, null, tint = secondaryTextColor)
-            Text(" Más mascotas cerca", color = secondaryTextColor, fontSize = 13.sp)
+            Text(" " + stringResource(R.string.map_sheet_more_pets), color = secondaryTextColor, fontSize = 13.sp)
         }
     }
 }

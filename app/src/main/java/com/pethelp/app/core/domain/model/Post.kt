@@ -33,6 +33,8 @@ data class Post(
     val locationName: String = "",
     val votes: Int           = 0,
     val commentsCount: Int   = 0,
+    val iaMatchPercentage: Int? = null,
+    val iaSummary: String? = null,
     val rejectionReason: String? = null,
     val moderatedBy: String? = null,
     val moderatedAt: Long?   = null,
@@ -40,50 +42,50 @@ data class Post(
     val updatedAt: Long      = System.currentTimeMillis()
 )
 
-enum class PostCategory(val displayName: String) {
-    ADOPTION("Adopción"),
-    LOST("Perdidos"),
-    FOUND("Encontrados"),
-    TEMP_HOME("Hogar temporal"),
-    VET_EVENT("Eventos veterinarios")
+enum class PostCategory {
+    ADOPTION,
+    LOST,
+    FOUND,
+    TEMP_HOME,
+    VET_EVENT
 }
 
-enum class PostStatus(val displayName: String) {
-    ACTIVE("Activa"),
-    PAUSED("Pausada"),
-    ADOPTED("Adoptada"),
-    PENDING("Pendiente"),
-    VERIFIED("Verificada"),
-    REJECTED("Rechazada"),
-    RESOLVED("Resuelta/Finalizada")
+enum class PostStatus {
+    ACTIVE,
+    PAUSED,
+    ADOPTED,
+    PENDING,
+    VERIFIED,
+    REJECTED,
+    RESOLVED
 }
 
-enum class AnimalSize(val displayName: String) {
-    SMALL("Pequeño"),
-    MEDIUM("Mediano"),
-    LARGE("Grande")
+enum class AnimalSize {
+    SMALL,
+    MEDIUM,
+    LARGE
 }
 
-enum class AnimalAge(val displayName: String) {
-    PUPPY("Cachorro"),
-    YOUNG("Joven"),
-    ADULT("Adulto"),
-    SENIOR("Senior")
+enum class AnimalAge {
+    PUPPY,
+    YOUNG,
+    ADULT,
+    SENIOR
 }
 
-enum class AnimalGender(val displayName: String) {
-    MALE("Macho"),
-    FEMALE("Hembra"),
-    UNKNOWN("No lo sé")
+enum class AnimalGender {
+    MALE,
+    FEMALE,
+    UNKNOWN
 }
 
-enum class PetBehavior(val displayName: String) {
-    PLAYFUL("Juguetón"),
-    CALM("Tranquilo"),
-    PROTECTIVE("Protector"),
-    SHY("Tímido"),
-    SOCIABLE("Sociable"),
-    INDEPENDENT("Independiente"),
-    AFFECTIONATE("Cariñoso"),
-    ACTIVE("Activo")
+enum class PetBehavior {
+    PLAYFUL,
+    CALM,
+    PROTECTIVE,
+    SHY,
+    SOCIABLE,
+    INDEPENDENT,
+    AFFECTIONATE,
+    ACTIVE
 }

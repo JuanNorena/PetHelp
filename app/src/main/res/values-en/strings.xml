@@ -36,6 +36,22 @@ account</string>
     <string name="error_empty_fields">Please complete all fields.</string>
     <string name="error_passwords_weak">Password must be at least 6 characters.</string>
     <string name="error_terms_not_accepted">You must accept the terms and conditions.</string>
+    <string name="error_email_required">Please enter your email.</string>
+    <string name="error_email_invalid">Invalid email format.</string>
+    <string name="error_password_required">Please enter your password.</string>
+    <string name="error_name_required">Please enter your full name.</string>
+    <string name="error_name_too_long">Name cannot exceed %1$d characters.</string>
+    <string name="error_email_too_long">Email address is too long.</string>
+    <string name="error_password_too_short">Password must be at least %1$d characters.</string>
+    <string name="error_auth_user_not_found">No account found with this email.</string>
+    <string name="error_auth_user_collision">An account already exists with this email address.</string>
+    <string name="error_auth_weak_password">Password is too weak. Use at least 6 characters with letters and numbers.</string>
+    <string name="error_auth_too_many_requests">Too many failed attempts. Please wait a few minutes and try again.</string>
+    <string name="error_auth_no_session">No active session found.</string>
+    <string name="error_auth_profile_load">Error loading user profile.</string>
+    <string name="error_auth_profile_read">Error reading profile data.</string>
+    <string name="error_auth_config_missing">Authentication service configuration error. Contact support.</string>
+    <string name="error_auth_server">Internal server error. Please try again in a few moments.</string>
 
     <!-- Terms and Conditions -->
     <string name="terms_dialog_title">Terms and Conditions of Use</string>
@@ -188,8 +204,27 @@ a pet</string>
     <string name="post_details_title">Details</string>
     <string name="btn_next_details">Next: Details</string>
     <string name="btn_next_review">Next: Review</string>
+
     <string name="post_review_title">Review</string>
     <string name="post_review_instruction">Review that all information is correct before publishing.</string>
+    <string name="post_review_info_desc">Almost there. Once published, your report will be visible to the community after it is verified by our moderators.</string>
+    <string name="post_review_section_main">Main Data</string>
+    <string name="post_review_section_location">Location</string>
+    <string name="post_review_section_health">Details and Health</string>
+    <string name="post_review_label_age_gender">Age and Gender</string>
+    <string name="post_review_label_health">Health</string>
+    <string name="post_review_vaccinated">Vaccinated</string>
+    <string name="post_review_dewormed">Dewormed</string>
+    <string name="post_review_sterilized">Sterilized</string>
+    <string name="post_review_no_data">No data</string>
+    <string name="post_review_label_behavior">Behavior</string>
+    <string name="post_success_title">Post submitted!</string>
+    <string name="post_success_desc">Your post has been successfully submitted. It will be visible to everyone once it is approved by the moderation team.</string>
+    <string name="btn_publish">Publish</string>
+    <string name="btn_publish_pet">Publish pet</string>
+    <string name="btn_view_post">View post</string>
+    <string name="btn_back_home">Back to Home</string>
+
     <string name="post_location_instruction">Indicate where the pet is located so nearby people can see it.</string>
     <string name="post_location_warning">The exact location will not be visible to the public. We will only show an approximate area (e.g., 1km radius) for safety.</string>
     <string name="post_street_label">Street and number</string>
@@ -240,15 +275,112 @@ a pet</string>
     <string name="status_pending_caps">IN REVIEW</string>
     <string name="status_rejected_caps">REJECTED</string>
     <string name="status_resolved_caps">RESOLVED</string>
+    <string name="status_paused_caps">PAUSED</string>
+    <string name="status_adopted_caps">ADOPTED</string>
     <string name="action_edit">Edit</string>
     <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
     <string name="action_resolve">Mark as resolved</string>
     <string name="action_delete">Delete</string>
     <string name="delete_post_title">Delete post</string>
     <string name="delete_post_confirmation">Are you sure you want to delete "%1$s"? This action cannot be undone.</string>
 
+    <!-- Favorites -->
+    <string name="favorites_title">My Favorites</string>
+    <string name="favorites_subtitle">%1$d saved pets</string>
+    <string name="favorites_results">%1$d results</string>
+    <string name="favorites_explore_title">Looking for more pets?</string>
+    <string name="favorites_explore_subtitle">Explore all available pets for adoption near you.</string>
+    <string name="favorites_explore_btn">Explore now</string>
+    <string name="favorites_empty_title">No favorites yet</string>
+    <string name="favorites_empty_desc">The pets you save will appear here so you can view them later.</string>
+
+    <!-- Adoptions -->
+    <string name="adoption_request_title">Adoption request</string>
+    <string name="adoption_request_submit">Send request</string>
+    <string name="adoption_request_intro">You are about to request the adoption of %1$s. Tell the owner why you would be a great home.</string>
+    <string name="adoption_request_message_label">Message to the owner</string>
+    <string name="adoption_request_message_hint">Hi, I am interested in adopting %1$s...</string>
+    <string name="adoption_request_home_info">🏠 Home information</string>
+    <string name="adoption_request_optional">(Optional)</string>
+    <string name="adoption_request_housing_label">Housing type</string>
+    <string name="adoption_request_outdoor_label">Do you have outdoor space?</string>
+    <string name="adoption_request_experience_label">Pet experience</string>
+    <string name="adoption_request_contact_info">Contact information</string>
+    <string name="adoption_request_phone_label">Phone</string>
+    <string name="adoption_request_phone_hint">E.g. 555 123 4567</string>
+    <string name="adoption_request_contact_pref_label">Contact preference</string>
+    <string name="adoption_request_distance_info">The owner will see that you are approximately %1$s away.</string>
+
+    <string name="housing_house">House</string>
+    <string name="housing_apartment">Apartment</string>
+    <string name="experience_yes">Yes, I do</string>
+    <string name="experience_no">I am new</string>
+    <string name="contact_pethelp">PetHelp chat</string>
+    <string name="contact_whatsapp">WhatsApp</string>
+    <string name="contact_phone_call">Phone call</string>
+
+    <string name="adoption_requests_title">Received requests</string>
+    <string name="adoption_requests_subtitle">Review who wants to adopt your posts</string>
+    <string name="adoption_requests_tab_pending">New (%1$d)</string>
+    <string name="adoption_requests_tab_history">History</string>
+    <string name="adoption_requests_tab_history_count">History (%1$d)</string>
+    <string name="adoption_requests_empty">You have not received any requests yet</string>
+    <string name="adoption_requests_empty_pending">You have no new requests</string>
+    <string name="adoption_requests_empty_history">There are no requests in history yet</string>
+    <string name="adoption_request_item_subtitle">Wants to adopt your pet</string>
+    <string name="adoption_request_status_pending">Pending</string>
+    <string name="adoption_request_status_accepted">Accepted</string>
+    <string name="adoption_request_status_rejected">Rejected</string>
+    <string name="adoption_request_action_accept">Accept</string>
+    <string name="adoption_request_action_reject">Reject</string>
+    <string name="adoption_request_info_exp">Experience: %1$s</string>
+    <string name="adoption_success_title">🐾 Request sent!</string>
+    <string name="adoption_success_body">The owner has received your interest. You can check the status of your request in your profile.</string>
+    <string name="adoption_success_btn_chat">Go to chat</string>
+    <string name="adoption_success_btn_home">Back to home</string>
+    <string name="adoption_request_login_required">Sign in to request adoption.</string>
+    <string name="adoption_request_success">Adoption request sent!</string>
+    <string name="adoption_request_error">Error sending request.</string>
+
     <!-- Moderation -->
     <string name="moderation_panel_title">Moderation Panel</string>
+    <string name="moderation_logout_confirmation">Do you want to log out from the moderation panel?</string>
+    <string name="moderation_error_load_pending">Could not load pending posts.</string>
+    <string name="moderation_empty_pending">There are no pending posts to moderate.</string>
+    <string name="moderation_today_summary">Today\'s summary</string>
+    <string name="moderation_stat_pending">Pending</string>
+    <string name="moderation_stat_approved">Approved</string>
+    <string name="moderation_stat_rejected">Rejected</string>
+    <string name="moderation_stat_approval_rate">Approv. rate</string>
+    <string name="moderation_stat_total_users">Total Users</string>
+    <string name="moderation_stat_total_adoptions">Adoptions</string>
+    <string name="moderation_stat_active_reports">Reports</string>
+    <string name="moderation_dashboard_title">Moderation Dashboard</string>
+    <string name="moderation_pending_posts_title">Pending posts</string>
+    <string name="moderation_view_details">View details ></string>
+    <string name="moderation_priority_review">Priority Review</string>
+    <string name="moderation_ia_analysis_banner">AI Analysis: %1$d%% match</string>
+    <string name="moderation_reject_reason_title">Rejection reason</string>
+    <string name="moderation_reject_reason_label">Reason</string>
+    <string name="moderation_reject_reason_placeholder">Describe why you are rejecting the post</string>
+    <string name="moderation_btn_confirm_reject">Confirm rejection</string>
+    <string name="moderation_detail_title">Moderation Detail</string>
+    <string name="moderation_error_load_detail">Could not load the post.</string>
+    <string name="moderation_detail_author_label">Author: %1$s</string>
+    <string name="moderation_detail_category_label">Category: %1$s</string>
+    <string name="moderation_detail_published_label">Published: %1$s</string>
+    <string name="moderation_previous_rejection_title">Previous rejection reason</string>
+    <string name="moderation_saving_decision">Saving decision...</string>
+    <string name="moderation_post_not_found">Post not found.</string>
+    <string name="moderation_post_approved_success">Post approved successfully.</string>
+    <string name="moderation_post_rejected_success">Post rejected successfully.</string>
+    <string name="moderation_reject_reason_required">You must enter a reason to reject.</string>
+    <string name="moderation_action_error">Could not complete the action.</string>
+    <string name="moderation_post_card_author_info">Sent by %1$s • %2$s</string>
+    <string name="moderation_ia_summary_label">AI SUMMARY</string>
+    <string name="moderation_ia_match">%1$d%% Match</string>
+    <string name="moderation_percent_value">%1$d%%</string>
     <string name="btn_approve">Approve</string>
     <string name="btn_reject">Reject</string>
     <string name="reject_reason_hint">Rejection reason (required)</string>
@@ -304,6 +436,7 @@ a pet</string>
     <string name="profile_username_prefix">@</string>
     <string name="profile_my_posts">My posts</string>
     <string name="profile_favorites">Favorites</string>
+    <string name="profile_adoption_requests">Adoption requests</string>
     <string name="profile_settings">Settings</string>
     <string name="profile_level_label">Level %1$d</string>
     <string name="profile_total_points">TOTAL POINTS</string>
@@ -313,7 +446,39 @@ a pet</string>
     <string name="profile_stats_preferences">Preferences</string>
     <string name="profile_quick_access_title">Quick access</string>
     <string name="profile_avatar_desc">Profile photo</string>
+    <string name="common_refresh">Refresh</string>
     <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_ok">OK</string>
+    <string name="common_yes">Yes</string>
+    <string name="common_no">No</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_loading">Loading...</string>
+    <string name="common_error">Error</string>
+    <string name="common_success">Success</string>
+    <string name="common_info">Info</string>
+    <string name="common_warning">Warning</string>
+    <string name="common_select">Select</string>
+    <string name="common_close">Close</string>
+    <string name="common_next">Next</string>
+    <string name="common_finish">Finish</string>
+    <string name="common_skip">Skip</string>
+    <string name="common_search">Search</string>
+    <string name="common_filter">Filter</string>
+    <string name="common_all">All</string>
+    <string name="common_none">None</string>
+    <string name="common_share">Share</string>
+    <string name="common_camera">Camera</string>
+    <string name="common_gallery">Gallery</string>
+    <string name="common_photo">Photo</string>
+    <string name="common_location">Location</string>
+    <string name="common_map">Map</string>
+    <string name="common_language_changed_es">Idioma cambiado a español</string>
+    <string name="common_language_changed_en">Language changed to English</string>
+    <string name="common_language_not_supported">Language not supported</string>
 
     <string name="edit_profile_change_photo">Change profile photo</string>
     <string name="edit_profile_bio_hint">Bio</string>
@@ -329,7 +494,10 @@ a pet</string>
     <string name="settings_account_section">ACCOUNT</string>
     <string name="settings_security">Security</string>
     <string name="settings_language">Language</string>
-    <string name="settings_language_value">Spanish</string>
+    <string name="settings_language_label">LANGUAGE PREFERENCES</string>
+    <string name="settings_language_info">Changing the language will adjust the interface texts, but will not translate user posts.</string>
+    <string name="settings_language_spanish">Spanish</string>
+    <string name="settings_language_english">English</string>
     <string name="settings_notifications_section">NOTIFICATIONS</string>
     <string name="settings_push_notifications">Push notifications</string>
     <string name="settings_email_alerts">Email alerts</string>
@@ -388,6 +556,47 @@ a pet</string>
     <string name="visibility_show_city_title">Show city</string>
     <string name="visibility_show_city_desc">Show your city (e.g., Mexico City) on your public profile.</string>
 
-    <string name="common_cancel">Cancel</string>
-    <string name="common_retry">Retry</string>
+    <!-- Help Center -->
+    <string name="help_center_title">Help Center</string>
+    <string name="help_search_hint">Search help...</string>
+    <string name="help_guides_title">User Guides</string>
+    <string name="help_security_title">Security</string>
+    <string name="help_faq_section">Frequently Asked Questions</string>
+
+    <!-- User Guide -->
+    <string name="user_guide_title">User Guide</string>
+    <string name="user_guide_welcome_title">Welcome to PetHelp</string>
+    <string name="user_guide_welcome_body">Your ideal companion is just a few clicks away. This guide will help you navigate the app and make the most of our features to connect pets with loving homes.</string>
+    <string name="user_guide_start_title">How to get started</string>
+    <string name="user_guide_start_body">Create your account in seconds. You only need an email or your Google account. Complete your profile with a friendly photo to build trust in the community.</string>
+    <string name="user_guide_adopt_title">Adopting a pet</string>
+    <string name="user_guide_adopt_body">Explore thousands of pets using our smart filters. When you find your ideal companion, send an adoption request directly from their profile.</string>
+    <string name="user_guide_publish_title">Post for adoption</string>
+    <string name="user_guide_publish_body">Upload clear photos with good lighting. Describe the pet\'s personality, likes, and medical needs. A good story increases adoption chances.</string>
+    <string name="user_guide_security_title">Security tips</string>
+    <string name="user_guide_security_body">Always meet in safe, public places. Verify the shelter or adopter\'s information and never send money in advance without guarantees.</string>
+
+    <string name="faq_adopt_q">How do I adopt a pet?</string>
+    <string name="faq_adopt_a">To adopt, go to the profile of the pet you are interested in and click \'Request Adoption\'. The owner or shelter will review your request and contact you.</string>
+
+    <string name="faq_free_q">Is PetHelp free to use?</string>
+    <string name="faq_free_a">Yes, PetHelp is completely free for both adopters and those putting pets up for adoption. We are a non-profit community.</string>
+
+    <string name="faq_verify_q">How do I verify my shelter?</string>
+    <string name="faq_verify_a">To get the \'Verified Shelter\' badge, you must send your legal documentation to verification@pethelp.app. The process takes 3 to 5 business days.</string>
+
+    <string name="faq_return_q">What if I can\'t take care of my adopted pet?</string>
+    <string name="faq_return_a">If an unforeseen event occurs, we ask that you first contact the shelter or person who gave you the pet. They have priority in receiving it back.</string>
+
+    <string name="faq_report_q">How do I report a suspicious user?</string>
+    <string name="faq_report_a">Go to the user\'s profile, tap the three dots in the upper right corner and select \'Report\'. Our moderation team will review the case.</string>
+
+    <string name="help_still_questions">Still have questions?</string>
+    <string name="help_support_available">Our support team is available 24/7 to help you with any issues.</string>
+    <string name="help_contact_us">Contact Us</string>
+    <!-- User Levels -->
+    <string name="user_level_friend">Animal Friend</string>
+    <string name="user_level_protector">Protector</string>
+    <string name="user_level_guardian">Guardian</string>
+    <string name="user_level_hero">Pet Hero</string>
 </resources>

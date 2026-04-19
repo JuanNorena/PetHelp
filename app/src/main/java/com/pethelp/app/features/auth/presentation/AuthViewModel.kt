@@ -4,7 +4,9 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
+import com.pethelp.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,8 +44,8 @@ class AuthViewModel @Inject constructor(
 
     // ── Evento one-shot para Snackbar ────────────────────────────────────────
     // SharedFlow con replay=0 garantiza que el mensaje se muestre solo una vez
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     // ── Estado específico para "enlace de reset enviado" ─────────────────────
     private val _resetEmailSent = MutableStateFlow(false)
@@ -94,15 +96,15 @@ class AuthViewModel @Inject constructor(
         // — Validaciones locales (doble capa: UI + ViewModel) —
         val trimmedEmail = email.trim()
         if (trimmedEmail.isBlank()) {
-            emitError("Ingresa tu correo electrónico.")
+            emitError(UiText.StringResource(R.string.error_email_required))
             return
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
-            emitError("El formato del correo electrónico no es válido.")
+            emitError(UiText.StringResource(R.string.error_email_invalid))
             return
         }
         if (password.isBlank()) {
-            emitError("Ingresa tu contraseña.")
+            emitError(UiText.StringResource(R.string.error_password_required))
             return
         }
 
@@ -115,10 +117,9 @@ class AuthViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.value = AuthUiState.Error(
-                        resource.message ?: "Error al iniciar sesión."
-                    )
-                    _snackbarMessage.emit(resource.message ?: "Error al iniciar sesión.")
+                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_login_failed)
+                    _uiState.value = AuthUiState.Error(errorUiText)
+                    _snackbarMessage.emit(errorUiText)
                 }
             }
         }.launchIn(viewModelScope)
@@ -140,23 +141,23 @@ class AuthViewModel @Inject constructor(
         val trimmedEmail = email.trim()
 
         if (trimmedName.isBlank()) {
-            emitError("Ingresa tu nombre completo.")
+            emitError(UiText.StringResource(R.string.error_name_required))
             return
         }
         if (trimmedName.length > 100) {
-            emitError("El nombre no puede superar los 100 caracteres.")
+            emitError(UiText.StringResource(R.string.error_name_too_long, 100))
             return
         }
         if (trimmedEmail.isBlank()) {
-            emitError("Ingresa tu correo electrónico.")
+            emitError(UiText.StringResource(R.string.error_email_required))
             return
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
-            emitError("El formato del correo electrónico no es válido.")
+            emitError(UiText.StringResource(R.string.error_email_invalid))
             return
         }
         if (password.length < 6) {
-            emitError("La contraseña debe tener al menos 6 caracteres.")
+            emitError(UiText.StringResource(R.string.error_password_too_short, 6))
             return
         }
 
@@ -169,10 +170,9 @@ class AuthViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.value = AuthUiState.Error(
-                        resource.message ?: "Error al crear la cuenta."
-                    )
-                    _snackbarMessage.emit(resource.message ?: "Error al crear la cuenta.")
+                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_register_failed)
+                    _uiState.value = AuthUiState.Error(errorUiText)
+                    _snackbarMessage.emit(errorUiText)
                 }
             }
         }.launchIn(viewModelScope)
@@ -191,11 +191,11 @@ class AuthViewModel @Inject constructor(
     fun sendPasswordReset(email: String) {
         val trimmedEmail = email.trim()
         if (trimmedEmail.isBlank()) {
-            emitError("Ingresa tu correo electrónico.")
+            emitError(UiText.StringResource(R.string.error_email_required))
             return
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
-            emitError("El formato del correo electrónico no es válido.")
+            emitError(UiText.StringResource(R.string.error_email_invalid))
             return
         }
 
@@ -208,10 +208,9 @@ class AuthViewModel @Inject constructor(
                     _resetEmailSent.value = true
                 }
                 is Resource.Error -> {
-                    _uiState.value = AuthUiState.Error(
-                        resource.message ?: "Error al enviar el enlace."
-                    )
-                    _snackbarMessage.emit(resource.message ?: "Error al enviar el enlace.")
+                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_reset_failed)
+                    _uiState.value = AuthUiState.Error(errorUiText)
+                    _snackbarMessage.emit(errorUiText)
                 }
             }
         }.launchIn(viewModelScope)
@@ -231,10 +230,10 @@ class AuthViewModel @Inject constructor(
     }
 
     // ── Helper: emitir error one-shot ────────────────────────────────────────
-    private fun emitError(message: String) {
-        _uiState.value = AuthUiState.Error(message)
+    private fun emitError(uiText: UiText) {
+        _uiState.value = AuthUiState.Error(uiText)
         viewModelScope.launch {
-            _snackbarMessage.emit(message)
+            _snackbarMessage.emit(uiText)
         }
     }
 }

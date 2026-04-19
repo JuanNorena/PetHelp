@@ -2,7 +2,9 @@ package com.pethelp.app.features.feed.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pethelp.app.R
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
@@ -19,7 +21,7 @@ data class FeedUiState(
     val allPublicPosts: List<Post> = emptyList(),
     val selectedCategory: PostCategory? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: UiText? = null
 ) {
     val filteredPosts: List<Post>
         get() = if (selectedCategory == null) {
@@ -67,7 +69,7 @@ class FeedViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = resource.message ?: "No fue posible cargar las publicaciones."
+                                error = resource.uiText ?: UiText.StringResource(R.string.error_generic)
                             )
                         }
                     }

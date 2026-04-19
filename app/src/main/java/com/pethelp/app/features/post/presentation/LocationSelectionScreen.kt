@@ -45,16 +45,6 @@ fun LocationSelectionScreen(
 ) {
     val isDark = isSystemInDarkTheme()
     
-    // Colores dinámicos
-    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
-    val hintColor = if (isDark) White.copy(alpha = 0.5f) else TextHint
-    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-    val warningContainerColor = if (isDark) PetHelpTertiaryDark.copy(alpha = 0.15f) else TertiaryLightContainer
-    val onWarningContainerColor = if (isDark) PetHelpTertiary else OnTertiaryLightContainer
-
     var street by remember { mutableStateOf(postData.street) }
     var neighborhood by remember { mutableStateOf(postData.neighborhood) }
     var city by remember { mutableStateOf(postData.city) }
@@ -76,19 +66,20 @@ fun LocationSelectionScreen(
         position = CameraPosition.fromLatLngZoom(initialLatLng, 15f)
     }
 
+    val outlineVariant = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val isFormValid = street.isNotBlank() && neighborhood.isNotBlank() && city.isNotBlank()
 
     Scaffold(
-        containerColor = backgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Surface(
-                color = surfaceColor,
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
                         drawContent()
                         drawLine(
-                            color = outlineColor,
+                            color = outlineVariant,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
@@ -111,7 +102,7 @@ fun LocationSelectionScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(22.dp),
-                            tint = textColor
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Column(modifier = Modifier.padding(start = 4.dp)) {
@@ -119,20 +110,20 @@ fun LocationSelectionScreen(
                             text = stringResource(R.string.post_location),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = textColor,
+                            color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
                             text = stringResource(R.string.post_step_2_of_4),
                             fontSize = 12.sp,
-                            color = secondaryTextColor
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(Modifier.weight(1f))
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = PetHelpPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -140,11 +131,11 @@ fun LocationSelectionScreen(
         },
         bottomBar = {
             Surface(
-                color = surfaceColor,
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.drawWithContent {
                     drawContent()
                     drawLine(
-                        color = outlineColor,
+                        color = outlineVariant,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
                         strokeWidth = 1.dp.toPx()
@@ -183,8 +174,8 @@ fun LocationSelectionScreen(
                         shape = RoundedCornerShape(28.dp),
                         enabled = isFormValid,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpPrimary,
-                            disabledContainerColor = PetHelpPrimary.copy(alpha = 0.5f)
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         )
                     ) {
                         Icon(
@@ -216,8 +207,8 @@ fun LocationSelectionScreen(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = PetHelpPrimary,
-                trackColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Column(
@@ -229,7 +220,7 @@ fun LocationSelectionScreen(
                 Text(
                     stringResource(R.string.post_location_instruction),
                     fontSize = 16.sp,
-                    color = secondaryTextColor
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // MAPA
@@ -238,7 +229,7 @@ fun LocationSelectionScreen(
                         .fillMaxWidth()
                         .height(240.dp),
                     shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, outlineColor.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         GoogleMap(
@@ -273,13 +264,13 @@ fun LocationSelectionScreen(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(16.dp)
-                                .background(surfaceColor, CircleShape)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape)
                                 .size(40.dp)
                         ) {
                             Icon(
                                 Icons.Default.MyLocation,
                                 contentDescription = null,
-                                tint = PetHelpPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -294,22 +285,22 @@ fun LocationSelectionScreen(
                             stringResource(R.string.post_street_label),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = textColor
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         OutlinedTextField(
                             value = street,
                             onValueChange = { street = it },
                             placeholder = { Text(stringResource(R.string.post_street_hint)) },
                             modifier = Modifier.fillMaxWidth(),
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = hintColor) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = outlineColor,
-                                focusedBorderColor = PetHelpPrimary,
-                                unfocusedPlaceholderColor = hintColor,
-                                focusedPlaceholderColor = hintColor,
-                                unfocusedTextColor = textColor,
-                                focusedTextColor = textColor
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
@@ -324,7 +315,7 @@ fun LocationSelectionScreen(
                                 stringResource(R.string.post_neighborhood_label),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = textColor
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             OutlinedTextField(
                                 value = neighborhood,
@@ -332,12 +323,12 @@ fun LocationSelectionScreen(
                                 placeholder = { Text(stringResource(R.string.post_neighborhood_hint)) },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = outlineColor,
-                                    focusedBorderColor = PetHelpPrimary,
-                                    unfocusedPlaceholderColor = hintColor,
-                                    focusedPlaceholderColor = hintColor,
-                                    unfocusedTextColor = textColor,
-                                    focusedTextColor = textColor
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -347,7 +338,7 @@ fun LocationSelectionScreen(
                                 stringResource(R.string.post_city_label),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = textColor
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             OutlinedTextField(
                                 value = city,
@@ -355,12 +346,12 @@ fun LocationSelectionScreen(
                                 placeholder = { Text(stringResource(R.string.post_city_hint)) },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = outlineColor,
-                                    focusedBorderColor = PetHelpPrimary,
-                                    unfocusedPlaceholderColor = hintColor,
-                                    focusedPlaceholderColor = hintColor,
-                                    unfocusedTextColor = textColor,
-                                    focusedTextColor = textColor
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -369,7 +360,7 @@ fun LocationSelectionScreen(
 
                 // ADVERTENCIA DE PRIVACIDAD
                 Surface(
-                    color = warningContainerColor,
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -381,13 +372,13 @@ fun LocationSelectionScreen(
                         Icon(
                             Icons.Outlined.Info,
                             contentDescription = null,
-                            tint = onWarningContainerColor,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             stringResource(R.string.post_location_warning),
                             fontSize = 12.sp,
-                            color = onWarningContainerColor,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             lineHeight = 16.sp
                         )
                     }

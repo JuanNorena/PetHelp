@@ -29,11 +29,11 @@ data class User(
 
 enum class UserRole { USER, MODERATOR }
 
-enum class UserLevel(val displayName: String, val minPoints: Int) {
-    FRIEND("Amigo Animal", 0),
-    PROTECTOR("Protector", 50),
-    GUARDIAN("Guardián", 150),
-    HERO("Héroe de las Mascotas", 350)
+enum class UserLevel(val minPoints: Int) {
+    FRIEND(0),
+    PROTECTOR(50),
+    GUARDIAN(150),
+    HERO(350)
 }
 
 data class Badge(

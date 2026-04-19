@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +96,7 @@ fun HelpCenterScreen(navController: NavController) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 HelpCategoryCard(
                     icon = Icons.Default.Description,
-                    iconColor = Color(0xFF2DD4BF),
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.help_guides_title),
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate(Screen.UserGuide) }
@@ -103,7 +104,7 @@ fun HelpCenterScreen(navController: NavController) {
                 Spacer(Modifier.width(16.dp))
                 HelpCategoryCard(
                     icon = Icons.Default.Shield,
-                    iconColor = Color(0xFFFBBF24),
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     title = stringResource(R.string.help_security_title),
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate(Screen.Security) }

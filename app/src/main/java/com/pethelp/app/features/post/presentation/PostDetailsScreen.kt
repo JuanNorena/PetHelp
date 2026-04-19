@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.AnimalAge
 import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.PetBehavior
@@ -43,16 +43,7 @@ fun PostDetailsScreen(
     navController: NavController,
     postData: Screen.PostDetails
 ) {
-    val isDark = isSystemInDarkTheme()
-
-    // Colores dinámicos
-    val backgroundColor = if (isDark) BackgroundDark else BackgroundLight
-    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
-    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-    val chipSelectedColor = if (isDark) PetHelpPrimaryDark.copy(alpha = 0.2f) else PetHelpPrimary.copy(alpha = 0.1f)
-    val behaviorSelectedColor = if (isDark) PetHelpSecondaryDark.copy(alpha = 0.2f) else PetHelpSecondary.copy(alpha = 0.1f)
+    val outlineVariant = MaterialTheme.colorScheme.outlineVariant
 
     var selectedAge by remember { mutableStateOf(AnimalAge.YOUNG) }
     var selectedGender by remember { mutableStateOf(AnimalGender.MALE) }
@@ -62,16 +53,16 @@ fun PostDetailsScreen(
     val selectedBehaviors = remember { mutableStateListOf<PetBehavior>() }
 
     Scaffold(
-        containerColor = backgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Surface(
-                color = surfaceColor,
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
                         drawContent()
                         drawLine(
-                            color = outlineColor,
+                            color = outlineVariant,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
@@ -94,7 +85,7 @@ fun PostDetailsScreen(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(22.dp),
-                            tint = textColor
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Column(modifier = Modifier.padding(start = 4.dp)) {
@@ -102,20 +93,20 @@ fun PostDetailsScreen(
                             text = stringResource(R.string.post_details_title),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = textColor,
+                            color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
                             text = stringResource(R.string.post_step_3_of_4),
                             fontSize = 12.sp,
-                            color = secondaryTextColor
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(Modifier.weight(1f))
                     Icon(
                         Icons.Default.Pets,
                         contentDescription = null,
-                        tint = PetHelpPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -123,11 +114,11 @@ fun PostDetailsScreen(
         },
         bottomBar = {
             Surface(
-                color = surfaceColor,
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.drawWithContent {
                     drawContent()
                     drawLine(
-                        color = outlineColor,
+                        color = outlineVariant,
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
                         strokeWidth = 1.dp.toPx()
@@ -171,7 +162,7 @@ fun PostDetailsScreen(
                             .height(56.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = PetHelpPrimary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
@@ -198,8 +189,8 @@ fun PostDetailsScreen(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = PetHelpPrimary,
-                trackColor = if (isDark) SurfaceVariantDark else SurfaceVariantLight
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Column(
@@ -216,7 +207,7 @@ fun PostDetailsScreen(
                         stringResource(R.string.post_approx_age),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = secondaryTextColor,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.35.sp
                     )
                     FlowRow(
@@ -231,16 +222,16 @@ fun PostDetailsScreen(
                                     .weight(1f)
                                     .height(50.dp),
                                 shape = RoundedCornerShape(50),
-                                color = if (isSelected) chipSelectedColor else surfaceColor,
-                                border = BorderStroke(1.dp, if (isSelected) PetHelpPrimary else outlineColor),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
                                 onClick = { selectedAge = age }
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
-                                        text = age.toDisplayName(),
+                                        text = UiText.fromAge(age).asString(),
                                         fontSize = 14.sp,
                                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                                        color = if (isSelected) PetHelpPrimary else secondaryTextColor
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -254,7 +245,7 @@ fun PostDetailsScreen(
                         stringResource(R.string.post_gender),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = secondaryTextColor,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.35.sp
                     )
                     Row(
@@ -268,16 +259,16 @@ fun PostDetailsScreen(
                                     .weight(1f)
                                     .height(50.dp),
                                 shape = RoundedCornerShape(50),
-                                color = if (isSelected) chipSelectedColor else surfaceColor,
-                                border = BorderStroke(1.dp, if (isSelected) PetHelpPrimary else outlineColor),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
                                 onClick = { selectedGender = gender }
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
-                                        text = gender.toDisplayName(),
+                                        text = UiText.fromGender(gender).asString(),
                                         fontSize = 14.sp,
                                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                                        color = if (isSelected) PetHelpPrimary else secondaryTextColor
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -294,13 +285,13 @@ fun PostDetailsScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(PetHelpPrimary.copy(alpha = 0.1f), RoundedCornerShape(8.dp)),
+                                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Default.Pets,
                                 contentDescription = null,
-                                tint = PetHelpPrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -308,7 +299,7 @@ fun PostDetailsScreen(
                             stringResource(R.string.post_health_status),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = textColor
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     
@@ -316,22 +307,19 @@ fun PostDetailsScreen(
                         title = stringResource(R.string.post_vaccinated_label),
                         description = stringResource(R.string.post_vaccinated_desc),
                         selected = vaccinated,
-                        onToggle = { vaccinated = it },
-                        isDark = isDark
+                        onToggle = { vaccinated = it }
                     )
                     HealthStatusItem(
                         title = stringResource(R.string.post_dewormed_label),
                         description = stringResource(R.string.post_dewormed_desc),
                         selected = dewormed,
-                        onToggle = { dewormed = it },
-                        isDark = isDark
+                        onToggle = { dewormed = it }
                     )
                     HealthStatusItem(
                         title = stringResource(R.string.post_sterilized_label),
                         description = stringResource(R.string.post_sterilized_desc),
                         selected = sterilized,
-                        onToggle = { sterilized = it },
-                        isDark = isDark
+                        onToggle = { sterilized = it }
                     )
                 }
 
@@ -344,13 +332,13 @@ fun PostDetailsScreen(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(PetHelpSecondary.copy(alpha = 0.1f), RoundedCornerShape(8.dp)),
+                                .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Default.Pets,
                                 contentDescription = null,
-                                tint = PetHelpSecondary,
+                                tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -358,7 +346,7 @@ fun PostDetailsScreen(
                             stringResource(R.string.post_behavior),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = textColor
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -372,8 +360,8 @@ fun PostDetailsScreen(
                             Surface(
                                 modifier = Modifier.height(44.dp),
                                 shape = RoundedCornerShape(50),
-                                color = if (isSelected) behaviorSelectedColor else surfaceColor,
-                                border = BorderStroke(1.dp, if (isSelected) PetHelpSecondary else outlineColor),
+                                color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant),
                                 onClick = {
                                     if (isSelected) selectedBehaviors.remove(behavior)
                                     else selectedBehaviors.add(behavior)
@@ -384,10 +372,10 @@ fun PostDetailsScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = behavior.toDisplayName(),
+                                        text = UiText.fromBehavior(behavior).asString(),
                                         fontSize = 14.sp,
                                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                                        color = if (isSelected) PetHelpSecondary else secondaryTextColor
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -397,7 +385,7 @@ fun PostDetailsScreen(
                     Text(
                         stringResource(R.string.post_behavior_instruction),
                         fontSize = 12.sp,
-                        color = secondaryTextColor.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
                     )
                 }
@@ -413,21 +401,15 @@ fun HealthStatusItem(
     title: String,
     description: String,
     selected: Boolean,
-    onToggle: (Boolean) -> Unit,
-    isDark: Boolean
+    onToggle: (Boolean) -> Unit
 ) {
-    val surfaceColor = if (isDark) SurfaceDark else SurfaceLight
-    val outlineColor = if (isDark) PetHelpOutlineDark else PetHelpOutline
-    val textColor = if (isDark) White else TextPrimary
-    val secondaryTextColor = if (isDark) White.copy(alpha = 0.7f) else TextSecondary
-
     Surface(
         onClick = { onToggle(!selected) },
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) PetHelpPrimary.copy(alpha = 0.05f) else surfaceColor,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             1.dp, 
-            if (selected) PetHelpPrimary.copy(alpha = 0.3f) else outlineColor
+            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.outlineVariant
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -440,8 +422,8 @@ fun HealthStatusItem(
                 selected = selected,
                 onClick = null,
                 colors = RadioButtonDefaults.colors(
-                    selectedColor = PetHelpPrimary,
-                    unselectedColor = outlineColor
+                    selectedColor = MaterialTheme.colorScheme.primary,
+                    unselectedColor = MaterialTheme.colorScheme.outlineVariant
                 )
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -449,43 +431,16 @@ fun HealthStatusItem(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = textColor
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = secondaryTextColor,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
                 )
             }
         }
     }
-}
-
-@Composable
-fun AnimalAge.toDisplayName(): String = when(this) {
-    AnimalAge.PUPPY -> stringResource(R.string.post_age_puppy)
-    AnimalAge.YOUNG -> stringResource(R.string.post_age_young)
-    AnimalAge.ADULT -> stringResource(R.string.post_age_adult)
-    AnimalAge.SENIOR -> stringResource(R.string.post_age_senior)
-}
-
-@Composable
-fun AnimalGender.toDisplayName(): String = when(this) {
-    AnimalGender.MALE -> stringResource(R.string.post_gender_male)
-    AnimalGender.FEMALE -> stringResource(R.string.post_gender_female)
-    AnimalGender.UNKNOWN -> stringResource(R.string.post_gender_unknown)
-}
-
-@Composable
-fun PetBehavior.toDisplayName(): String = when(this) {
-    PetBehavior.PLAYFUL -> stringResource(R.string.post_behavior_playful)
-    PetBehavior.CALM -> stringResource(R.string.post_behavior_calm)
-    PetBehavior.PROTECTIVE -> stringResource(R.string.post_behavior_protective)
-    PetBehavior.SHY -> stringResource(R.string.post_behavior_shy)
-    PetBehavior.SOCIABLE -> stringResource(R.string.post_behavior_sociable)
-    PetBehavior.INDEPENDENT -> stringResource(R.string.post_behavior_independent)
-    PetBehavior.AFFECTIONATE -> stringResource(R.string.post_behavior_affectionate)
-    PetBehavior.ACTIVE -> stringResource(R.string.post_behavior_active)
 }

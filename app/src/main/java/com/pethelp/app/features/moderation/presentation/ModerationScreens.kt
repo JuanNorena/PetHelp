@@ -13,7 +13,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,10 +36,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
+import com.pethelp.app.core.ui.theme.*
 import com.pethelp.app.features.auth.presentation.AuthUiState
 import com.pethelp.app.features.auth.presentation.AuthViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -103,7 +109,7 @@ fun ModeratorPanelScreen(
             AlertDialog(
                 onDismissRequest = { showLogoutDialog = false },
                 title = { Text(stringResource(R.string.btn_logout)) },
-                text = { Text("¿Deseas cerrar sesión del panel de moderación?") },
+                text = { Text(stringResource(R.string.moderation_logout_confirmation)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -125,8 +131,22 @@ fun ModeratorPanelScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(R.string.moderation_panel_title)) },
+                    title = { Text(stringResource(R.string.moderation_dashboard_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back)
+                            )
+                        }
+                    },
                     actions = {
+                        IconButton(onClick = { viewModel.loadDashboardData() }) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = stringResource(R.string.common_refresh)
+                            )
+                        }
                         IconButton(onClick = { showLogoutDialog = true }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -135,7 +155,8 @@ fun ModeratorPanelScreen(
                         }
                     }
                 )
-            }
+            },
+            bottomBar = { PetHelpBottomNavBar(navController) }
         ) { padding ->
             when {
                 uiState.isLoading && uiState.pendingPosts.isEmpty() -> {
@@ -157,57 +178,126 @@ fun ModeratorPanelScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = uiState.error ?: "No fue posible cargar pendientes.",
-                            color = Color(0xFFB42318),
+                            text = uiState.error?.asString() ?: stringResource(R.string.moderation_error_load_pending),
+                            color = ErrorText,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
                     }
                 }
 
-                uiState.pendingPosts.isEmpty() -> {
-                    Box(
+                else -> {
+                    Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(padding),
-                        contentAlignment = Alignment.Center
+                            .padding(padding)
+                            .verticalScroll(rememberScrollState())
                     ) {
+                        StatsSummaryRow(stats = uiState.stats)
+                        
+                        GlobalMetricsRow(stats = uiState.stats)
+
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Pets,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(56.dp)
-                            )
                             Text(
-                                text = "No hay publicaciones pendientes por moderar.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.moderation_pending_posts_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
                             )
-                        }
-                    }
-                }
 
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(uiState.pendingPosts, key = { it.id }) { post ->
-                            PendingPostCard(
-                                post = post,
-                                onClick = { navController.navigate(Screen.ModeratorDetail(post.id)) }
-                            )
+                            if (uiState.pendingPosts.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.moderation_empty_pending),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(vertical = 16.dp)
+                                )
+                            } else {
+                                uiState.pendingPosts.take(5).forEach { post ->
+                                    PendingPostCard(
+                                        post = post,
+                                        onClick = { navController.navigate(Screen.ModeratorDetail(post.id)) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun GlobalMetricsRow(stats: ModerationStats) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MetricCard(
+            label = stringResource(R.string.moderation_stat_total_users),
+            value = stats.totalUsers.toString(),
+            icon = Icons.Default.People,
+            modifier = Modifier.weight(1f)
+        )
+        MetricCard(
+            label = stringResource(R.string.moderation_stat_total_adoptions),
+            value = stats.totalAdoptions.toString(),
+            icon = Icons.Default.Pets,
+            modifier = Modifier.weight(1f)
+        )
+        MetricCard(
+            label = stringResource(R.string.moderation_stat_active_reports),
+            value = stats.activeReports.toString(),
+            icon = Icons.Default.Report,
+            containerColor = StatusErrorBg,
+            contentColor = StatusError,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun MetricCard(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.7f)
+            )
         }
     }
 }
@@ -228,9 +318,11 @@ fun ModeratorDetailScreen(
         viewModel.loadPostDetail(postId)
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collectLatest { message ->
-            snackbarHostState.showSnackbar(message)
+        viewModel.snackbarMessage.collectLatest { uiText ->
+            snackbarHostState.showSnackbar(uiText.asString(context))
         }
     }
 
@@ -244,14 +336,14 @@ fun ModeratorDetailScreen(
         if (showRejectDialog) {
             AlertDialog(
                 onDismissRequest = { showRejectDialog = false },
-                title = { Text("Motivo del rechazo") },
+                title = { Text(stringResource(R.string.moderation_reject_reason_title)) },
                 text = {
                     OutlinedTextField(
                         value = rejectReason,
                         onValueChange = { rejectReason = it },
-                        label = { Text("Motivo") },
-                        placeholder = { Text("Describe por qué rechazas la publicación") },
-                        supportingText = { Text("Campo obligatorio") },
+                        label = { Text(stringResource(R.string.moderation_reject_reason_label)) },
+                        placeholder = { Text(stringResource(R.string.moderation_reject_reason_placeholder)) },
+                        supportingText = { Text(stringResource(R.string.error_field_required)) },
                         singleLine = false,
                         maxLines = 4,
                         modifier = Modifier.fillMaxWidth()
@@ -266,12 +358,12 @@ fun ModeratorDetailScreen(
                         },
                         enabled = rejectReason.trim().isNotBlank() && !uiState.isActionLoading
                     ) {
-                        Text("Confirmar rechazo")
+                        Text(stringResource(R.string.moderation_btn_confirm_reject))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRejectDialog = false }) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.common_cancel))
                     }
                 }
             )
@@ -281,10 +373,13 @@ fun ModeratorDetailScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Detalle de moderación") },
+                    title = { Text(stringResource(R.string.moderation_detail_title)) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back)
+                            )
                         }
                     }
                 )
@@ -310,8 +405,8 @@ fun ModeratorDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = uiState.error ?: "No fue posible cargar la publicación.",
-                            color = Color(0xFFB42318),
+                            text = uiState.error?.asString() ?: stringResource(R.string.moderation_error_load_detail),
+                            color = ErrorText,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
@@ -335,19 +430,19 @@ fun ModeratorDetailScreen(
                         )
 
                         Text(
-                            text = "Autor: ${post?.authorName.orEmpty()}",
+                            text = stringResource(R.string.moderation_detail_author_label, post?.authorName.orEmpty()),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
-                            text = "Categoría: ${post?.category?.displayName.orEmpty()}",
+                            text = stringResource(R.string.moderation_detail_category_label, UiText.fromCategory(post?.category ?: com.pethelp.app.core.domain.model.PostCategory.ADOPTION).asString()),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
-                            text = "Publicada: ${formatDate(post?.createdAt ?: 0L)}",
+                            text = stringResource(R.string.moderation_detail_published_label, formatDate(post?.createdAt ?: 0L)),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -362,21 +457,21 @@ fun ModeratorDetailScreen(
 
                         if (!post?.rejectionReason.isNullOrBlank()) {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF4F4)),
+                                colors = CardDefaults.cardColors(containerColor = StatusErrorBg),
                                 shape = RoundedCornerShape(14.dp)
                             ) {
                                 Column(modifier = Modifier.padding(14.dp)) {
                                     Text(
-                                        text = "Motivo de rechazo previo",
+                                        text = stringResource(R.string.moderation_previous_rejection_title),
                                         style = MaterialTheme.typography.labelLarge,
-                                        color = Color(0xFFB42318),
+                                        color = ErrorText,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = post?.rejectionReason.orEmpty(),
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color(0xFF7A271A)
+                                        color = StatusError
                                     )
                                 }
                             }
@@ -390,7 +485,7 @@ fun ModeratorDetailScreen(
                                 enabled = !uiState.isActionLoading,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("Aprobar")
+                                Text(stringResource(R.string.btn_approve))
                             }
 
                             OutlinedButton(
@@ -398,7 +493,7 @@ fun ModeratorDetailScreen(
                                 enabled = !uiState.isActionLoading,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("Rechazar")
+                                Text(stringResource(R.string.btn_reject))
                             }
                         }
 
@@ -410,7 +505,7 @@ fun ModeratorDetailScreen(
                                 CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Guardando decisión...",
+                                    text = stringResource(R.string.moderation_saving_decision),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -426,10 +521,97 @@ fun ModeratorDetailScreen(
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No se encontró la publicación.")
+                        Text(stringResource(R.string.moderation_post_not_found))
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun StatsSummaryRow(stats: ModerationStats) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.moderation_today_summary),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StatCard(
+                label = stringResource(R.string.moderation_stat_pending),
+                value = stats.pendingCount.toString(),
+                containerColor = StatusWarningBg,
+                contentColor = StatusWarning,
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                label = stringResource(R.string.moderation_stat_approved),
+                value = stats.approvedToday.toString(),
+                containerColor = StatusSuccessBg,
+                contentColor = StatusSuccess,
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                label = stringResource(R.string.moderation_stat_rejected),
+                value = stats.rejectedToday.toString(),
+                containerColor = StatusErrorBg,
+                contentColor = StatusError,
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                label = stringResource(R.string.moderation_stat_approval_rate),
+                value = stringResource(R.string.moderation_percent_value, stats.approvalRate),
+                containerColor = StatusIndigoBg,
+                contentColor = StatusIndigo,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatCard(
+    label: String,
+    value: String,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp
+            )
         }
     }
 }
@@ -445,56 +627,122 @@ private fun PendingPostCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+        border = BorderStroke(1.dp, BorderDefault),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = post.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.moderation_post_card_author_info,
+                            post.authorName.ifBlank { stringResource(R.string.post_detail_unknown_user) },
+                            formatDate(post.createdAt)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                MatchBadge(percentage = post.iaMatchPercentage ?: 0)
+            }
+
+            if (!post.iaSummary.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(10.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = stringResource(R.string.moderation_ia_summary_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = post.iaSummary,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = post.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f)
+                    text = stringResource(R.string.moderation_detail_category_label, UiText.fromCategory(post.category).asString()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
                 )
-
-                StatusBadge(status = post.status)
+                
+                Text(
+                    text = stringResource(R.string.moderation_view_details),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
             }
-
-            Text(
-                text = "Autor: ${post.authorName.ifBlank { "Usuario" }}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "Categoría: ${post.category.displayName}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = formatDate(post.createdAt),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
+    }
+}
+
+@Composable
+private fun MatchBadge(percentage: Int) {
+    val color = when {
+        percentage >= 80 -> StatusSuccess
+        percentage >= 50 -> StatusWarning
+        else -> StatusError
+    }
+    val bgColor = when {
+        percentage >= 80 -> StatusSuccessBg
+        percentage >= 50 -> StatusWarningBg
+        else -> StatusErrorBg
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .background(bgColor, shape = RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.moderation_ia_match, percentage),
+            color = color,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
 private fun StatusBadge(status: PostStatus) {
     val (background, foreground) = when (status) {
-        PostStatus.PENDING -> Color(0xFFFFF4E5) to Color(0xFF7A2E0E)
-        PostStatus.VERIFIED -> Color(0xFFE8F7EE) to Color(0xFF146C2E)
-        PostStatus.REJECTED -> Color(0xFFFFECEB) to Color(0xFFA12622)
-        PostStatus.RESOLVED -> Color(0xFFEFF4FF) to Color(0xFF174EA6)
-        PostStatus.ACTIVE -> Color(0xFFE0F2FE) to Color(0xFF0369A1)
-        PostStatus.PAUSED -> Color(0xFFF3F4F6) to Color(0xFF4B5563)
-        PostStatus.ADOPTED -> Color(0xFFF0FDF4) to Color(0xFF166534)
+        PostStatus.PENDING -> StatusWarningBg to StatusWarning
+        PostStatus.VERIFIED -> StatusSuccessBg to StatusSuccess
+        PostStatus.REJECTED -> StatusErrorBg to StatusError
+        PostStatus.RESOLVED -> StatusIndigoBg to StatusIndigo
+        PostStatus.ACTIVE -> StatusInfoBg to StatusInfo
+        PostStatus.PAUSED -> StatusNeutralBg to StatusNeutral
+        PostStatus.ADOPTED -> StatusSuccessBg to StatusSuccess
     }
 
     Row(
@@ -510,7 +758,7 @@ private fun StatusBadge(status: PostStatus) {
                 .background(foreground, shape = CircleShape)
         )
         Text(
-            text = status.displayName,
+            text = UiText.fromStatus(status).asString(),
             color = foreground,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold

@@ -8,9 +8,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.features.post.domain.repository.PostRepository
+import com.pethelp.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +29,7 @@ data class PostDetailUiState(
     val comments: List<Comment> = emptyList(),
     val hasVoted: Boolean = false,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: UiText? = null
 )
 
 @HiltViewModel
@@ -43,8 +45,8 @@ class PostDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PostDetailUiState())
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
 
-    private val _snackbarMessage = MutableSharedFlow<String>()
-    val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<UiText>()
+    val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
     val currentUserId: String get() = firebaseAuth.currentUser?.uid ?: ""
     val currentUserName: String get() = firebaseAuth.currentUser?.displayName ?: ""
@@ -67,7 +69,7 @@ class PostDetailViewModel @Inject constructor(
                     )
                     is Resource.Error -> _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = resource.message
+                        error = resource.uiText
                     )
                 }
             }
@@ -101,7 +103,7 @@ class PostDetailViewModel @Inject constructor(
     fun toggleVote() {
         val userId = currentUserId
         if (userId.isBlank()) {
-            viewModelScope.launch { _snackbarMessage.emit("Inicia sesión para votar.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.StringResource(R.string.vote_login_required)) }
             return
         }
         viewModelScope.launch {
@@ -117,7 +119,7 @@ class PostDetailViewModel @Inject constructor(
                             hasVoted = !_uiState.value.hasVoted
                         )
                     }
-                    is Resource.Error -> _snackbarMessage.emit(resource.message ?: "Error al votar.")
+                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.vote_error))
                     is Resource.Loading -> { /* no-op */ }
                 }
             }
@@ -127,7 +129,7 @@ class PostDetailViewModel @Inject constructor(
     fun addComment(text: String) {
         val userId = currentUserId
         if (userId.isBlank()) {
-            viewModelScope.launch { _snackbarMessage.emit("Inicia sesión para comentar.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.StringResource(R.string.comment_login_required)) }
             return
         }
         if (text.isBlank()) return
@@ -146,7 +148,7 @@ class PostDetailViewModel @Inject constructor(
 
             postRepository.addComment(comment).collect { resource ->
                 when (resource) {
-                    is Resource.Error -> _snackbarMessage.emit(resource.message ?: "Error al comentar.")
+                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.comment_error))
                     else -> { /* success handled by live listener */ }
                 }
             }
@@ -167,14 +169,23 @@ class PostDetailViewModel @Inject constructor(
     fun requestAdoption(message: String) {
         val userId = currentUserId
         if (userId.isBlank()) {
-            viewModelScope.launch { _snackbarMessage.emit("Inicia sesión para solicitar adopción.") }
+            viewModelScope.launch { _snackbarMessage.emit(UiText.StringResource(R.string.adoption_request_login_required)) }
             return
         }
         viewModelScope.launch {
-            postRepository.requestAdoption(postId, userId, message).collect { resource ->
+            postRepository.requestAdoption(
+                postId = postId,
+                userId = userId,
+                message = message,
+                housingType = "No especificado",
+                hasOutdoorSpace = "No especificado",
+                hasExperience = "No especificado",
+                phone = "No especificado",
+                contactPreference = "Chat"
+            ).collect { resource ->
                 when (resource) {
-                    is Resource.Success -> _snackbarMessage.emit("¡Solicitud de adopción enviada!")
-                    is Resource.Error -> _snackbarMessage.emit(resource.message ?: "Error al enviar solicitud.")
+                    is Resource.Success -> _snackbarMessage.emit(UiText.StringResource(R.string.adoption_request_success))
+                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.adoption_request_error))
                     is Resource.Loading -> { /* no-op */ }
                 }
             }

@@ -28,7 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.theme.PetHelpPrimary
+import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,61 +72,28 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsItem(
                     icon = Icons.Default.PersonOutline,
-                    iconColor = Color(0xFF3B82F6),
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.edit_profile_title),
                     onClick = { navController.navigate(Screen.EditProfile) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsItem(
                     icon = Icons.Default.Shield,
-                    iconColor = Color(0xFF10B981),
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     title = stringResource(R.string.settings_security),
                     onClick = { navController.navigate(Screen.Security) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 
                 val currentLanguage by viewModel.language.collectAsState()
-                var showLanguageDialog by remember { mutableStateOf(false) }
                 
                 SettingsItem(
                     icon = Icons.Default.Language,
-                    iconColor = Color(0xFF8B5CF6),
+                    iconColor = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(R.string.settings_language),
                     value = if (currentLanguage == "es") "Español" else "English",
-                    onClick = { showLanguageDialog = true }
+                    onClick = { navController.navigate(Screen.Language) }
                 )
-
-                if (showLanguageDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showLanguageDialog = false },
-                        title = { Text(stringResource(R.string.settings_language)) },
-                        text = {
-                            Column {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().clickable { viewModel.setLanguage("es"); showLanguageDialog = false }.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(selected = currentLanguage == "es", onClick = { viewModel.setLanguage("es"); showLanguageDialog = false })
-                                    Text("Español", modifier = Modifier.padding(start = 8.dp))
-                                }
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().clickable { viewModel.setLanguage("en"); showLanguageDialog = false }.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(selected = currentLanguage == "en", onClick = { viewModel.setLanguage("en"); showLanguageDialog = false })
-                                    Text("English", modifier = Modifier.padding(start = 8.dp))
-                                }
-                            }
-                        },
-                        confirmButton = {},
-                        dismissButton = {
-                            TextButton(onClick = { showLanguageDialog = false }) {
-                                Text(stringResource(R.string.common_cancel))
-                            }
-                        },
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -139,7 +106,7 @@ fun SettingsScreen(
 
                 SettingsToggleItem(
                     icon = Icons.Default.NotificationsNone,
-                    iconColor = Color(0xFFF87171),
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.settings_push_notifications),
                     checked = pushEnabled,
                     onCheckedChange = { pushEnabled = it }
@@ -147,7 +114,7 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsToggleItem(
                     icon = Icons.Default.PhoneIphone,
-                    iconColor = Color(0xFF64748B),
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     title = stringResource(R.string.settings_email_alerts),
                     checked = emailEnabled,
                     onCheckedChange = { emailEnabled = it }
@@ -161,14 +128,14 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsItem(
                     icon = Icons.Default.LockOpen,
-                    iconColor = Color(0xFF2DD4BF),
+                    iconColor = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(R.string.settings_privacy_policy),
                     onClick = { navController.navigate(Screen.Privacy) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsItem(
                     icon = Icons.Default.Visibility,
-                    iconColor = Color(0xFF6366F1),
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.settings_profile_visibility),
                     value = stringResource(R.string.settings_visibility_public),
                     onClick = { navController.navigate(Screen.ProfileVisibility) }
@@ -183,7 +150,7 @@ fun SettingsScreen(
                 val isDarkMode by viewModel.isDarkMode.collectAsState()
                 SettingsToggleItem(
                     icon = Icons.Default.LightMode,
-                    iconColor = Color(0xFFFBBF24),
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     title = stringResource(R.string.settings_dark_mode),
                     checked = isDarkMode,
                     onCheckedChange = { viewModel.toggleDarkMode(it) }
@@ -197,7 +164,7 @@ fun SettingsScreen(
             SettingsCard {
                 SettingsItem(
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
-                    iconColor = Color(0xFF06B6D4),
+                    iconColor = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(R.string.settings_help_center),
                     onClick = { navController.navigate(Screen.HelpCenter) }
                 )
