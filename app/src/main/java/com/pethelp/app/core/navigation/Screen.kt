@@ -1,12 +1,17 @@
-package com.pethelp.app.core.navigation
+﻿package com.pethelp.app.core.navigation
 
 import kotlinx.serialization.Serializable
 
 /**
  * Define todas las rutas de navegación de la aplicación usando Kotlin Serialization.
  *
- * Patrón recomendado: objetos sellados o clases de datos serializables para type-safety
- * con Navigation Compose 2.8+.
+ * Cada objeto o clase de datos representa un destino en el grafo de navegación.
+ * Los destinos que necesitan parámetros (como `PostDetail`) se modelan como
+ * clases serializables para que Jetpack Navigation pueda pasar esos datos de
+ * forma segura.
+ *
+ * Este enfoque mejora la legibilidad y el mantenimiento del código, ya que las
+ * rutas están tipadas en lugar de usar cadenas arbitrarias.
  */
 sealed class Screen {
 
@@ -18,12 +23,31 @@ sealed class Screen {
 
     // ── Aplicación principal (usuario) ────────────────────────────────────────
     @Serializable data object Feed : Screen()
-    
+
+    /**
+     * Pantalla de detalle de publicación.
+     *
+     * @param postId Identificador de la publicación que se debe mostrar.
+     */
     @Serializable data class PostDetail(val postId: String) : Screen()
+
+    /**
+     * Pantalla para solicitar adopción.
+     *
+     * @param postId Identificador de la publicación relacionada.
+     * @param petName Nombre de la mascota a la que se quiere adoptar.
+     */
     @Serializable data class AdoptionRequest(val postId: String, val petName: String) : Screen()
+
     @Serializable data object AdoptionSuccess : Screen()
-    
     @Serializable data object CreatePost : Screen()
+
+    /**
+     * Pantalla para seleccionar la ubicación de una publicación en creación.
+     *
+     * Todos los datos del post se envían como parámetros para que la pantalla
+     * de ubicación los mantenga en el flujo de creación.
+     */
     @Serializable data class LocationSelection(
         val title: String,
         val description: String,
@@ -40,6 +64,10 @@ sealed class Screen {
         val locationName: String = ""
     ) : Screen()
 
+    /**
+     * Pantalla para mostrar el resumen de los datos ingresados antes de crear
+     * la publicación. Se usa para validar y confirmar la información.
+     */
     @Serializable data class PostDetails(
         val title: String,
         val description: String,
@@ -57,10 +85,7 @@ sealed class Screen {
     ) : Screen()
 
     @Serializable data object MyPosts : Screen()
-    
-    @Serializable 
-    data class EditPost(val postId: String) : Screen()
-    
+    @Serializable data class EditPost(val postId: String) : Screen()
     @Serializable data object Notifications : Screen()
     @Serializable data object AdoptionRequests : Screen()
     @Serializable data object Map : Screen()
@@ -78,11 +103,20 @@ sealed class Screen {
     @Serializable data object Statistics : Screen()
     @Serializable data object Reputation : Screen()
 
-    // ── Moderación ────────────────────────────────────────────────────────────
+    // ── Moderación ───────────────────────────────────────────────────────────
     @Serializable data object ModeratorPanel : Screen()
-    
-    @Serializable 
-    data class ModeratorDetail(val postId: String) : Screen()
+
+    /**
+     * Pantalla de detalle para moderadores con el post específico a revisar.
+     */
+    @Serializable data class ModeratorDetail(val postId: String) : Screen()
+
+    /**
+     * Pantalla para revisar la publicación antes de aprobarla o rechazarla.
+     *
+     * Este destino transporta todos los campos necesarios para que el moderador
+     * vea la información completa sin tener que solicitarla de nuevo.
+     */
     @Serializable data class PostReview(
         val title: String,
         val description: String,

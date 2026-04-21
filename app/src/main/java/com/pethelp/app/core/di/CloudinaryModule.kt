@@ -9,16 +9,18 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Módulo de Hilt que vincula la implementación concreta de subida de imágenes
- * (`CloudinaryImageUploader`) con la interfaz de dominio (`ImageUploader`).
+ * Módulo de Hilt que vincula la implementación concreta de carga de imágenes
+ * (`CloudinaryImageUploader`) con la abstracción de dominio (`ImageUploader`).
  *
- * Esto permite que el `ViewModel` o cualquier otra clase que necesite subir
- * imágenes dependa de la abstracción (`ImageUploader`) y no de la implementación.
+ * En lugar de inyectar directamente la clase concreta, las dependencias usan
+ * la interfaz `ImageUploader`. Esto separa el contrato de su implementación.
  *
- * Ventajas:
- * 1) Facilita pruebas unitarias (mockear `ImageUploader`).
- * 2) Permite cambiar el proveedor (Cloudinary, S3, Firebase, etc.) sin tocar
- *    el código de la UI.
+ * Beneficios principales:
+ * 1. Facilita pruebas unitarias: los tests pueden sustituir `ImageUploader`
+ *    por un doble de prueba.
+ * 2. Mejora la flexibilidad: se puede cambiar la implementación sin afectar
+ *    a los consumidores (por ejemplo, reemplazar Cloudinary por otro servicio).
+ * 3. Refuerza la arquitectura limpia y la inversión de dependencias.
  */
 @Module
 @InstallIn(SingletonComponent::class)

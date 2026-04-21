@@ -1,4 +1,4 @@
-package com.pethelp.app.core.ui.components
+﻿package com.pethelp.app.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,16 +30,28 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 
+/**
+ * Barra de navegación inferior personalizada para PetHelp.
+ *
+ * Esta barra se muestra en la parte inferior de la aplicación y contiene los
+ * accesos directos principales para ir a Home, Mapa, Chat y Perfil. Además,
+ * incluye un botón central flotante (FAB) para crear una nueva publicación.
+ *
+ * El diseño respeta la guía visual de Figma: tiene una línea superior divisoria,
+ * sombra ligera, ítems con selección destacada y un FAB central rotado.
+ *
+ * @param navController controlador de navegación usado para mover al usuario
+ * entre pantallas. El componente no gestiona la navegación directamente, solo
+ * dispara eventos cuando el usuario pulsa una opción.
+ */
 @Composable
 fun PetHelpBottomNavBar(navController: NavController) {
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
 
-    // ── Contenedor principal ─────────────────────────────────────────────────
-
-    // El Box exterior NO usa offset negativo para el FAB — en su lugar el Row
-    // tiene padding(top = 24.dp) para ceder espacio, y el FAB se posiciona con
-    // Alignment.TopCenter dentro del mismo Box sin salir de sus límites.
+    // Box principal que actúa como fondo de la barra.
+    // Se usa contentAlignment = Alignment.TopCenter para posicionar el FAB
+    // dentro del mismo contenedor sin usar offsets negativos que puedan recortar el contenido.
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,7 +63,7 @@ fun PetHelpBottomNavBar(navController: NavController) {
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.TopCenter
     ) {
-        // Línea divisoria superior
+        // Línea superior que separa visualmente la barra del contenido encima.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,8 +71,8 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         )
 
-        // ── Fila de ítems ─────────────────────────────────────────────────────
-        // padding(top = 24.dp) deja espacio para el FAB en la parte superior.
+        // Fila principal de ítems.
+        // padding(top = 24.dp) deja espacio para que el FAB central no se superponga.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,7 +82,6 @@ fun PetHelpBottomNavBar(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // ── Inicio ────────────────────────────────────────────────────────
             NavBarItem(
                 icon = Icons.Filled.Home,
                 label = stringResource(R.string.nav_home),
@@ -86,7 +97,6 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 }
             )
 
-            // ── Mapa ──────────────────────────────────────────────────────────
             NavBarItem(
                 icon = Icons.Filled.LocationOn,
                 label = stringResource(R.string.nav_map),
@@ -102,10 +112,9 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 }
             )
 
-            // Espacio reservado para el FAB central (no es un ítem real)
+            // Espacio reservado para el botón flotante central.
             Spacer(modifier = Modifier.size(64.dp))
 
-            // ── Chat con badge ────────────────────────────────────────────────
             NavBarItem(
                 icon = Icons.Filled.ChatBubble,
                 label = stringResource(R.string.nav_chat),
@@ -114,7 +123,6 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 onClick = { /* TODO: Pantalla de chat */ }
             )
 
-            // ── Perfil ────────────────────────────────────────────────────────
             NavBarItem(
                 icon = Icons.Filled.Person,
                 label = stringResource(R.string.nav_profile),
@@ -131,10 +139,8 @@ fun PetHelpBottomNavBar(navController: NavController) {
             )
         }
 
-        // ── FAB central "Crear publicación" ───────────────────────────────────
-        // Posicionado en TopCenter del Box exterior con offset(y=8.dp) para que
-        // quede 8dp desde el borde superior — siempre dentro de los límites del
-        // componente, sin ser recortado por Scaffold ni por el shadow.
+        // Botón de acción flotante central para crear una nueva publicación.
+        // El ícono se rota 45 grados para obtener el estilo de “cruz inclinada”.
         Box(
             modifier = Modifier
                 .offset(y = 8.dp)
@@ -147,7 +153,7 @@ fun PetHelpBottomNavBar(navController: NavController) {
                     ambientColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
                 )
                 .background(
-                    color = MaterialTheme.colorScheme.secondary, 
+                    color = MaterialTheme.colorScheme.secondary,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .clickable { navController.navigate(Screen.CreatePost) },
@@ -166,13 +172,11 @@ fun PetHelpBottomNavBar(navController: NavController) {
 }
 
 /**
- * Ítem individual de la barra inferior.
+ * Componente que representa un ítem de la barra inferior.
  *
- * @param icon       Icono de Material Icons a mostrar.
- * @param label      Etiqueta (solo visible cuando [selected] = true, igual que Figma).
- * @param selected   Activo: fondo círculo verde 10% opacidad + etiqueta verde.
- * @param badgeCount Notificaciones. 0 = sin badge.
- * @param onClick    Callback de navegación.
+ * El diseño incluye un icono, una etiqueta opcional y un badge de notificación.
+ * La etiqueta solo se muestra cuando el ítem está seleccionado, igual que en
+ * el diseño de Figma.
  */
 @Composable
 private fun NavBarItem(
@@ -188,12 +192,10 @@ private fun NavBarItem(
             .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        // Contenedor del icono + fondo + badge
         Box(
             modifier = Modifier.size(36.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Fondo verde circular (Figma: bg-[rgba(76,175,80,0.1)], solo ítem activo)
             if (selected) {
                 Box(
                     modifier = Modifier
@@ -209,7 +211,6 @@ private fun NavBarItem(
                 modifier = Modifier.size(22.dp)
             )
 
-            // Badge rojo (Figma: bg-[#fb2c36], border blanca, font-bold 10px)
             if (badgeCount > 0) {
                 Box(
                     modifier = Modifier
@@ -230,7 +231,6 @@ private fun NavBarItem(
             }
         }
 
-        // Etiqueta solo cuando está seleccionado
         if (selected) {
             Text(
                 text = label,

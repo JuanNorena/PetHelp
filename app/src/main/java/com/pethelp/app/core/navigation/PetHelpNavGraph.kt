@@ -41,28 +41,28 @@ import com.pethelp.app.features.stats.presentation.StatisticsScreen
 /**
  * Grafo de navegación principal de PetHelp.
  *
- * Single-Activity Architecture: toda la navegación se gestiona aquí
- * mediante Jetpack Compose Navigation con Type Safety (Kotlin Serialization).
+ * Esta función define todas las rutas de navegación de la aplicación usando
+ * Jetpack Compose Navigation.
  *
- * Flujo:
- *   Splash → (autenticado) → Feed
- *          → (no autenticado) → Login → Register / ForgotPassword
+ * En una arquitectura de actividad única, todas las pantallas se representan como
+ * destinos en este grafo. El `NavHostController` se usa para mover al usuario
+ * entre esas pantallas.
  */
 @Composable
 fun PetHelpNavGraph(
     navController: NavHostController = rememberNavController()
 ) {
     NavHost(
-        navController    = navController,
+        navController = navController,
         startDestination = Screen.Splash
     ) {
 
-        // ── Splash ────────────────────────────────────────────────────────────
+        // ── Pantalla inicial / Splash ────────────────────────────────────────
         composable<Screen.Splash> {
             SplashScreen(navController = navController)
         }
 
-        // ── Autenticación ─────────────────────────────────────────────────────
+        // ── Rutas de autenticación ──────────────────────────────────────────
         composable<Screen.Login> {
             LoginScreen(navController = navController)
         }
@@ -73,17 +73,18 @@ fun PetHelpNavGraph(
             ForgotPasswordScreen(navController = navController)
         }
 
-        // ── Feed principal ────────────────────────────────────────────────────
+        // ── Feed principal ──────────────────────────────────────────────────
         composable<Screen.Feed> {
             FeedScreen(navController = navController)
         }
 
-        // ── Detalle de publicación ────────────────────────────────────────────
+        // ── Detalle de publicación ──────────────────────────────────────────
         composable<Screen.PostDetail> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.PostDetail>()
             PostDetailScreen(postId = route.postId, navController = navController)
         }
 
+        // ── Solicitudes de adopción ─────────────────────────────────────────
         composable<Screen.AdoptionRequest> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.AdoptionRequest>()
             AdoptionRequestScreen(
@@ -92,16 +93,14 @@ fun PetHelpNavGraph(
                 navController = navController
             )
         }
-
         composable<Screen.AdoptionRequests> {
             AdoptionRequestsScreen(navController = navController)
         }
-
         composable<Screen.AdoptionSuccess> {
             AdoptionSuccessScreen(navController = navController)
         }
 
-        // ── Crear / Editar / Mis publicaciones ───────────────────────────────
+        // ── Crear / editar publicaciones ──────────────────────────────────────
         composable<Screen.CreatePost> {
             CreatePostScreen(navController = navController)
         }
@@ -125,17 +124,17 @@ fun PetHelpNavGraph(
             EditPostScreen(postId = route.postId, navController = navController)
         }
 
-        // ── Notificaciones ────────────────────────────────────────────────────
+        // ── Notificaciones ──────────────────────────────────────────────────
         composable<Screen.Notifications> {
             NotificationsScreen(navController = navController)
         }
 
-        // ── Mapa ─────────────────────────────────────────────────────────────
+        // ── Mapa ────────────────────────────────────────────────────────────
         composable<Screen.Map> {
             MapScreen(navController = navController)
         }
 
-        // ── Perfil ────────────────────────────────────────────────────────────
+        // ── Perfil y ajustes ──────────────────────────────────────────────────
         composable<Screen.Profile> {
             ProfileScreen(navController = navController)
         }
@@ -167,17 +166,15 @@ fun PetHelpNavGraph(
             UserGuideScreen(navController = navController)
         }
 
-        // ── Estadísticas ──────────────────────────────────────────────────────
+        // ── Estadísticas y reputación ────────────────────────────────────────
         composable<Screen.Statistics> {
             StatisticsScreen(navController = navController)
         }
-
-        // ── Reputación ────────────────────────────────────────────────────────
         composable<Screen.Reputation> {
             ReputationScreen(navController = navController)
         }
 
-        // ── Panel de moderación ───────────────────────────────────────────────
+        // ── Moderación ──────────────────────────────────────────────────────
         composable<Screen.ModeratorPanel> {
             ModeratorPanelScreen(navController = navController)
         }

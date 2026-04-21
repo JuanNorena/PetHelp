@@ -1,4 +1,4 @@
-package com.pethelp.app.core.data.upload
+﻿package com.pethelp.app.core.data.upload
 
 import android.content.Context
 import android.net.Uri
@@ -20,19 +20,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
- * Implementación de **ImageUploader** usando **Cloudinary**.
+ * Implementación de ImageUploader que sube imágenes a Cloudinary.
  *
- * Esta clase se encarga de inicializar el SDK de Cloudinary (MediaManager)
- * y subir imágenes locales (URI) al servicio.
+ * Esta clase se encarga de:
+ * 1. Inicializar el SDK de Cloudinary (MediaManager) una sola vez.
+ * 2. Convertir URIs locales en rutas de archivo seguras para carga.
+ * 3. Subir la imagen usando el preset de carga no firmado.
+ * 4. Devolver la URL pública generada por Cloudinary.
  *
- * Se usa el preset de carga (unsigned) configurado en **BuildConfig.CLOUDINARY_UPLOAD_PRESET**
- * y el nombre de la nube en **BuildConfig.CLOUDINARY_CLOUD_NAME**.
- *
- * El método `uploadImage()` devuelve la URL segura (https) que Cloudinary genera
- * para la imagen subida, lista para guardarse en Firestore.
- *
- * Este componente está diseñado para usarse desde un ViewModel (por ejemplo,
- * `CreatePostViewModel`) donde se hace el flujo de UI -> validaciones -> carga -> persistencia.
+ * Se usa típicamente desde un ViewModel cuando el usuario selecciona una
+ * imagen y se necesita enviarla a la nube antes de guardar un post.
  */
 @Singleton
 class CloudinaryImageUploader @Inject constructor(
@@ -40,6 +37,12 @@ class CloudinaryImageUploader @Inject constructor(
 ) : ImageUploader {
 
     companion object {
+        /**
+         * Bandera global para inicializar MediaManager solo una vez.
+         *
+         * MediaManager es un SDK con estado interno y no debe inicializarse
+         * varias veces en una misma aplicación.
+         */
         private val isInitialized = AtomicBoolean(false)
     }
 
@@ -49,12 +52,10 @@ class CloudinaryImageUploader @Inject constructor(
     )
 
     /**
-     * Inicializa el SDK de Cloudinary (MediaManager) una sola vez por aplicación.
+     * Asegura que Cloudinary esté inicializado antes de usarlo.
      *
-     * Requiere que las constantes del build config estén definidas:
-     * - CLOUDINARY_CLOUD_NAME: el nombre de la nube en Cloudinary.
-     *
-     * Lanza una excepción clara si falta la configuración.
+     * Verifica las variables de configuración necesarias de BuildConfig y
+     * llama a MediaManager.init(...) una sola vez.
      */
     private fun ensureInitialized() {
         if (!isInitialized.get()) {
@@ -73,12 +74,16 @@ class CloudinaryImageUploader @Inject constructor(
     }
 
     /**
-     * Sube una imagen local a Cloudinary y devuelve la URL pública.
+     * Sube una imagen local a Cloudinary y devuelve la URL final.
      *
-     * @param localUri URI local (por ejemplo, `content://...`) de la imagen seleccionada.
-     * @param folder Carpeta dentro de Cloudinary donde se guardará la imagen (ej. "pethelp/posts").
-     * @return URL de la imagen subida (usualmente `secure_url`).
-     * @throws IllegalStateException si falta configuración o la subida falla.
+     * El parámetro `localUri` puede ser una URI de contenido (`content://`) o
+     * una ruta de archivo (`file://` o ruta absoluta). La función convierte esta
+     * referencia en un origen seguro antes de subirla.
+     *
+     * @param localUri URI local de la imagen.
+     * @param folder carpeta dentro de Cloudinary donde se guardará la imagen.
+     * @return URL pública segura de la imagen subida.
+     * @throws IllegalStateException si falta configuración o si la subida falla.
      */
     override suspend fun uploadImage(localUri: String, folder: String): String {
         ensureInitialized()
@@ -146,12 +151,11 @@ class CloudinaryImageUploader @Inject constructor(
     }
 
     /**
-     * Convierte una referencia local de imagen en una fuente estable para Cloudinary.
+     * Prepara la fuente de imagen para la carga a Cloudinary.
      *
-     * Photo Picker entrega URIs del tipo `content://media/picker/...` que pueden
-     * caducar o perder permisos al ejecutarse la subida asíncrona. Para evitar
-     * errores "does not exist", copiamos esos contenidos a un archivo temporal
-     * propio en cache y subimos ese archivo.
+     * Cloudinary necesita una ruta de archivo válida. Si la URI proviene del
+     * selector de fotos, puede ser un `content://` que caduca o pierde permiso.
+     * En ese caso copiamos el contenido a un archivo temporal en el caché.
      */
     private fun prepareUploadSource(localUri: String): PreparedUploadSource {
         if (localUri.isBlank()) {
@@ -190,6 +194,13 @@ class CloudinaryImageUploader @Inject constructor(
         }
     }
 
+    /**
+     * Copia el contenido de una URI de tipo `content://` a un archivo temporal.
+     *
+     * Esto evita problemas cuando el URI original deja de ser válido mientras se
+     * realiza la subida asíncrona. El archivo temporal se elimina después de
+     * completar la subida, tanto si tiene éxito como si falla.
+     */
     private fun copyContentUriToTempFile(uri: Uri): File {
         val resolver = context.contentResolver
         val mimeType = resolver.getType(uri)

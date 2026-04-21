@@ -15,17 +15,39 @@ import com.pethelp.app.R
 import java.util.Locale
 
 /**
- * Clase de utilidad para manejar strings que pueden ser literales o recursos.
- * Permite que los ViewModels permanezcan puros (sin depender de Context)
- * pero soporten localización.
+ * Representa un texto de la UI que puede provenir de dos fuentes:
+ * 1. Texto dinámico en tiempo de ejecución (`DynamicString`).
+ * 2. Texto localizado desde recursos de Android (`StringResource`).
+ *
+ * Esta clase permite que los ViewModels trabajen sin depender de `Context`,
+ * pero al mismo tiempo soporte localización y formateo de strings en la UI.
  */
 sealed class UiText {
+
+    /**
+     * Texto literal generado en tiempo de ejecución.
+     *
+     * Ejemplo: nombre de usuario, mensaje recibido desde una API, valores libres.
+     */
     data class DynamicString(val value: String) : UiText()
+
+    /**
+     * Texto basado en un recurso de Android.
+     *
+     * @param resId identificador de string en `R.string`.
+     * @param args argumentos opcionales para formato.
+     */
     class StringResource(
         @StringRes val resId: Int,
         vararg val args: Any
     ) : UiText()
 
+    /**
+     * Convierte el texto en un `String` desde Compose.
+     *
+     * Esta función se usa cuando el componente Compose necesita mostrar el
+     * texto en pantalla y puede acceder a los recursos.
+     */
     @Composable
     fun asString(): String {
         return when (this) {
@@ -34,6 +56,12 @@ sealed class UiText {
         }
     }
 
+    /**
+     * Convierte el texto en un `String` usando un `Context` clásico.
+     *
+     * Esta función es útil cuando no se está dentro de Compose, por ejemplo en
+     * clases que reciben un `Context` para resolver recursos.
+     */
     fun asString(context: Context): String {
         return when (this) {
             is DynamicString -> value
@@ -42,6 +70,9 @@ sealed class UiText {
     }
 
     companion object {
+        /**
+         * Convierte una categoría de publicación a su texto localizable.
+         */
         fun fromCategory(category: PostCategory): UiText {
             return when (category) {
                 PostCategory.ADOPTION -> StringResource(R.string.category_adoption)
@@ -52,6 +83,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte un estado de publicación a su texto localizable.
+         */
         fun fromStatus(status: PostStatus): UiText {
             return when (status) {
                 PostStatus.ACTIVE -> StringResource(R.string.status_active_caps)
@@ -64,6 +98,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte el tamaño de un animal en un texto localizable.
+         */
         fun fromSize(size: AnimalSize): UiText {
             return when (size) {
                 AnimalSize.SMALL -> StringResource(R.string.tag_small)
@@ -72,6 +109,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte la edad del animal en un texto localizable.
+         */
         fun fromAge(age: AnimalAge): UiText {
             return when (age) {
                 AnimalAge.PUPPY -> StringResource(R.string.post_age_puppy)
@@ -81,6 +121,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte el género del animal en un texto localizable.
+         */
         fun fromGender(gender: AnimalGender): UiText {
             return when (gender) {
                 AnimalGender.MALE -> StringResource(R.string.post_gender_male)
@@ -89,6 +132,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte el comportamiento del animal en un texto localizable.
+         */
         fun fromBehavior(behavior: PetBehavior): UiText {
             return when (behavior) {
                 PetBehavior.PLAYFUL -> StringResource(R.string.post_behavior_playful)
@@ -102,6 +148,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte el nivel de usuario en un texto localizable.
+         */
         fun fromUserLevel(level: UserLevel): UiText {
             return when (level) {
                 UserLevel.FRIEND -> StringResource(R.string.user_level_friend)
@@ -111,6 +160,10 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte una cadena libre representando el tipo de vivienda en texto.
+         * Si la clave no coincide con ningún valor conocido, devuelve el texto original.
+         */
         fun fromHousingType(key: String): UiText {
             return when (key.trim().lowercase(Locale.ROOT)) {
                 "house", "casa" -> StringResource(R.string.housing_house)
@@ -119,6 +172,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte una respuesta de sí/no en un texto localizable.
+         */
         fun fromYesNo(key: String): UiText {
             return when (key.trim().lowercase(Locale.ROOT)) {
                 "yes", "si", "sí", "true" -> StringResource(R.string.common_yes)
@@ -127,6 +183,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte un texto libre de experiencia en una etiqueta localizable.
+         */
         fun fromExperience(key: String): UiText {
             return when (key.trim().lowercase(Locale.ROOT)) {
                 "yes", "si", "sí", "tengo experiencia", "sí tengo", "si tengo" -> StringResource(R.string.experience_yes)
@@ -135,6 +194,9 @@ sealed class UiText {
             }
         }
 
+        /**
+         * Convierte una preferencia de contacto en un texto localizable.
+         */
         fun fromContactPreference(key: String): UiText {
             return when (key.trim().lowercase(Locale.ROOT)) {
                 "pethelp", "chat", "chat en pethelp" -> StringResource(R.string.contact_pethelp)

@@ -6,8 +6,18 @@ import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import java.util.concurrent.Executor
 
+/**
+ * Utilidad para gestionar la autenticación biométrica en la aplicación.
+ *
+ * Proporciona métodos para verificar la disponibilidad de biometría en el
+ * dispositivo y para iniciar un flujo de autenticación con huella, rostro o
+ * credenciales del dispositivo.
+ */
 object BiometricAuthGate {
 
+    /**
+     * Estados posibles de disponibilidad biométrica en el dispositivo.
+     */
     enum class Availability {
         AVAILABLE,
         NO_HARDWARE,
@@ -22,6 +32,12 @@ object BiometricAuthGate {
         BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
 
+    /**
+     * Comprueba la disponibilidad de autenticación biométrica en el dispositivo.
+     *
+     * @param context contexto necesario para acceder a BiometricManager.
+     * @return una constante de Availability que describe el estado.
+     */
     fun availability(context: Context): Availability {
         val result = BiometricManager.from(context).canAuthenticate(authenticators)
         return when (result) {
@@ -35,6 +51,18 @@ object BiometricAuthGate {
         }
     }
 
+    /**
+     * Inicia la autenticación biométrica usando el prompt del sistema.
+     *
+     * @param activity Activity que mostrará el prompt biometric.
+     * @param executor ejecutor donde se ejecutarán los callbacks.
+     * @param title título principal del prompt.
+     * @param subtitle subtítulo opcional del prompt.
+     * @param description descripción adicional que explique por qué se pide la autenticación.
+     * @param onSuccess callback cuando la autenticación es exitosa.
+     * @param onError callback cuando ocurre un error grave al autenticar.
+     * @param onFailed callback cuando la biometría se intenta pero no coincide.
+     */
     fun authenticate(
         activity: FragmentActivity,
         executor: Executor,
