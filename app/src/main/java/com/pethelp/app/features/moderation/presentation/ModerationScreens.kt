@@ -50,6 +50,27 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Componente de seguridad que restringe el acceso solo a usuarios con rol de MODERADOR.
+ *
+ * **Responsabilidad:**
+ * Verificar el estado de autenticación y el rol del usuario antes de renderizar el contenido
+ * protegido. Si el usuario no cumple los requisitos, lo redirige automáticamente.
+ *
+ * **Lógica de Redirección:**
+ * 1. **No autenticado:** Redirige a la pantalla de Login.
+ * 2. **Autenticado pero sin rol de moderador:** Redirige al Feed general.
+ * 3. **Moderador:** Renderiza el contenido solicitado ([content]).
+ *
+ * **Nota para Junior Developers:**
+ * El uso de [LaunchedEffect] con `authState` como clave garantiza que la validación se
+ * ejecute cada vez que cambie el estado de la sesión, manteniendo la seguridad de la app.
+ *
+ * @param navController Controlador para gestionar las redirecciones de seguridad.
+ * @param content Composable que representa la pantalla protegida a mostrar.
+ * @since 1.0.0
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 private fun ModeratorAccessGate(
     navController: NavController,
@@ -90,6 +111,27 @@ private fun ModeratorAccessGate(
     }
 }
 
+/**
+ * Pantalla principal del Panel de Moderación (Dashboard).
+ *
+ * **Responsabilidad:**
+ * Ofrecer una visión global de la salud de la plataforma mediante métricas clave (posts pendientes,
+ * usuarios totales, reportes activos) y listar las publicaciones que requieren revisión inmediata.
+ *
+ * **Funcionalidades:**
+ * - Resumen de estadísticas diarias y métricas globales.
+ * - Lista de publicaciones pendientes de validación.
+ * - Gestión de cierre de sesión específico para moderadores.
+ * - Refresco manual de datos mediante la barra superior.
+ *
+ * **Componentes Destacados:**
+ * - [ModeratorAccessGate]: Garantiza que solo moderadores vean esta información sensible.
+ * - [StatsSummaryRow]: Muestra indicadores rápidos de la gestión del día.
+ * - [GlobalMetricsRow]: Muestra contadores totales del sistema.
+ *
+ * @param navController Navegación entre el dashboard y el detalle de publicaciones.
+ * @param viewModel Lógica de negocio para cargar estadísticas y posts pendientes.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorPanelScreen(
@@ -100,11 +142,13 @@ fun ModeratorPanelScreen(
     val authViewModel: AuthViewModel = hiltViewModel()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // PASO 1: Carga inicial de datos al entrar a la pantalla.
     LaunchedEffect(Unit) {
         viewModel.loadPendingPosts()
     }
 
     ModeratorAccessGate(navController = navController) {
+        // Diálogo de confirmación para cerrar sesión.
         if (showLogoutDialog) {
             AlertDialog(
                 onDismissRequest = { showLogoutDialog = false },
@@ -158,6 +202,7 @@ fun ModeratorPanelScreen(
             },
             bottomBar = { PetHelpBottomNavBar(navController) }
         ) { padding ->
+            // PASO 2: Manejo de estados de carga, error y visualización de datos.
             when {
                 uiState.isLoading && uiState.pendingPosts.isEmpty() -> {
                     Box(
@@ -193,10 +238,13 @@ fun ModeratorPanelScreen(
                             .padding(padding)
                             .verticalScroll(rememberScrollState())
                     ) {
+                        // Sección de Resumen Diario.
                         StatsSummaryRow(stats = uiState.stats)
                         
+                        // Sección de Métricas Globales.
                         GlobalMetricsRow(stats = uiState.stats)
 
+                        // Lista de Publicaciones que requieren atención.
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -217,6 +265,7 @@ fun ModeratorPanelScreen(
                                     modifier = Modifier.padding(vertical = 16.dp)
                                 )
                             } else {
+                                // Mostramos solo los primeros 5 para el dashboard rápido.
                                 uiState.pendingPosts.take(5).forEach { post ->
                                     PendingPostCard(
                                         post = post,
@@ -232,76 +281,25 @@ fun ModeratorPanelScreen(
     }
 }
 
-@Composable
-private fun GlobalMetricsRow(stats: ModerationStats) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        MetricCard(
-            label = stringResource(R.string.moderation_stat_total_users),
-            value = stats.totalUsers.toString(),
-            icon = Icons.Default.People,
-            modifier = Modifier.weight(1f)
-        )
-        MetricCard(
-            label = stringResource(R.string.moderation_stat_total_adoptions),
-            value = stats.totalAdoptions.toString(),
-            icon = Icons.Default.Pets,
-            modifier = Modifier.weight(1f)
-        )
-        MetricCard(
-            label = stringResource(R.string.moderation_stat_active_reports),
-            value = stats.activeReports.toString(),
-            icon = Icons.Default.Report,
-            containerColor = StatusErrorBg,
-            contentColor = StatusError,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun MetricCard(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = contentColor
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.7f)
-            )
-        }
-    }
-}
-
+/**
+ * Pantalla de detalle de publicación para moderadores.
+ *
+ * **Responsabilidad:**
+ * Permitir al moderador examinar el contenido completo de una publicación y tomar una decisión
+ * (Aprobar o Rechazar).
+ *
+ * **Lógica de Rechazo:**
+ * Al rechazar, se solicita obligatoriamente un motivo que será enviado al autor para que
+ * pueda corregir la publicación.
+ *
+ * **Nota para Junior Developers:**
+ * Se utiliza un [LaunchedEffect] con `snackbarMessage` para mostrar feedback visual sobre
+ * el éxito o fracaso de las acciones de moderación (p. ej., "Publicación aprobada con éxito").
+ *
+ * @param postId ID de la publicación a moderar.
+ * @param navController Navegación para retornar al panel tras completar la acción.
+ * @param viewModel Lógica para aprobar/rechazar y cargar el detalle del post.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorDetailScreen(
@@ -314,18 +312,21 @@ fun ModeratorDetailScreen(
     var showRejectDialog by remember { mutableStateOf(false) }
     var rejectReason by remember { mutableStateOf("") }
 
+    // PASO 1: Carga de detalles del post específico.
     LaunchedEffect(postId) {
         viewModel.loadPostDetail(postId)
     }
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    // PASO 2: Observación de mensajes informativos (Snackbars).
     LaunchedEffect(Unit) {
         viewModel.snackbarMessage.collectLatest { uiText ->
             snackbarHostState.showSnackbar(uiText.asString(context))
         }
     }
 
+    // PASO 3: Navegación automática hacia atrás cuando se completa una acción con éxito.
     LaunchedEffect(Unit) {
         viewModel.actionCompleted.collectLatest {
             navController.popBackStack()
@@ -333,6 +334,7 @@ fun ModeratorDetailScreen(
     }
 
     ModeratorAccessGate(navController = navController) {
+        // Diálogo para capturar el motivo del rechazo.
         if (showRejectDialog) {
             AlertDialog(
                 onDismissRequest = { showRejectDialog = false },
@@ -385,6 +387,7 @@ fun ModeratorDetailScreen(
                 )
             }
         ) { padding ->
+            // PASO 4: Renderizado de la información detallada del post.
             when {
                 uiState.isLoading && uiState.selectedPost == null -> {
                     Box(
@@ -429,6 +432,7 @@ fun ModeratorDetailScreen(
                             fontWeight = FontWeight.Bold
                         )
 
+                        // Metadatos de la publicación.
                         Text(
                             text = stringResource(R.string.moderation_detail_author_label, post?.authorName.orEmpty()),
                             style = MaterialTheme.typography.bodyMedium,
@@ -449,12 +453,14 @@ fun ModeratorDetailScreen(
 
                         HorizontalDivider()
 
+                        // Descripción del contenido.
                         Text(
                             text = post?.description.orEmpty(),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
+                        // Historial de rechazos previos (si aplica).
                         if (!post?.rejectionReason.isNullOrBlank()) {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = StatusErrorBg),
@@ -479,6 +485,7 @@ fun ModeratorDetailScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        // PASO 5: Botones de acción del moderador.
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Button(
                                 onClick = { viewModel.approvePost(postId) },
@@ -497,6 +504,7 @@ fun ModeratorDetailScreen(
                             }
                         }
 
+                        // Indicador de guardado en curso.
                         if (uiState.isActionLoading) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -529,6 +537,9 @@ fun ModeratorDetailScreen(
     }
 }
 
+/**
+ * Fila de tarjetas con estadísticas rápidas sobre la gestión diaria de moderación.
+ */
 @Composable
 private fun StatsSummaryRow(stats: ModerationStats) {
     Column(
@@ -581,6 +592,9 @@ private fun StatsSummaryRow(stats: ModerationStats) {
     }
 }
 
+/**
+ * Tarjeta individual para mostrar un valor estadístico con colores semánticos.
+ */
 @Composable
 private fun StatCard(
     label: String,
@@ -616,6 +630,14 @@ private fun StatCard(
     }
 }
 
+/**
+ * Tarjeta interactiva para listar publicaciones pendientes en el panel.
+ *
+ * **Características Visuales:**
+ * - Título y autor de la publicación.
+ * - [MatchBadge]: Indicador visual de la confianza de la IA en el contenido.
+ * - Resumen generado por IA para facilitar una revisión rápida sin entrar al detalle.
+ */
 @Composable
 private fun PendingPostCard(
     post: Post,
@@ -654,9 +676,11 @@ private fun PendingPostCard(
                     )
                 }
 
+                // Badge de coincidencia de IA.
                 MatchBadge(percentage = post.iaMatchPercentage ?: 0)
             }
 
+            // Resumen de IA (opcional).
             if (!post.iaSummary.isNullOrBlank()) {
                 Box(
                     modifier = Modifier
@@ -704,6 +728,10 @@ private fun PendingPostCard(
     }
 }
 
+/**
+ * Etiqueta visual que muestra el porcentaje de confianza de la IA.
+ * Utiliza colores semánticos (Verde, Naranja, Rojo) según el nivel de seguridad.
+ */
 @Composable
 private fun MatchBadge(percentage: Int) {
     val color = when {
@@ -733,6 +761,9 @@ private fun MatchBadge(percentage: Int) {
     }
 }
 
+/**
+ * Badge genérico para mostrar el estado actual de una publicación con estilo circular.
+ */
 @Composable
 private fun StatusBadge(status: PostStatus) {
     val (background, foreground) = when (status) {
@@ -766,6 +797,10 @@ private fun StatusBadge(status: PostStatus) {
     }
 }
 
+/**
+ * Convierte un timestamp largo en un formato de fecha y hora legible.
+ * @return String formateado como "dd/MM/yyyy HH:mm".
+ */
 private fun formatDate(timestamp: Long): String {
     if (timestamp <= 0L) return "-"
     return SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))

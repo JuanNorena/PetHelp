@@ -1,3 +1,23 @@
+/**
+ * Archivo que centraliza las pantallas y componentes visuales del módulo de Autenticación.
+ *
+ * **Responsabilidad Principal:**
+ * Proporcionar las interfaces de usuario para el flujo de bienvenida (Splash), inicio de sesión (Login),
+ * registro de nuevos usuarios (Register) y recuperación de cuenta (Forgot Password).
+ *
+ * **Estructura del Archivo:**
+ * 1. **Pantallas Principales**: Funciones Composable que representan cada vista completa.
+ * 2. **Componentes Visuales**: Elementos decorativos como el logo compuesto o manchas desenfocadas.
+ * 3. **Componentes Reutilizables**: Inputs y botones personalizados que mantienen la estética en todo el módulo.
+ *
+ * **Notas para Junior Developers:**
+ * - Cada pantalla utiliza un `ViewModel` inyectado mediante [hiltViewModel] para gestionar su lógica y estado.
+ * - Se hace un uso intensivo de [Modifier] para aplicar sombras, bordes redondeados y efectos visuales avanzados (blur).
+ * - La navegación se gestiona a través de [navController], permitiendo transiciones fluidas entre pantallas.
+ *
+ * @since 1.0.0
+ * @author Equipo de Desarrollo PetHelp
+ */
 package com.pethelp.app.features.auth.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -60,6 +80,12 @@ import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Función auxiliar para determinar a qué pantalla debe ir un usuario tras autenticarse.
+ *
+ * @param role El rol del usuario ([UserRole]).
+ * @return La ruta ([Screen]) correspondiente al rol.
+ */
 private fun authenticatedDestination(role: UserRole): Screen {
     return when (role) {
         UserRole.MODERATOR -> Screen.ModeratorPanel
@@ -68,6 +94,25 @@ private fun authenticatedDestination(role: UserRole): Screen {
 }
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
+/**
+ * Pantalla de bienvenida (Splash) de la aplicación.
+ *
+ * **Responsabilidad:**
+ * Presentar la identidad de marca (logo y lema) y verificar si el usuario ya tiene una sesión
+ * activa para redirigirlo automáticamente.
+ *
+ * **Lógica de UI:**
+ * 1. **Redirección Automática:** Observa el estado de autenticación. Si el usuario está logueado,
+ *    salta directamente a la pantalla principal correspondiente a su rol.
+ * 2. **Fondo Estético:** Aplica un degradado vertical y "manchas" desenfocadas para un aspecto moderno.
+ * 3. **Comienzo Manual:** Ofrece un botón destacado para iniciar el flujo de login si no hay sesión activa.
+ *
+ * @param navController Controlador de navegación para redirigir al usuario.
+ * @param viewModel ViewModel que gestiona el estado de autenticación inicial.
+ * @return No devuelve nada (función Composable).
+ *
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 fun SplashScreen(
     navController: NavController,
@@ -75,7 +120,7 @@ fun SplashScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Si ya está autenticado, redirigir según rol.
+    // PASO 1: Si ya está autenticado, redirigimos automáticamente según el rol del usuario.
     LaunchedEffect(uiState) {
         val authenticatedState = uiState as? AuthUiState.Authenticated
         if (authenticatedState != null) {
@@ -86,7 +131,7 @@ fun SplashScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // fondo degradado vertical crema → verde claro
+        // PASO 2: Fondo con degradado vertical crema → verde claro (primaryContainer).
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,7 +145,7 @@ fun SplashScreen(
                 )
         )
 
-        // manchas desenfocadas de colores primario/secundario/terciario
+        // PASO 3: Elementos decorativos (manchas desenfocadas) de colores de marca.
         BlurredCircle(
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
@@ -120,7 +165,7 @@ fun SplashScreen(
             offsetY = 629.dp
         )
 
-        // contenido central
+        // PASO 4: Contenido central (Logo + Nombre + Lema).
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -128,12 +173,12 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ── Logo: contenedor glassmorphism con iconos compuestos ──
+            // Logo con efecto Glassmorphism.
             PetHelpLogo()
 
             Spacer(Modifier.height(24.dp))
 
-            // título "PetHelp" en verde oscuro (#2E7D32) según Figma
+            // Título "PetHelp" con tipografía destacada.
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.displayMedium.copy(
@@ -145,7 +190,7 @@ fun SplashScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // lema
+            // Lema de la aplicación.
             Text(
                 text = stringResource(R.string.splash_tagline),
                 style = MaterialTheme.typography.bodyLarge.copy(
@@ -156,7 +201,7 @@ fun SplashScreen(
             )
         }
 
-        // botón inferior "Comenzar"
+        // PASO 5: Botón inferior "Comenzar" para avanzar manualmente al Login.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -195,9 +240,25 @@ fun SplashScreen(
 }
 
 // ─── Logo compuesto: pata + corazón + mano ────────────────────────────────────
+/**
+ * Componente que renderiza el logo artístico de PetHelp.
+ *
+ * **Responsabilidad:**
+ * Crear una composición visual que simboliza el cuidado animal (pata, corazón y mano)
+ * utilizando un contenedor con efecto Glassmorphism.
+ *
+ * **Estructura:**
+ * - **Contenedor**: Un [Box] con fondo semi-transparente, bordes redondeados y sombra.
+ * - **Iconos**: Tres elementos superpuestos que forman la identidad visual de la app.
+ *
+ * @param modifier Modificador para ajustar el tamaño o posición del logo.
+ * @return No devuelve nada (función Composable).
+ *
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 private fun PetHelpLogo(modifier: Modifier = Modifier) {
-    // Contenedor glassmorphism (blanco 40 % + sombra suave + esquinas 24 dp)
+    // PASO 1: Contenedor glassmorphism (blanco 60 % + sombra suave + esquinas 24 dp).
     Box(
         modifier = modifier
             .size(160.dp)
@@ -213,8 +274,9 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             ),
         contentAlignment = Alignment.Center
     ) {
+        // PASO 2: Composición de iconos superpuestos.
         Box(modifier = Modifier.size(96.dp)) {
-            // Pata principal — verde (64 dp, centrada)
+            // Icono de pata (Verde - Primario).
             Icon(
                 imageVector = Icons.Filled.Pets,
                 contentDescription = null,
@@ -223,7 +285,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
                     .size(64.dp)
                     .align(Alignment.Center)
             )
-            // Corazón — coral (36 dp, arriba-izquierda)
+            // Icono de corazón (Naranja - Secundario).
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
@@ -233,7 +295,7 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
                     .align(Alignment.TopStart)
                     .offset(x = (-4).dp, y = (-8).dp)
             )
-            // Mano interactiva — púrpura (36 dp, abajo-derecha, rotada −15°)
+            // Icono de mano interactiva (Púrpura - Terciario).
             Icon(
                 imageVector = Icons.Filled.TouchApp,
                 contentDescription = null,
@@ -248,6 +310,14 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Crea una mancha circular desenfocada para fondos estéticos.
+ *
+ * @param color Color de la mancha (usualmente con transparencia).
+ * @param size Diámetro del círculo.
+ * @param offsetX Desplazamiento en el eje X.
+ * @param offsetY Desplazamiento en el eje Y.
+ */
 @Composable
 private fun BlurredCircle(
     color: Color,
@@ -265,6 +335,27 @@ private fun BlurredCircle(
 }
 
 // ─── Login ────────────────────────────────────────────────────────────────────
+/**
+ * Pantalla de inicio de sesión de la aplicación.
+ *
+ * **Responsabilidad:**
+ * Permitir a los usuarios existentes acceder a su cuenta mediante correo y contraseña.
+ * Maneja estados de validación, errores de autenticación y redirección post-login.
+ *
+ * **Lógica de Funcionamiento:**
+ * 1. **Gestión de Estado Local:** Controla los campos de texto y la visibilidad de la contraseña.
+ * 2. **Suscripción a Eventos:** Escucha el canal de `snackbarMessage` del ViewModel para mostrar
+ *    errores de red o credenciales inválidas.
+ * 3. **Redirección:** Al detectar un estado `Authenticated`, navega a la pantalla principal.
+ * 4. **Interfaz de Usuario:** Utiliza un diseño limpio con una imagen circular, campos de texto
+ *    estilizados y un botón de acción principal con indicador de carga.
+ *
+ * @param navController Controlador para navegar a registro o recuperación de contraseña.
+ * @param viewModel ViewModel que procesa la solicitud de login.
+ * @return No devuelve nada (función Composable).
+ *
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -276,7 +367,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // ── Snackbar (Material Design best practice para mensajes de error) ──
+    // PASO 1: Configuramos el Snackbar para mostrar mensajes informativos o de error.
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -288,7 +379,7 @@ fun LoginScreen(
         }
     }
 
-    // Navegar según rol cuando el login sea exitoso
+    // PASO 2: Observamos si el login es exitoso para navegar a la pantalla principal.
     LaunchedEffect(uiState) {
         val authenticatedState = uiState as? AuthUiState.Authenticated
         if (authenticatedState != null) {
@@ -299,7 +390,7 @@ fun LoginScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // fondo degradado igual que splash
+        // Fondo degradado y decorativo.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -313,7 +404,6 @@ fun LoginScreen(
                 )
         )
 
-        // manchas desenfocadas
         BlurredCircle(
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
@@ -327,7 +417,7 @@ fun LoginScreen(
             offsetY = 160.dp
         )
 
-        // contenido principal centrado
+        // PASO 3: Contenido principal scrolleable (para evitar problemas con el teclado).
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -337,7 +427,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ── Foto circular del perrito ──
+            // Imagen de cabecera: Perrito feliz.
             Box(
                 modifier = Modifier
                     .size(160.dp)
@@ -362,7 +452,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── Título ──
+            // Título de bienvenida.
             Text(
                 text = stringResource(R.string.login_greeting),
                 style = MaterialTheme.typography.headlineLarge.copy(
@@ -375,7 +465,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // ── Subtítulo ──
+            // Subtítulo instructivo.
             Text(
                 text = stringResource(R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyLarge.copy(
@@ -387,7 +477,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // ── Campo Correo electrónico ──
+            // PASO 4: Campos de entrada (Correo y Contraseña).
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -430,7 +520,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Campo Contraseña ──
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -485,7 +574,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(4.dp))
 
-            // ¿Olvidaste tu contraseña?
+            // Enlace de recuperación de contraseña.
             Text(
                 text = stringResource(R.string.forgot_password_link),
                 style = MaterialTheme.typography.bodySmall.copy(
@@ -501,7 +590,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // ── Botón Iniciar Sesión ──
+            // PASO 5: Botón de acción principal.
             Button(
                 onClick = {
                     viewModel.login(email.trim(), password)
@@ -525,6 +614,7 @@ fun LoginScreen(
                     )
             ) {
                 if (uiState is AuthUiState.Loading) {
+                    // Indicador de carga mientras se procesa la autenticación.
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp),
@@ -545,7 +635,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── ¿No tienes cuenta? Regístrate ──
+            // PASO 6: Enlace para ir a la pantalla de registro.
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -572,7 +662,7 @@ fun LoginScreen(
             }
         }
 
-        // ── Snackbar anclado en la parte inferior ──
+        // Host del Snackbar.
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -590,6 +680,25 @@ fun LoginScreen(
 }
 
 // ─── Register ─────────────────────────────────────────────────────────────────
+/**
+ * Pantalla de registro para nuevos usuarios de PetHelp.
+ *
+ * **Responsabilidad:**
+ * Recolectar la información necesaria (nombre, correo, contraseña) para crear una nueva cuenta.
+ * Incluye validación de fortaleza de contraseña y aceptación de términos y condiciones.
+ *
+ * **Lógica de UI:**
+ * 1. **Estado de Formulario:** Gestiona los inputs y el checkbox de términos.
+ * 2. **Validación Visual:** Muestra un indicador dinámico de la fortaleza de la contraseña.
+ * 3. **Diálogos:** Integra un diálogo para la lectura de los términos legales.
+ * 4. **Flujo de Éxito:** Al registrarse, redirige al usuario al Feed de la aplicación.
+ *
+ * @param navController Controlador para navegar de regreso al Login.
+ * @param viewModel ViewModel que gestiona la creación del usuario en Firebase.
+ * @return No devuelve nada (función Composable).
+ *
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 fun RegisterScreen(
     navController: NavController,
@@ -604,7 +713,7 @@ fun RegisterScreen(
     var termsAccepted by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
 
-    // ── Snackbar ──
+    // PASO 1: Gestión de notificaciones (Snackbars).
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -616,7 +725,7 @@ fun RegisterScreen(
         }
     }
 
-    // Navegar según rol cuando el registro sea exitoso
+    // PASO 2: Navegación post-registro exitoso.
     LaunchedEffect(uiState) {
         val authenticatedState = uiState as? AuthUiState.Authenticated
         if (authenticatedState != null) {
@@ -626,7 +735,7 @@ fun RegisterScreen(
         }
     }
 
-    // ── Modal de Términos y Condiciones ──
+    // PASO 3: Modal de Términos y Condiciones.
     if (showTermsDialog) {
         TermsAndConditionsDialog(
             onDismiss = { showTermsDialog = false },
@@ -638,7 +747,7 @@ fun RegisterScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // fondo
+        // Fondo decorativo.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -652,7 +761,6 @@ fun RegisterScreen(
                 )
         )
 
-        // manchas desenfocadas
         BlurredCircle(
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
             size = 320.dp,
@@ -666,7 +774,7 @@ fun RegisterScreen(
             offsetY = 597.dp
         )
 
-        // ── Contenido Scrollable ──
+        // PASO 4: Contenido Scrollable.
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -676,9 +784,9 @@ fun RegisterScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = 800.dp) // Aproximación, idealmente usar BoxWithConstraints
+                    .defaultMinSize(minHeight = 800.dp) // Aproximación para centrado visual.
             ) {
-                // ── Flecha atrás (Arriba, un poco más baja) ──
+                // PASO 5: Botón de regreso.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -688,7 +796,7 @@ fun RegisterScreen(
                     BackButton(onClick = { navController.popBackStack() })
                 }
 
-                // ── Bloque de Registro Centrado ──
+                // PASO 6: Bloque de Registro Centrado.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -697,7 +805,7 @@ fun RegisterScreen(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // ── Título ──
+                    // Título y encabezado.
                     Text(
                         text = stringResource(R.string.register_heading),
                         style = MaterialTheme.typography.displaySmall.copy(
@@ -711,7 +819,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // ── Campo Nombre completo ──
+                    // Inputs del formulario.
                     AuthTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -722,7 +830,6 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Campo Correo electrónico ──
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -733,7 +840,6 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Campo Contraseña ──
                     AuthTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -745,13 +851,13 @@ fun RegisterScreen(
                         onTogglePassword = { passwordVisible = !passwordVisible }
                     )
 
-                    // ── Indicador de fortaleza ──
+                    // Indicador de fortaleza de contraseña.
                     Spacer(Modifier.height(8.dp))
                     PasswordStrengthIndicator(password)
 
                     Spacer(Modifier.height(24.dp))
 
-                    // ── Checkbox términos ──
+                    // PASO 7: Aceptación de términos.
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -785,7 +891,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // ── Botón Registrarme ──
+                    // PASO 8: Botón de acción principal con validación de formulario.
                     val isFormValid = name.isNotBlank() && email.isNotBlank()
                             && password.length >= 6 && termsAccepted
                     Button(
@@ -828,7 +934,7 @@ fun RegisterScreen(
             }
         }
 
-        // ── Snackbar anclado en la parte inferior ──
+        // Host del Snackbar.
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -846,6 +952,24 @@ fun RegisterScreen(
 }
 
 // ─── Forgot Password ──────────────────────────────────────────────────────────
+/**
+ * Pantalla para la recuperación de contraseña de PetHelp.
+ *
+ * **Responsabilidad:**
+ * Facilitar al usuario el envío de un correo electrónico para restablecer su contraseña.
+ * Maneja dos estados visuales: el formulario de entrada y la confirmación de envío.
+ *
+ * **Lógica de UI:**
+ * 1. **Estado Inicial:** Muestra un campo de texto para el correo y un botón de envío.
+ * 2. **Estado de Éxito:** Al confirmarse el envío desde Firebase, muestra una tarjeta informativa ([LinkSentCard]).
+ * 3. **Navegación:** Permite regresar al Login en cualquier momento.
+ *
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que procesa la solicitud de restablecimiento.
+ * @return No devuelve nada (función Composable).
+ *
+ * @author Equipo de Desarrollo PetHelp
+ */
 @Composable
 fun ForgotPasswordScreen(
     navController: NavController,
@@ -856,7 +980,7 @@ fun ForgotPasswordScreen(
 
     var email by remember { mutableStateOf("") }
 
-    // ── Snackbar ──
+    // PASO 1: Gestión de mensajes de error o informativos (Snackbars).
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -869,7 +993,7 @@ fun ForgotPasswordScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // fondo
+        // PASO 2: Fondo decorativo con degradado vertical.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -883,7 +1007,6 @@ fun ForgotPasswordScreen(
                 )
         )
 
-        // manchas desenfocadas
         BlurredCircle(
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             size = 256.dp,
@@ -900,7 +1023,7 @@ fun ForgotPasswordScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ── Header con botón atrás ──
+            // PASO 3: Cabecera con botón de regreso a la pantalla anterior.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -910,7 +1033,7 @@ fun ForgotPasswordScreen(
                 BackButton(onClick = { navController.popBackStack() })
             }
 
-            // ── Contenido ──
+            // PASO 4: Contenido dinámico centrado según el estado de la solicitud.
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -919,7 +1042,7 @@ fun ForgotPasswordScreen(
             ) {
                 Spacer(Modifier.weight(0.15f))
 
-                // ── Icono llave + pata ──
+                // Icono ilustrativo central (Llave + Pata).
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
@@ -929,7 +1052,7 @@ fun ForgotPasswordScreen(
 
                 Spacer(Modifier.height(32.dp))
 
-                // ── Título ──
+                // Título y descripción de la funcionalidad.
                 Text(
                     text = stringResource(R.string.forgot_password_heading),
                     style = MaterialTheme.typography.headlineLarge.copy(
@@ -942,7 +1065,6 @@ fun ForgotPasswordScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // ── Descripción ──
                 Text(
                     text = stringResource(R.string.forgot_password_body),
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -955,9 +1077,7 @@ fun ForgotPasswordScreen(
                 Spacer(Modifier.height(32.dp))
 
                 if (!resetEmailSent) {
-                    // ── Estado: formulario de correo ──
-
-                    // ── Campo Correo ──
+                    // PASO 5: Estado Inicial - Formulario para ingresar el correo electrónico.
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -968,7 +1088,7 @@ fun ForgotPasswordScreen(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // ── Botón Enviar enlace ──
+                    // Botón para disparar la solicitud de recuperación a Firebase.
                     Button(
                         onClick = { viewModel.sendPasswordReset(email.trim()) },
                         enabled = email.isNotBlank() && uiState !is AuthUiState.Loading,
@@ -989,6 +1109,7 @@ fun ForgotPasswordScreen(
                             )
                     ) {
                         if (uiState is AuthUiState.Loading) {
+                            // Feedback visual de carga.
                             CircularProgressIndicator(
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(24.dp),
@@ -1007,7 +1128,7 @@ fun ForgotPasswordScreen(
                         }
                     }
                 } else {
-                    // ── Estado: enlace enviado ──
+                    // PASO 6: Estado de Éxito - Muestra la confirmación de envío.
                     Spacer(Modifier.height(16.dp))
                     LinkSentCard(
                         email = email,
@@ -1023,7 +1144,7 @@ fun ForgotPasswordScreen(
             }
         }
 
-        // ── Snackbar host ──
+        // Host para notificaciones flotantes.
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -1041,6 +1162,12 @@ fun ForgotPasswordScreen(
 }
 
 // ─── Tarjeta "¡Enlace enviado!" ───────────────────────────────────────────────
+/**
+ * Tarjeta informativa que confirma el envío del enlace de recuperación de contraseña.
+ *
+ * @param email Correo electrónico al que se ha enviado el enlace de restablecimiento.
+ * @param onBackToStart Función de callback para navegar de regreso a la pantalla de inicio (Login).
+ */
 @Composable
 private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
     Card(
@@ -1052,7 +1179,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // icono de correo
+            // Icono de correo: Pata verde dentro de un círculo suave.
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -1072,6 +1199,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
 
             Spacer(Modifier.height(16.dp))
 
+            // Mensaje principal de éxito.
             Text(
                 text = stringResource(R.string.link_sent_title),
                 style = MaterialTheme.typography.titleMedium.copy(
@@ -1083,6 +1211,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
+            // Cuerpo del mensaje indicando el destino del correo de forma resaltada.
             Text(
                 text = buildAnnotatedString {
                     append(stringResource(R.string.link_sent_body_prefix))
@@ -1101,7 +1230,7 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
 
             Spacer(Modifier.height(24.dp))
 
-            // Botón "Volver al inicio"
+            // Botón para finalizar el flujo y volver al Login.
             OutlinedButton(
                 onClick = onBackToStart,
                 shape = RoundedCornerShape(50),
@@ -1122,13 +1251,18 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
 }
 
 // ─── Icono "Llave + Pata" para Forgot Password ──────────────────────────────
+/**
+ * Icono decorativo compuesto "Llave + Pata" para la identidad visual de recuperación de contraseña.
+ *
+ * @param modifier Modificador opcional para personalizar el layout del componente.
+ */
 @Composable
 private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.size(160.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Círculo de fondo teal claro
+        // PASO 1: Círculo de fondo turquesa translúcido.
         Box(
             modifier = Modifier
                 .size(160.dp)
@@ -1137,7 +1271,7 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
                     shape = CircleShape
                 )
         )
-        // Borde blanco semi-transparente
+        // PASO 2: Borde blanco semi-transparente dibujado manualmente para mayor control.
         Box(
             modifier = Modifier
                 .size(160.dp)
@@ -1156,14 +1290,14 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
                     }
                 )
         )
-        // Icono de llave
+        // PASO 3: Icono de llave (VpnKey) principal.
         Icon(
             imageVector = Icons.Filled.VpnKey,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             modifier = Modifier.size(64.dp)
         )
-        // Pata pequeña con fondo blanco (esquina inferior derecha)
+        // PASO 4: Pata pequeña con sombra y fondo, rotada para dinamismo.
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -1191,7 +1325,15 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
 
 // ─── Componentes reutilizables ────────────────────────────────────────────────
 
-/** Botón circular blanco "atrás" — igual que en Figma */
+/**
+ * Botón circular personalizado para la navegación de regreso.
+ *
+ * **Responsabilidad:**
+ * Ofrecer una forma consistente y visualmente atractiva de volver a la pantalla anterior,
+ * siguiendo el diseño circular de Figma con una sombra suave.
+ *
+ * @param onClick Función de callback que se ejecuta al pulsar el botón.
+ */
 @Composable
 private fun BackButton(onClick: () -> Unit) {
     IconButton(
@@ -1218,7 +1360,27 @@ private fun BackButton(onClick: () -> Unit) {
     }
 }
 
-/** Campo de texto estilizado según Figma (white fill, 16dp corners, shadow) */
+/**
+ * Campo de texto personalizado diseñado específicamente para los formularios de autenticación.
+ *
+ * **Responsabilidad:**
+ * Proporcionar una entrada de datos consistente que incluya iconos, gestión de contraseñas
+ * y un estilo visual alineado con la marca (bordes redondeados y sombras).
+ *
+ * **Características:**
+ * - **Soporte de Contraseña:** Gestiona automáticamente la visibilidad y transformación del texto.
+ * - **Iconografía:** Permite definir un icono principal descriptivo.
+ * - **Estilo Figma:** Fondo blanco, esquinas de 14dp y una sombra sutil.
+ *
+ * @param value Valor actual del texto.
+ * @param onValueChange Callback para notificar cambios en el texto.
+ * @param placeholder Texto de ayuda (hint) cuando el campo está vacío.
+ * @param leadingIcon Icono visual a la izquierda del campo.
+ * @param keyboardType Tipo de teclado a mostrar (Email, Password, etc.).
+ * @param isPassword Define si el campo debe ocultar el texto.
+ * @param passwordVisible Estado actual de visibilidad de la contraseña.
+ * @param onTogglePassword Callback para cambiar la visibilidad de la contraseña.
+ */
 @Composable
 private fun AuthTextField(
     value: String,
@@ -1281,9 +1443,24 @@ private fun AuthTextField(
     )
 }
 
-/** Indicador visual de fortaleza de contraseña (barra de progreso) */
+/**
+ * Barra de progreso dinámica que indica la fortaleza de la contraseña ingresada.
+ *
+ * **Responsabilidad:**
+ * Proporcionar feedback visual inmediato al usuario sobre la seguridad de su contraseña,
+ * cambiando de color y longitud según la complejidad.
+ *
+ * **Lógica de Evaluación:**
+ * - **Rojo (0-4 caracteres):** Muy débil.
+ * - **Naranja (6 caracteres):** Débil.
+ * - **Violeta (8 caracteres):** Media.
+ * - **Turquesa (12+ caracteres):** Fuerte.
+ *
+ * @param password La cadena de texto de la contraseña a evaluar.
+ */
 @Composable
 private fun PasswordStrengthIndicator(password: String) {
+    // Calculamos el nivel de fortaleza (0f a 1f).
     val strength = when {
         password.length < 4  -> 0f
         password.length < 6  -> 0.25f
@@ -1291,6 +1468,7 @@ private fun PasswordStrengthIndicator(password: String) {
         password.length < 12 -> 0.75f
         else                 -> 1f
     }
+    // Asignamos un color semántico según el nivel obtenido.
     val strengthColor = when {
         strength <= 0.25f -> MaterialTheme.colorScheme.error
         strength <= 0.5f  -> MaterialTheme.colorScheme.secondary
@@ -1305,7 +1483,7 @@ private fun PasswordStrengthIndicator(password: String) {
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-                LinearProgressIndicator(
+            LinearProgressIndicator(
                 progress = { strength },
                 modifier = Modifier
                     .weight(1f)
@@ -1319,6 +1497,16 @@ private fun PasswordStrengthIndicator(password: String) {
 }
 
 // ─── Terms & Conditions Dialog ────────────────────────────────────────────────
+/**
+ * Diálogo modal que muestra los Términos y Condiciones legales de PetHelp.
+ *
+ * **Responsabilidad:**
+ * Presentar el texto legal de la aplicación en un contenedor scrolleable, asegurando
+ * que el usuario pueda leerlo antes de aceptar.
+ *
+ * @param onDismiss Función para cerrar el diálogo sin realizar acciones adicionales.
+ * @param onAccept Función que se ejecuta cuando el usuario pulsa el botón "Aceptar".
+ */
 @Composable
 private fun TermsAndConditionsDialog(
     onDismiss: () -> Unit,
@@ -1328,6 +1516,7 @@ private fun TermsAndConditionsDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        // Contenedor principal del diálogo.
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -1336,7 +1525,7 @@ private fun TermsAndConditionsDialog(
                 .fillMaxHeight(0.85f)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // ── Header ──
+                // ── PASO 1: Cabecera del diálogo ──
                 Text(
                     text = stringResource(R.string.terms_dialog_title),
                     style = MaterialTheme.typography.titleLarge.copy(
@@ -1349,7 +1538,7 @@ private fun TermsAndConditionsDialog(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                // ── Scrollable content ──
+                // ── PASO 2: Contenido legal scrolleable ──
                 Text(
                     text = stringResource(R.string.terms_dialog_content),
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -1364,7 +1553,7 @@ private fun TermsAndConditionsDialog(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                // ── Buttons ──
+                // ── PASO 3: Botones de acción (Cerrar / Aceptar) ──
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1399,6 +1588,16 @@ private fun TermsAndConditionsDialog(
 }
 
 // ─── Helper placeholder ───────────────────────────────────────────────────────
+/**
+ * Pantalla de marcador de posición (Placeholder) para secciones en desarrollo.
+ *
+ * **Responsabilidad:**
+ * Mostrar un mensaje temporal y un botón de acción para facilitar la navegación
+ * durante la fase de prototipado o cuando una pantalla aún no ha sido implementada.
+ *
+ * @param title El título o mensaje a mostrar en el centro de la pantalla.
+ * @param onNavigate Función que se ejecuta al pulsar el botón de continuación.
+ */
 @Composable
 private fun PlaceholderScreen(title: String, onNavigate: () -> Unit) {
     Scaffold { padding ->
@@ -1410,10 +1609,18 @@ private fun PlaceholderScreen(title: String, onNavigate: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
+            )
             Spacer(Modifier.height(32.dp))
-            Button(onClick = onNavigate) {
-                Text("Continuar (placeholder)")
+            Button(
+                onClick = onNavigate,
+                shape = RoundedCornerShape(50)
+            ) {
+                Text(text = stringResource(R.string.btn_continue_placeholder))
             }
         }
     }

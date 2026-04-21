@@ -59,31 +59,67 @@ import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.launch
 
+/**
+ * Pantalla de Mapa interactivo para la visualización geolocalizada de mascotas.
+ *
+ * **Responsabilidad Principal:**
+ * Proporcionar una interfaz visual basada en Google Maps donde los usuarios pueden localizar mascotas
+ * perdidas, encontradas o en adopción cerca de su ubicación actual o en áreas específicas.
+ *
+ * **Arquitectura y Componentes:**
+ * - **Google Maps SDK:** Integración mediante `google-maps-compose` para renderizado reactivo.
+ * - **Hilt ViewModel ([MapViewModel]):** Gestión del estado de búsqueda, filtrado por categorías y obtención de posts.
+ * - **Material Design 3:** Implementación de `ModalNavigationDrawer`, `Scaffold`, `ModalBottomSheet` y componentes personalizados.
+ * - **Permisos:** Gestión de permisos de ubicación en tiempo real usando Accompanist.
+ *
+ * **Funcionalidades Clave:**
+ * 1. **Búsqueda y Filtrado:** Barra de búsqueda flotante y carrusel de categorías dinámico.
+ * 2. **Marcadores Personalizados:** Visualización de la foto de la mascota directamente en el mapa.
+ * 3. **Detalles Cercanos:** Bottom Sheet que muestra información extendida y otras mascotas en la misma zona.
+ * 4. **Controles de Mapa:** Zoom, centrado en ubicación actual y cambio de tipo de mapa (Normal/Satélite).
+ *
+ * **Notas para Junior Developers:**
+ * - El estado del mapa se controla mediante `cameraPositionState`, permitiendo animaciones fluidas.
+ * - Se utiliza `ModalNavigationDrawer` para opciones secundarias como capas de mapa y ajustes.
+ * - La lógica de distancia se calcula dinámicamente usando `Location.distanceBetween` en el Bottom Sheet.
+ *
+ * @param navController Controlador para navegar a detalles de post o perfil.
+ * @param viewModel Lógica de negocio y estado del mapa (inyectado por Hilt).
+ * @since 1.0.0
+ * @author Equipo de Desarrollo PetHelp
+ * @see MapViewModel Para la lógica de filtrado y búsqueda.
+ * @see PetMapMarker Componente personalizado para los pines del mapa.
+ */
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
     navController: NavController,
     viewModel: MapViewModel = hiltViewModel()
 ) {
+    // PASO 1: Inicialización de estados y utilidades de Compose.
     val isDark = isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
+    // PASO 2: Recolección de estado desde el ViewModel (UDF).
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val postsResource by viewModel.filteredPosts.collectAsState()
     val categories by viewModel.availableCategories.collectAsState()
 
+    // Estados locales para la interacción con marcadores y BottomSheet.
     var selectedPost by remember { mutableStateOf<Post?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showSheet by remember { mutableStateOf(false) }
 
+    // Colores semánticos del tema actual.
     val surfaceColor = MaterialTheme.colorScheme.surface
     val textColor = MaterialTheme.colorScheme.onSurface
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outlineVariant
 
+    // PASO 3: Gestión de permisos de ubicación.
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
     )
@@ -100,6 +136,7 @@ fun MapScreen(
 
     var mapType by remember { mutableStateOf(MapType.NORMAL) }
 
+    // PASO 4: Estructura de Navegación Lateral (Drawer).
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -158,7 +195,7 @@ fun MapScreen(
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.map_drawer_settings)) },
                     selected = false,
-                    onClick = { /* Navegar a ajustes */ },
+                    onClick = { /* Implementar navegación a ajustes */ },
                     icon = { Icon(Icons.Default.Settings, null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -168,13 +205,14 @@ fun MapScreen(
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = { PetHelpBottomNavBar(navController) }
-        ) { padding ->
+        ) {
+            padding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // ── GOOGLE MAPS ─────────────────────────────────────────────────────
+                // PASO 5: Integración del Mapa de Google.
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
@@ -207,7 +245,7 @@ fun MapScreen(
                     }
                 }
 
-                // ── BOTTOM SHEET DE DETALLES ────────────────────────────────────────
+                // PASO 6: Bottom Sheet de Detalles Rápidos.
                 if (showSheet && selectedPost != null) {
                     ModalBottomSheet(
                         onDismissRequest = { showSheet = false },
@@ -227,12 +265,12 @@ fun MapScreen(
                     }
                 }
 
-                // ── BARRA SUPERIOR (Búsqueda y Filtros) ─────────────────────────────
+                // PASO 7: Interfaz Flotante (Búsqueda y Filtros).
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding() // Mantiene la barra debajo de los iconos de sistema
-                        .padding(start = 16.dp, end = 16.dp, top = 4.dp), // Reducimos top para subirla un poco más
+                        .statusBarsPadding() 
+                        .padding(start = 16.dp, end = 16.dp, top = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Barra de Búsqueda Funcional
@@ -312,7 +350,7 @@ fun MapScreen(
                     }
                 }
 
-                // ── CONTROLES FLOTANTES (Derecha) ──────────────────────────────────
+                // PASO 8: Botones de Control del Mapa (Derecha).
                 Column(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
@@ -352,7 +390,7 @@ fun MapScreen(
                     }
                 }
 
-                // ── INDICADOR INFERIOR DINÁMICO ─────────────────────────────────────
+                // PASO 9: Indicador Inferior de Resultados.
                 if (postsResource is Resource.Success) {
                     val count = postsResource.data?.size ?: 0
                     if (count > 0) {
@@ -393,8 +431,16 @@ fun MapScreen(
     }
 }
 
+/**
+ * Chip personalizado para filtrar categorías en el mapa.
+ *
+ * @param label Texto legible de la categoría.
+ * @param isSelected Estado de selección.
+ * @param onClick Evento al presionar el chip.
+ */
 @Composable
 fun PetMapFilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+    // Selección dinámica de iconos según la categoría.
     val icon = when (label) {
         stringResource(R.string.category_adoption) -> Icons.Default.Pets
         stringResource(R.string.category_lost) -> Icons.Default.Warning
@@ -432,6 +478,9 @@ fun PetMapFilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Botón genérico para controles flotantes sobre el mapa.
+ */
 @Composable
 fun MapControlBtn(icon: ImageVector, bgColor: Color, iconColor: Color, onClick: () -> Unit) {
     Surface(
@@ -448,6 +497,19 @@ fun MapControlBtn(icon: ImageVector, bgColor: Color, iconColor: Color, onClick: 
     }
 }
 
+/**
+ * Marcador personalizado que muestra la imagen de la mascota.
+ *
+ * **Lógica Visual:**
+ * - El marcador se agranda y añade un borde primario cuando está seleccionado.
+ * - Muestra el título de la publicación sobre un fondo blanco si está activo.
+ *
+ * @param position Coordenadas LatLng.
+ * @param imageUrl URL de la foto de la mascota.
+ * @param title Nombre o título descriptivo.
+ * @param isSelected Indica si el marcador ha sido presionado.
+ * @param onClick Evento de selección.
+ */
 @Composable
 fun PetMapMarker(
     position: LatLng, 
@@ -456,7 +518,6 @@ fun PetMapMarker(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val markerState = rememberMarkerState(position = position)
     
     MarkerComposable(
@@ -511,6 +572,17 @@ fun PetMapMarker(
     }
 }
 
+/**
+ * Contenido detallado del Bottom Sheet cuando se selecciona una mascota.
+ *
+ * Muestra una tarjeta principal con la mascota elegida y una lista de "Otras mascotas cerca"
+ * para incentivar la navegación y el descubrimiento.
+ *
+ * @param selectedPost Publicación actualmente enfocada.
+ * @param allPosts Lista total de posts para filtrar los cercanos.
+ * @param userLocation Ubicación central de referencia para el cálculo de distancias.
+ * @param onPostClick Evento para cambiar el foco a otra mascota de la lista.
+ */
 @Composable
 fun NearbyPetsSheetContent(
     selectedPost: Post,
@@ -519,11 +591,13 @@ fun NearbyPetsSheetContent(
     userLocation: LatLng,
     onPostClick: (Post) -> Unit
 ) {
+    val context = LocalContext.current
     val textColor = MaterialTheme.colorScheme.onSurface
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     
-    // Función para calcular distancia
-    val context = LocalContext.current
+    /**
+     * Calcula la distancia entre dos puntos y retorna un texto formateado.
+     */
     fun getDistanceLabel(postLat: Double, postLng: Double): String {
         val results = FloatArray(1)
         Location.distanceBetween(
