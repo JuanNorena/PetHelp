@@ -15,18 +15,28 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
+/**
+ * ViewModel del formulario de solicitud de adopcion desde el detalle de publicacion.
+ *
+ * Administra los campos del formulario, ejecuta el envio de la solicitud y emite eventos
+ * de una sola vez para exito o mensajes de error en la UI.
+ */
 @HiltViewModel
 class AdoptionRequestViewModel @Inject constructor(
     private val repository: PostRepository,
     private val firebaseAuth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
+    /** Estado editable del formulario de solicitud. */
     var state by mutableStateOf(AdoptionRequestState())
         private set
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
+
+    /** Flujo de eventos one-shot para snackbar y navegacion de exito. */
     val eventFlow = _eventFlow.asSharedFlow()
 
+    /** Procesa interacciones de la UI sobre el formulario. */
     fun onEvent(event: AdoptionRequestEvent) {
         when (event) {
             is AdoptionRequestEvent.OnMessageChange -> state = state.copy(message = event.value)
@@ -39,6 +49,7 @@ class AdoptionRequestViewModel @Inject constructor(
         }
     }
 
+    /** Envia la solicitud al repositorio para la publicacion indicada. */
     private fun submitRequest(postId: String) {
         val userId = firebaseAuth.currentUser?.uid ?: return
         
@@ -66,12 +77,16 @@ class AdoptionRequestViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /** Eventos de salida para efectos de interfaz de una sola ejecucion. */
     sealed class UiEvent {
         data class ShowSnackbar(val uiText: UiText?) : UiEvent()
         object Success : UiEvent()
     }
 }
 
+/**
+ * Estado del formulario de solicitud de adopcion.
+ */
 data class AdoptionRequestState(
     val isLoading: Boolean = false,
     val message: String = "",
@@ -82,6 +97,9 @@ data class AdoptionRequestState(
     val contactPreference: String = "pethelp"
 )
 
+/**
+ * Eventos de entrada originados por la interfaz del formulario.
+ */
 sealed class AdoptionRequestEvent {
     data class OnMessageChange(val value: String) : AdoptionRequestEvent()
     data class OnHousingTypeChange(val value: String) : AdoptionRequestEvent()

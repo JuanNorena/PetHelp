@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Estado de la pantalla de publicaciones favoritas.
+ */
 data class FavoritesUiState(
     val posts: List<Post> = emptyList(),
     val filteredPosts: List<Post> = emptyList(),
@@ -23,21 +26,32 @@ data class FavoritesUiState(
 )
 
 @HiltViewModel
+/**
+ * ViewModel que administra el listado de favoritos del usuario autenticado.
+ *
+ * Se encarga de cargar favoritos, aplicar filtros por categoria y alternar el modo
+ * de visualizacion entre grid y lista.
+ */
 class FavoritesViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FavoritesUiState())
+
+    /** Estado de solo lectura consumido por la UI. */
     val uiState = _uiState.asStateFlow()
 
     private val _snackbarMessage = MutableSharedFlow<UiText>()
+
+    /** Flujo de mensajes temporales para feedback al usuario. */
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     init {
         loadFavorites()
     }
 
+    /** Carga las publicaciones marcadas como favoritas por el usuario actual. */
     fun loadFavorites() {
         viewModelScope.launch {
             authRepository.getCurrentUser().collect { resource ->
@@ -65,10 +79,12 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
+    /** Alterna entre vista en grilla y vista en lista. */
     fun toggleViewMode() {
         _uiState.update { it.copy(isGridView = !it.isGridView) }
     }
 
+    /** Selecciona categoria y recalcula el subconjunto filtrado. */
     fun selectCategory(category: PostCategory?) {
         _uiState.update { 
             it.copy(
@@ -86,6 +102,7 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
+    /** Elimina un post de favoritos y refresca la lista actual. */
     fun toggleFavorite(postId: String) {
         viewModelScope.launch {
             val userId = authRepository.getCurrentUser().first().data?.id ?: return@launch

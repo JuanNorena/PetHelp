@@ -32,6 +32,9 @@ import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla para seleccionar el idioma preferido de la aplicacion.
+ */
 fun LanguageScreen(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()

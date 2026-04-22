@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.common.uiText
 import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.AnimalAge
 import com.pethelp.app.core.domain.model.AnimalGender

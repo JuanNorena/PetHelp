@@ -30,6 +30,9 @@ import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de centro de ayuda con accesos rapidos y preguntas frecuentes.
+ */
 fun HelpCenterScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     

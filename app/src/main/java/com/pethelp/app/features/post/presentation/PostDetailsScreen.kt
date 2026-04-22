@@ -37,6 +37,12 @@ import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
 
+/**
+ * Paso de detalles de mascota en el flujo de publicacion.
+ *
+ * Recibe datos previos (basicos y ubicacion), permite completar edad, sexo,
+ * estado de salud y comportamiento, y luego navega al paso de revision.
+ */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailsScreen(
@@ -397,6 +403,7 @@ fun PostDetailsScreen(
 }
 
 @Composable
+/** Item reutilizable para seleccionar indicadores de salud en estilo tarjeta. */
 fun HealthStatusItem(
     title: String,
     description: String,

@@ -39,6 +39,15 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Paso de seleccion de ubicacion durante la creacion de una publicacion.
+ *
+ * Permite elegir coordenadas en mapa y completar direccion textual antes de
+ * avanzar al paso de detalles.
+ *
+ * @param navController Navegador usado para regresar o avanzar al siguiente paso.
+ * @param postData Datos acumulados del flujo de creacion del post.
+ */
 fun LocationSelectionScreen(
     navController: NavController,
     postData: Screen.LocationSelection

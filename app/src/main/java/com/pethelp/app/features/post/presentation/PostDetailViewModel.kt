@@ -24,6 +24,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+/**
+ * Estado de la pantalla de detalle de publicacion.
+ */
 data class PostDetailUiState(
     val post: Post? = null,
     val comments: List<Comment> = emptyList(),
@@ -33,6 +36,12 @@ data class PostDetailUiState(
 )
 
 @HiltViewModel
+/**
+ * ViewModel para el detalle de una publicacion.
+ *
+ * Sincroniza informacion del post, comentarios y estado de voto, y expone acciones
+ * de interaccion como votar, comentar y solicitar adopcion.
+ */
 class PostDetailViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val firebaseAuth: FirebaseAuth,
@@ -43,12 +52,19 @@ class PostDetailViewModel @Inject constructor(
     private val postId: String = savedStateHandle.get<String>("postId") ?: ""
 
     private val _uiState = MutableStateFlow(PostDetailUiState())
+
+    /** Estado de solo lectura observado por la UI. */
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
 
     private val _snackbarMessage = MutableSharedFlow<UiText>()
+
+    /** Eventos de feedback rapido para mensajes en pantalla. */
     val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
+    /** Identificador del usuario actual autenticado. */
     val currentUserId: String get() = firebaseAuth.currentUser?.uid ?: ""
+
+    /** Nombre visible del usuario actual para prellenar comentarios. */
     val currentUserName: String get() = firebaseAuth.currentUser?.displayName ?: ""
 
     init {
@@ -69,7 +85,7 @@ class PostDetailViewModel @Inject constructor(
                     )
                     is Resource.Error -> _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = resource.uiText
+                        error = resource.message
                     )
                 }
             }
@@ -100,6 +116,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /** Alterna el voto del usuario autenticado sobre la publicacion actual. */
     fun toggleVote() {
         val userId = currentUserId
         if (userId.isBlank()) {
@@ -119,13 +136,16 @@ class PostDetailViewModel @Inject constructor(
                             hasVoted = !_uiState.value.hasVoted
                         )
                     }
-                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.vote_error))
+                    is Resource.Error -> _snackbarMessage.emit(
+                        resource.message ?: UiText.StringResource(R.string.vote_error)
+                    )
                     is Resource.Loading -> { /* no-op */ }
                 }
             }
         }
     }
 
+    /** Agrega un comentario nuevo al post actual. */
     fun addComment(text: String) {
         val userId = currentUserId
         if (userId.isBlank()) {
@@ -142,13 +162,15 @@ class PostDetailViewModel @Inject constructor(
                 authorName = userDoc?.getString("name")
                     ?.takeIf { it.isNotBlank() }
                     ?: currentUserName.ifBlank { "Usuario" },
-                authorPhotoUrl = userDoc?.getString("photoUrl")?.orEmpty() ?: "",
+                authorPhotoUrl = userDoc?.getString("photoUrl").orEmpty(),
                 text = text.trim()
             )
 
             postRepository.addComment(comment).collect { resource ->
                 when (resource) {
-                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.comment_error))
+                    is Resource.Error -> _snackbarMessage.emit(
+                        resource.message ?: UiText.StringResource(R.string.comment_error)
+                    )
                     else -> { /* success handled by live listener */ }
                 }
             }
@@ -166,6 +188,7 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /** Crea una solicitud de adopcion simplificada para el post actual. */
     fun requestAdoption(message: String) {
         val userId = currentUserId
         if (userId.isBlank()) {
@@ -185,7 +208,9 @@ class PostDetailViewModel @Inject constructor(
             ).collect { resource ->
                 when (resource) {
                     is Resource.Success -> _snackbarMessage.emit(UiText.StringResource(R.string.adoption_request_success))
-                    is Resource.Error -> _snackbarMessage.emit(resource.uiText ?: UiText.StringResource(R.string.adoption_request_error))
+                    is Resource.Error -> _snackbarMessage.emit(
+                        resource.message ?: UiText.StringResource(R.string.adoption_request_error)
+                    )
                     is Resource.Loading -> { /* no-op */ }
                 }
             }

@@ -8,6 +8,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Modulo Hilt de la feature de perfil.
+ *
+ * Declara los bindings de interfaces de dominio a implementaciones de datos.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class ProfileModule {

@@ -22,6 +22,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel principal de la feature de perfil.
+ *
+ * Orquesta la carga/edicion de datos de usuario, preferencias de idioma,
+ * modo oscuro y acciones sensibles como cambio de contrasena o eliminar cuenta.
+ */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
@@ -71,7 +77,7 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    val message = resource.uiText ?: UiText.DynamicString("Error loading profile")
+                    val message = resource.message ?: UiText.DynamicString("Error loading profile")
                     _uiState.value = ProfileUiState.Error(message)
                     viewModelScope.launch {
                         _snackbarMessage.emit(message)
@@ -92,7 +98,7 @@ class ProfileViewModel @Inject constructor(
                     // It will also trigger loadUserProfile because of the snapshot listener
                 }
                 is Resource.Error -> {
-                    val errorText = resource.uiText ?: UiText.DynamicString("Error al actualizar perfil")
+                    val errorText = resource.message ?: UiText.DynamicString("Error al actualizar perfil")
                     viewModelScope.launch {
                         _snackbarMessage.emit(errorText)
                     }
@@ -134,7 +140,7 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    val message = resource.uiText ?: UiText.StringResource(R.string.profile_photo_update_error)
+                    val message = resource.message ?: UiText.StringResource(R.string.profile_photo_update_error)
                     val latest = _uiState.value as? ProfileUiState.Success ?: currentState
                     _uiState.value = latest.copy(
                         isUploadingPhoto = false,
@@ -169,7 +175,7 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                    val errorText = resource.uiText ?: UiText.DynamicString("Error al actualizar contraseña")
+                    val errorText = resource.message ?: UiText.DynamicString("Error al actualizar contraseña")
                     viewModelScope.launch {
                         _snackbarMessage.emit(errorText)
                     }
@@ -189,7 +195,7 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-                     val errorText = resource.uiText ?: UiText.DynamicString("Error al eliminar cuenta")
+                     val errorText = resource.message ?: UiText.DynamicString("Error al eliminar cuenta")
                      viewModelScope.launch {
                          _snackbarMessage.emit(errorText)
                      }

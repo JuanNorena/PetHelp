@@ -28,6 +28,9 @@ import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de guia de uso rapido para nuevos usuarios.
+ */
 fun UserGuideScreen(navController: NavController) {
     Scaffold(
         topBar = {

@@ -242,7 +242,7 @@ fun ModeratorPanelScreen(
                         StatsSummaryRow(stats = uiState.stats)
                         
                         // Sección de Métricas Globales.
-                        GlobalMetricsRow(stats = uiState.stats)
+                        StatsSummaryRow(stats = uiState.stats)
 
                         // Lista de Publicaciones que requieren atención.
                         Column(

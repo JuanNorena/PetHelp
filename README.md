@@ -33,95 +33,43 @@ PetHelp es una plataforma móvil que conecta a personas que desean dar mascotas 
 
 ---
 
-## 🏗️ Arquitectura y decisiones técnicas
+## 🏗️ Arquitectura actual
 
-### ¿Por qué Clean Architecture + MVVM?
+PetHelp está organizado con una arquitectura **Single-Activity + Jetpack Compose + MVVM** y una separación por features. La idea central es mantener la UI reactiva y aislar la lógica de negocio y el acceso a datos.
 
-La arquitectura del proyecto se divide en tres capas con una regla fundamental: **las capas internas nunca dependen de las externas**.
+### Flujo general
 
-```
-┌──────────────────────────────────────────────────────┐
-│               CAPA DE PRESENTACIÓN                   │
-│  Pantallas Compose ←→ ViewModel ←→ UIState           │
-└─────────────────────────┬────────────────────────────┘
-                          │ invoca
-┌─────────────────────────▼────────────────────────────┐
-│               CAPA DE DOMINIO                        │
-│  Casos de uso (lógica de negocio) + Interfaces       │
-└─────────────────────────┬────────────────────────────┘
-                          │ implementado por
-┌─────────────────────────▼────────────────────────────┐
-│               CAPA DE DATOS                          │
-│  Repositorios (impl) + Firebase + Room + APIs        │
-└──────────────────────────────────────────────────────┘
+```text
+Compose UI → ViewModel → Repository → Firebase / servicios externos
 ```
 
-**Beneficios concretos para PetHelp:**
-- Si en Fase 3 se cambia Cloudinary por otro servicio de imágenes, **solo se modifica el repositorio** — las pantallas y la lógica de negocio no se tocan.
-- Con 3 integrantes en el equipo, cada uno puede trabajar en su feature **sin generar conflictos de merge**.
-- Cada capa es **testeable de forma independiente**.
+### Capas que usamos
 
-**¿Por qué MVVM y no MVP o MVI?**
-- MVVM es el patrón **oficialmente recomendado por Google** para Jetpack Compose.
-- El `ViewModel` sobrevive a rotaciones de pantalla — crítico en Android.
-- `StateFlow` + Compose garantiza que la UI se redibuje **solo cuando el estado cambia**.
+- **Presentación:** pantallas Compose, `ViewModel`, `UiState` y eventos de una sola vez con `SharedFlow`.
+- **Dominio:** modelos y contratos de repositorio.
+- **Datos:** implementaciones concretas para Firebase, autenticación, notificaciones y subida de imágenes.
+- **Compartido:** utilidades, tema, navegación, seguridad biométrica y preferencias.
 
----
+### Decisiones clave
 
-### ¿Por qué estructura de carpetas por feature?
+- **MVVM**: la UI observa estado y no contiene reglas de negocio.
+- **Feature-based structure**: cada módulo agrupa `data/`, `domain/` y `presentation/`.
+- **Hilt**: inyección de dependencias para ViewModels, repositorios y servicios.
+- **StateFlow + SharedFlow**: estado persistente + eventos puntuales.
+- **Firebase + servicios externos**: autenticación, datos en tiempo real, notificaciones, mapas e imágenes.
 
-```
-features/
-  auth/         ← Registro, login, perfil
-  feed/         ← Feed lista/mapa, filtros
-  moderation/   ← Panel del moderador
-  post/         ← CRUD publicaciones
-  ...
-```
+### Features principales del proyecto
 
-Cada feature contiene sus propias capas `data/`, `domain/` y `presentation/`. Esto permite que cada integrante trabaje en **su carpeta sin interferir con los demás** y que al abrir una feature, **todos sus archivos estén en un solo lugar**. Sigue las recomendaciones de los **Android Architecture Samples oficiales de Google (2024)**.
+- `auth/` — inicio de sesión, registro y recuperación de contraseña.
+- `post/` — creación, detalle, edición, moderación y solicitudes de adopción.
+- `profile/` — perfil, configuración, seguridad, idioma, privacidad y guía de uso.
+- `feed/`, `map/`, `notifications/`, `moderation/`, `reputation/`, `stats/` — módulos complementarios de la app.
 
----
+### Seguridad y utilidades
 
-### ¿Por qué Hilt?
-
-Hilt es la librería de inyección de dependencias **oficial de Google para Android**. Detecta errores de configuración **en tiempo de compilación** (no en runtime) y tiene integración nativa con `ViewModel`, `WorkManager` y `Navigation Compose`.
-
----
-
-### ¿Por qué Firebase?
-
-| Servicio | Razón de elección |
-|---|---|
-| Firebase Auth | Maneja registro, login, sesión persistente y recuperación de contraseña con mínimo código |
-| Firestore | Base de datos en **tiempo real** — el feed se actualiza automáticamente sin hacer polling |
-| FCM | Estándar de notificaciones push en Android; requerido explícitamente por el enunciado |
-
-El plan gratuito (Spark) es suficiente para el alcance del proyecto académico.
-
----
-
-### ¿Por qué Cloudinary para imágenes?
-
-Ofrece **transformaciones desde la URL** (redimensionar, comprimir) lo que evita cargar imágenes pesadas en tarjetas del feed, con un plan gratuito más generoso que Firebase Storage para almacenamiento de imágenes.
-
----
-
-### ¿Por qué Coil y no Glide?
-
-Coil está escrito **100% en Kotlin** con soporte nativo para Jetpack Compose (`AsyncImage`). Glide y Picasso son de la era XML/Views y requieren wrappers adicionales en Compose.
-
----
-
-### ¿Por qué KSP y no KAPT?
-
-KSP (Kotlin Symbol Processing) procesa las anotaciones de Hilt y Room **2-3x más rápido** que KAPT. Google recomienda migrar a KSP para todos los proyectos nuevos desde 2023.
-
----
-
-### ¿Por qué Room si ya hay Firestore?
-
-En Fase 2 el enunciado exige "datos en memoria". Room actúa como base de datos local que simula Firestore — cuando llegue Fase 3, solo cambia el `RepositoryImpl` de Room a Firestore; los casos de uso y ViewModels **no se modifican**. En Fase 3, Room sirve además como **caché offline**.
+- `BiometricAuthGate` centraliza autenticación biométrica y credenciales del dispositivo.
+- `local.properties` guarda secretos locales y claves de APIs.
+- `README.md` y `Docs/` sirven como punto de entrada para configuración y seguimiento del proyecto.
 
 ---
 
@@ -156,36 +104,42 @@ En Fase 2 el enunciado exige "datos en memoria". Room actúa como base de datos 
 
 ```
 PetHelp/
-├── app/src/main/java/com/pethelp/app/
-│   ├── MainActivity.kt               ← Single Activity
-│   ├── PetHelpApplication.kt         ← Punto de entrada Hilt
-│   ├── core/                         ← Código compartido entre features
-│   │   ├── common/                   ← Resource.kt, Constants.kt
-│   │   ├── di/                       ← Módulos Hilt (Firebase, Network)
-│   │   ├── domain/model/             ← Modelos de dominio (Post, User, Comment...)
-│   │   ├── navigation/               ← NavGraph central + rutas
-│   │   ├── notifications/            ← FCM Service
-│   │   └── ui/theme/                 ← Theme, Color, Type (Material You)
-│   └── features/
-│       ├── auth/                     ← Registro, login, recuperar contraseña
-│       ├── feed/                     ← Feed lista/mapa, filtros por categoría
-│       ├── post/                     ← Crear, ver detalle, editar publicación
-│       │   ├── data/repository/      ← FirebasePostRepository (Firestore)
-│       │   ├── di/                   ← PostModule (Hilt binding)
-│       │   ├── domain/repository/    ← PostRepository (interfaz)
-│       │   └── presentation/         ← Screens + ViewModels
-│       ├── moderation/               ← Panel del moderador (aprobar/rechazar)
-│       ├── notifications/            ← Lista de notificaciones
-│       ├── profile/                  ← Perfil y edición de datos
-│       ├── stats/                    ← Dashboard de estadísticas personales
-│       ├── reputation/               ← Puntos, niveles e insignias
-│       └── ai/                       ← Funcionalidad de inteligencia artificial
+├── app/
+│   └── src/main/
+│       ├── java/com/pethelp/app/
+│       │   ├── MainActivity.kt
+│       │   ├── PetHelpApplication.kt
+│       │   ├── core/
+│       │   │   ├── common/
+│       │   │   ├── data/
+│       │   │   ├── di/
+│       │   │   ├── domain/
+│       │   │   ├── navigation/
+│       │   │   ├── notifications/
+│       │   │   ├── preferences/
+│       │   │   ├── security/
+│       │   │   ├── ui/
+│       │   │   └── util/
+│       │   └── features/
+│       │       ├── auth/
+│       │       ├── feed/
+│       │       ├── map/
+│       │       ├── moderation/
+│       │       ├── notifications/
+│       │       ├── post/
+│       │       ├── profile/
+│       │       ├── reputation/
+│       │       └── stats/
+│       └── res/
 ├── Docs/
-│   ├── Enunciado.md                  ← Requisitos del proyecto
-│   ├── Epicas.md                     ← Épicas e historias de usuario (INVEST)
-│   └── PlanDesarrollo.md             ← Plan técnico completo
-├── gradle/libs.versions.toml         ← Catálogo central de versiones
-└── local.properties.example          ← Plantilla de claves API (no subir al repo)
+│   ├── Enunciado.md
+│   ├── Epicas.md
+│   ├── GuiaVistas.md
+│   ├── PlanDesarrollo.md
+│   ├── PromptsFigma.md
+│   └── EstadoDocumentacion.md
+├── gradle/libs.versions.toml
+└── local.properties.example
 ```
 
 ---
@@ -238,6 +192,11 @@ OPENAI_API_KEY=sk-...
 ```bash
 ./gradlew assembleDebug
 ```
+
+**7. Ver la documentación del proyecto**
+- `Docs/EstadoDocumentacion.md` — estado actual de la documentación KDoc.
+- `Docs/GuiaVistas.md` — guía de pantallas y flujos.
+- `Docs/PromptsFigma.md` — referencias y prompts usados para Figma.
 
 ---
 
@@ -338,6 +297,9 @@ chore(deps): actualizar Firebase BOM a 34.9.0
 - [Docs/Enunciado.md](Docs/Enunciado.md) — Requisitos completos del proyecto
 - [Docs/Epicas.md](Docs/Epicas.md) — Épicas e historias de usuario (método INVEST)
 - [Docs/PlanDesarrollo.md](Docs/PlanDesarrollo.md) — Plan técnico, librerías y convenciones
+- [Docs/GuiaVistas.md](Docs/GuiaVistas.md) — catálogo de pantallas y navegación
+- [Docs/PromptsFigma.md](Docs/PromptsFigma.md) — guía de diseño y prompts de interfaz
+- [Docs/EstadoDocumentacion.md](Docs/EstadoDocumentacion.md) — cobertura de documentación del código
 
 ---
 

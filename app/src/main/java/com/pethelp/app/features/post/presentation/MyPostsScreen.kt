@@ -38,6 +38,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Pantalla de gestion de publicaciones creadas por el usuario actual.
+ *
+ * Presenta pestañas por estado, acciones de edicion/borrado y operaciones de
+ * pausa o resolucion sobre cada publicacion.
+ */
 @Composable
 fun MyPostsScreen(
     navController: NavController,

@@ -191,7 +191,7 @@ class AuthViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     // Fallo en la autenticación (ej. credenciales incorrectas).
-                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_login_failed)
+                    val errorUiText = resource.message ?: UiText.StringResource(R.string.error_login_failed)
                     _uiState.value = AuthUiState.Error(errorUiText)
                     _snackbarMessage.emit(errorUiText)
                 }
@@ -252,7 +252,7 @@ class AuthViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     // Manejo de errores (ej. el correo ya está en uso).
-                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_register_failed)
+                    val errorUiText = resource.message ?: UiText.StringResource(R.string.error_register_failed)
                     _uiState.value = AuthUiState.Error(errorUiText)
                     _snackbarMessage.emit(errorUiText)
                 }
@@ -300,7 +300,7 @@ class AuthViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     // Error: Notificamos al usuario por qué falló el envío.
-                    val errorUiText = resource.uiText ?: UiText.StringResource(R.string.error_reset_failed)
+                    val errorUiText = resource.message ?: UiText.StringResource(R.string.error_reset_failed)
                     _uiState.value = AuthUiState.Error(errorUiText)
                     _snackbarMessage.emit(errorUiText)
                 }

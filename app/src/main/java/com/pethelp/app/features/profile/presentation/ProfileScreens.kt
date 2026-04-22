@@ -60,6 +60,9 @@ import java.util.Date
 import java.util.Locale
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
+/**
+ * Pantalla principal del perfil del usuario.
+ */
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -602,6 +605,9 @@ private fun LogoutSection(navController: NavController, viewModel: ProfileViewMo
 
 // ─── Edit Profile Screen ──────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Pantalla para editar datos de perfil y foto del usuario.
+ */
 @Composable
 fun EditProfileScreen(
     navController: NavController,

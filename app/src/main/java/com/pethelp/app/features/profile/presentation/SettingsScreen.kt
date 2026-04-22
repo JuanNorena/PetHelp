@@ -32,6 +32,9 @@ import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de configuraciones de cuenta, privacidad, apariencia y soporte.
+ */
 fun SettingsScreen(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()

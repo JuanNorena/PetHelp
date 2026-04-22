@@ -38,6 +38,15 @@ import com.pethelp.app.core.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de publicaciones favoritas del usuario.
+ *
+ * Muestra el listado en modo grilla o lista, permite filtrar por categoria y
+ * navegar al detalle de cada publicacion.
+ *
+ * @param navController Controlador de navegacion para volver y abrir detalle/feed.
+ * @param viewModel ViewModel que provee estado y acciones de favoritos.
+ */
 fun FavoritesScreen(
     navController: NavController,
     viewModel: FavoritesViewModel = hiltViewModel()

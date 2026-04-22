@@ -28,6 +28,9 @@ import com.pethelp.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de configuracion de visibilidad del perfil y datos compartidos.
+ */
 fun ProfileVisibilityScreen(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()

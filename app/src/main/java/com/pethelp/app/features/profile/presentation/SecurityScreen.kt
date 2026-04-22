@@ -36,6 +36,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla de seguridad de cuenta.
+ *
+ * Centraliza cambio de contrasena, autenticacion reforzada y acciones criticas
+ * protegidas por biometria/credencial del dispositivo.
+ */
 fun SecurityScreen(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()

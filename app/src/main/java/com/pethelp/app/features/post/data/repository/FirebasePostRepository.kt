@@ -22,15 +22,32 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementacion de [PostRepository] sobre Firebase (Firestore + Auth).
+ *
+ * Expone operaciones reactivas para publicaciones, votos, comentarios, moderacion y
+ * solicitudes de adopcion. Los metodos de lectura continua usan `callbackFlow` con
+ * `addSnapshotListener`, y los de escritura usan `flow` con operaciones suspendidas.
+ *
+ * @property firestore Cliente principal para acceder a colecciones y transacciones.
+ * @property firebaseAuth Proveedor del usuario autenticado para acciones de moderacion.
+ */
 @Singleton
 class FirebasePostRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val firebaseAuth: FirebaseAuth
 ) : PostRepository {
 
+    /** Coleccion principal de publicaciones. */
     private val postsCollection: CollectionReference = firestore.collection(Constants.COLLECTION_POSTS)
+
+    /** Coleccion de comentarios asociados a publicaciones. */
     private val commentsCollection: CollectionReference = firestore.collection(Constants.COLLECTION_COMMENTS)
+
+    /** Coleccion de votos/favoritos por usuario y publicacion. */
     private val votesCollection: CollectionReference = firestore.collection(Constants.COLLECTION_VOTES)
+
+    /** Coleccion de solicitudes de adopcion enviadas por usuarios. */
     private val adoptionRequestsCollection: CollectionReference = firestore.collection(Constants.COLLECTION_ADOPTION_REQUESTS)
 
     override fun getPostById(postId: String): Flow<Resource<Post>> = callbackFlow {
@@ -331,6 +348,12 @@ class FirebasePostRepository @Inject constructor(
         }
     }
 
+    /**
+     * Crea una solicitud de adopcion para una publicacion.
+     *
+     * Obtiene datos de perfil del usuario solicitante para enriquecer la solicitud y dejar
+     * el estado inicial como [AdoptionRequestStatus.PENDING].
+     */
     override fun requestAdoption(
         postId: String,
         userId: String,
@@ -343,7 +366,7 @@ class FirebasePostRepository @Inject constructor(
     ): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {
-            // ...existing code...
+            // Obtener datos del usuario solicitante
             val userDoc = firestore.collection("users").document(userId).get().await()
             
             // Intentar obtener el nombre - puede estar en el campo "name"
@@ -376,6 +399,12 @@ class FirebasePostRepository @Inject constructor(
         }
     }
 
+    /**
+     * Lista solicitudes recibidas por el autor de publicaciones.
+     *
+     * Primero consulta los posts del autor y luego busca solicitudes en bloques de 10 IDs
+     * para cumplir la limitacion de `whereIn` en Firestore.
+     */
     override fun getAdoptionRequestsForUser(userId: String): Flow<Resource<List<AdoptionRequest>>> = flow {
         emit(Resource.Loading())
         try {
@@ -448,6 +477,9 @@ class FirebasePostRepository @Inject constructor(
         }
     }
 
+    /**
+     * Acepta una solicitud y marca el post como adoptado en una sola transaccion.
+     */
     override fun acceptAdoptionRequest(requestId: String, postId: String): Flow<Resource<Unit>> = flow<Resource<Unit>> {
         emit(Resource.Loading())
         firestore.runTransaction<Unit> { transaction ->
@@ -462,6 +494,9 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Success(Unit))
     }
 
+    /**
+     * Rechaza una solicitud de adopcion cambiando su estado a REJECTED.
+     */
     override fun rejectAdoptionRequest(requestId: String): Flow<Resource<Unit>> = flow<Resource<Unit>> {
         emit(Resource.Loading())
         adoptionRequestsCollection.document(requestId)
@@ -469,6 +504,11 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Success(Unit))
     }
 
+    /**
+     * Convierte un documento Firestore en [AdoptionRequest].
+     *
+     * Retorna `null` si el documento no cumple el formato esperado.
+     */
     private fun docToAdoptionRequest(doc: DocumentSnapshot): AdoptionRequest? {
         return try {
             AdoptionRequest(
@@ -492,6 +532,9 @@ class FirebasePostRepository @Inject constructor(
         }
     }
 
+    /**
+     * Convierte un documento de Firestore en [Post] normalizado para la capa de dominio.
+     */
     private fun snapshotToPost(doc: DocumentSnapshot): Post? {
         return try {
             val createdAtRaw = doc.get("createdAt")
@@ -541,6 +584,9 @@ class FirebasePostRepository @Inject constructor(
         }
     }
 
+    /**
+     * Serializa [Post] al formato `Map<String, Any?>` que consume Firestore.
+     */
     private fun postToMap(post: Post): Map<String, Any?> {
         return mapOf(
             "title" to post.title,

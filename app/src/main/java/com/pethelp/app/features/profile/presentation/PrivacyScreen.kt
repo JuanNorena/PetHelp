@@ -23,6 +23,9 @@ import com.pethelp.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Pantalla informativa de politica de privacidad y manejo de datos.
+ */
 fun PrivacyScreen(navController: NavController) {
     Scaffold(
         topBar = {

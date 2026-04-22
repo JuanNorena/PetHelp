@@ -55,6 +55,16 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Paso final de revision antes de publicar.
+ *
+ * Muestra un resumen completo de la publicacion, permite volver a secciones
+ * anteriores para editar y ejecuta la publicacion mediante [CreatePostViewModel].
+ *
+ * @param navController Navegador para volver, editar secciones y abrir el resultado.
+ * @param postData Datos consolidados del flujo de creacion.
+ * @param viewModel ViewModel encargado de persistir la publicacion.
+ */
 fun PostReviewScreen(
         navController: NavController,
         postData: Screen.PostReview,
@@ -580,6 +590,9 @@ fun PostReviewScreen(
 }
 
 @Composable
+/**
+ * Encabezado de seccion con icono y accion "Editar".
+ */
 fun SectionHeader(
         title: String,
         icon: ImageVector,
@@ -603,6 +616,9 @@ fun SectionHeader(
 }
 
 @Composable
+/**
+ * Chip visual para mostrar etiquetas de categoria/atributos.
+ */
 fun Tag(text: String, color: Color, textColor: Color) {
     Surface(color = color, shape = RoundedCornerShape(8.dp)) {
         Text(
@@ -616,6 +632,9 @@ fun Tag(text: String, color: Color, textColor: Color) {
 }
 
 @Composable
+/**
+ * Etiqueta auxiliar para nombrar campos en bloques de informacion.
+ */
 fun InfoLabel(label: String) {
     Text(
             label,

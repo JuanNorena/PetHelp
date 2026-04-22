@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Estado de la pantalla de edicion de publicaciones.
+ *
+ * Incluye el estado de carga/guardado y una copia editable de los campos del post.
+ */
 data class EditPostUiState(
     val post: Post? = null,
     val isLoading: Boolean = false,
@@ -44,6 +49,12 @@ data class EditPostUiState(
 )
 
 @HiltViewModel
+/**
+ * ViewModel para editar una publicacion existente.
+ *
+ * Carga el post desde el repositorio, mantiene cambios locales de formulario y persiste
+ * la actualizacion cuando el usuario confirma.
+ */
 class EditPostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     savedStateHandle: SavedStateHandle
@@ -52,11 +63,16 @@ class EditPostViewModel @Inject constructor(
     private val postId: String = checkNotNull(savedStateHandle["postId"])
 
     private val _uiState = MutableStateFlow(EditPostUiState())
+
+    /** Estado de solo lectura para la pantalla de edicion. */
     val uiState: StateFlow<EditPostUiState> = _uiState.asStateFlow()
 
     private val _eventFlow = MutableSharedFlow<EditPostEvent>()
+
+    /** Eventos de una sola vez para mensajes y cierre de pantalla. */
     val eventFlow = _eventFlow.asSharedFlow()
 
+    /** Eventos emitidos hacia la UI para feedback y navegacion. */
     sealed class EditPostEvent {
         data class ShowSnackbar(val message: UiText) : EditPostEvent()
         object PostUpdated : EditPostEvent()
@@ -107,17 +123,24 @@ class EditPostViewModel @Inject constructor(
                         }
                     }
                     is Resource.Error -> {
-                        _uiState.update { it.copy(isLoading = false, error = resource.uiText) }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = resource.message
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
+    /** Actualiza el titulo editable. */
     fun onTitleChange(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
     }
 
+    /** Actualiza la descripcion editable aplicando limite de 500 caracteres. */
     fun onDescriptionChange(newDescription: String) {
         if (newDescription.length <= 500) {
             _uiState.update { it.copy(description = newDescription) }
@@ -160,6 +183,7 @@ class EditPostViewModel @Inject constructor(
         _uiState.update { it.copy(specialCares = value) }
     }
 
+    /** Genera una version mejorada de la descripcion usando una simulacion de IA. */
     fun improveDescriptionWithAI() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) } // Reuse isSaving or add isProcessingAI
@@ -177,20 +201,24 @@ class EditPostViewModel @Inject constructor(
         }
     }
 
+    /** Agrega una nueva imagen al listado editable. */
     fun addImage(uri: String) {
         _uiState.update { it.copy(imageUrls = it.imageUrls + uri) }
     }
 
+    /** Elimina una imagen del listado editable. */
     fun removeImage(imageUrl: String) {
         _uiState.update { it.copy(imageUrls = it.imageUrls.filter { url -> url != imageUrl }) }
     }
 
+    /** Emite un mensaje temporal para mostrar en snackbar. */
     fun onShowSnackbar(message: String) {
         viewModelScope.launch {
             _eventFlow.emit(EditPostEvent.ShowSnackbar(UiText.DynamicString(message)))
         }
     }
 
+    /** Valida y persiste los cambios del post en el repositorio. */
     fun savePost() {
         val currentState = _uiState.value
         val currentPost = currentState.post ?: return
@@ -223,7 +251,11 @@ class EditPostViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(isSaving = false) }
-                        _eventFlow.emit(EditPostEvent.ShowSnackbar(resource.uiText ?: UiText.DynamicString("Error al guardar cambios")))
+                        _eventFlow.emit(
+                            EditPostEvent.ShowSnackbar(
+                                resource.message ?: UiText.DynamicString("Error al guardar cambios")
+                            )
+                        )
                     }
                 }
             }

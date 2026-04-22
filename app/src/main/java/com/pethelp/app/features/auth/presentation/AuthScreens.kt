@@ -1620,7 +1620,7 @@ private fun PlaceholderScreen(title: String, onNavigate: () -> Unit) {
                 onClick = onNavigate,
                 shape = RoundedCornerShape(50)
             ) {
-                Text(text = stringResource(R.string.btn_continue_placeholder))
+                Text(text = stringResource(R.string.common_ok))
             }
         }
     }

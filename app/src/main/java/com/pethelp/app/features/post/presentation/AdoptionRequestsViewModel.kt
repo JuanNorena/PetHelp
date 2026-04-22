@@ -14,12 +14,19 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
+/**
+ * ViewModel que administra la bandeja de solicitudes de adopcion recibidas por el autor.
+ *
+ * Mantiene un estado observable para la pantalla y coordina acciones de aprobacion/rechazo
+ * usando el [PostRepository].
+ */
 @HiltViewModel
 class AdoptionRequestsViewModel @Inject constructor(
     private val repository: PostRepository,
     private val firebaseAuth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
+    /** Estado reactivo consumido por la UI de solicitudes. */
     var state by mutableStateOf(AdoptionRequestsState())
         private set
 
@@ -27,6 +34,7 @@ class AdoptionRequestsViewModel @Inject constructor(
         loadRequests()
     }
 
+    /** Carga o recarga las solicitudes de adopcion para el usuario autenticado. */
     fun loadRequests() {
         val userId = firebaseAuth.currentUser?.uid ?: return
         repository.getAdoptionRequestsForUser(userId).onEach { result ->
@@ -38,6 +46,7 @@ class AdoptionRequestsViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /** Acepta una solicitud y vuelve a consultar la lista para reflejar cambios. */
     fun acceptRequest(request: AdoptionRequest) {
         repository.acceptAdoptionRequest(request.id, request.postId).onEach { result ->
             when (result) {
@@ -51,6 +60,7 @@ class AdoptionRequestsViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /** Rechaza una solicitud y vuelve a consultar la lista actualizada. */
     fun rejectRequest(requestId: String) {
         repository.rejectAdoptionRequest(requestId).onEach { result ->
             when (result) {
@@ -65,6 +75,9 @@ class AdoptionRequestsViewModel @Inject constructor(
     }
 }
 
+/**
+ * Estado de pantalla para la bandeja de solicitudes de adopcion.
+ */
 data class AdoptionRequestsState(
     val isLoading: Boolean = false,
     val isActionLoading: Boolean = false,
