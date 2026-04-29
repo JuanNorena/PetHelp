@@ -560,9 +560,9 @@ private fun PostDetailContent(
                 onClick = onBackClick,
                 modifier = Modifier
                     .size(40.dp)
-                    .background(Color.White.copy(alpha = 0.3f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), CircleShape)
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -601,7 +601,7 @@ fun AdoptionRequestScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Solicitud de adopción", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text(stringResource(R.string.adoption_request_title), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
@@ -631,13 +631,13 @@ fun AdoptionRequestScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     if (state.isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Enviar solicitud", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.adoption_request_submit), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
                 TextButton(onClick = { navController.popBackStack() }) {
-                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -675,7 +675,7 @@ fun AdoptionRequestScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.ChatBubbleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Mensaje para el publicador", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.adoption_request_message_label), fontWeight = FontWeight.Bold)
                 }
                 OutlinedTextField(
                     value = state.message,
@@ -706,7 +706,7 @@ fun AdoptionRequestScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Tipo de vivienda", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.adoption_request_housing_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SelectableChip(
                                 label = "Casa",
@@ -746,7 +746,7 @@ fun AdoptionRequestScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Experiencia con mascotas", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.adoption_request_experience_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SelectableChip(
                                 label = "Sí tengo",
@@ -777,11 +777,11 @@ fun AdoptionRequestScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Información de contacto", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.adoption_request_contact_info), fontWeight = FontWeight.Bold)
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Teléfono", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.adoption_request_phone_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         OutlinedTextField(
                             value = state.phone,
                             onValueChange = { viewModel.onEvent(AdoptionRequestEvent.OnPhoneChange(it)) },
@@ -793,7 +793,7 @@ fun AdoptionRequestScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Preferencia de contacto", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.adoption_request_contact_pref_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Column(Modifier.selectableGroup()) {
                             ContactPreferenceOption("Chat en PetHelp", state.contactPreference == "Chat en PetHelp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Chat en PetHelp")) }
                             ContactPreferenceOption("WhatsApp", state.contactPreference == "WhatsApp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("WhatsApp")) }
@@ -1282,7 +1282,7 @@ fun AdoptionSuccessScreen(navController: NavController) {
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(32.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(32.dp))
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -1307,13 +1307,13 @@ fun AdoptionSuccessScreen(navController: NavController) {
                     stringResource(R.string.adoption_success_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     stringResource(R.string.adoption_success_body),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -1351,12 +1351,18 @@ fun AdoptionSuccessScreen(navController: NavController) {
 
 @Composable
 fun ConfettiEffect(progress: Float) {
-    val particles = remember {
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    val primaryContainer = MaterialTheme.colorScheme.primaryContainer
+
+    val particles = remember(primary, secondary, tertiary, primaryContainer) {
+        val confettiColors = listOf(primary, secondary, tertiary, primaryContainer)
         List(50) {
             ConfettiParticle(
                 x = Random.nextFloat(),
                 y = Random.nextFloat(),
-                color = listOf(Color.Yellow, Color.Cyan, Color.Magenta, Color.White).random(),
+                color = confettiColors.random(),
                 size = Random.nextFloat() * 10f + 5f,
                 speed = Random.nextFloat() * 0.5f + 0.5f
             )
@@ -1474,6 +1480,7 @@ fun CreatePostScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val topBarOutlineColor = MaterialTheme.colorScheme.outlineVariant
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -1505,7 +1512,7 @@ fun CreatePostScreen(
                     .drawWithContent {
                         drawContent()
                         drawLine(
-                            color = (if (Color.Black == Color.Black) Color.Unspecified else Color.Transparent), // Placeholder for actual logic below
+                            color = topBarOutlineColor,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
@@ -1715,7 +1722,7 @@ fun CreatePostScreen(
                                         // Badge de número (1/5)
                                         Surface(
                                             modifier = Modifier.align(Alignment.BottomStart).padding(6.dp),
-                                            color = Color.Black.copy(alpha = 0.6f),
+                                            color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f),
                                             shape = RoundedCornerShape(8.dp)
                                         ) {
                                             Text(
@@ -1732,9 +1739,9 @@ fun CreatePostScreen(
                                                 .align(Alignment.TopEnd)
                                                 .padding(4.dp)
                                                 .size(20.dp)
-                                                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f), CircleShape)
                                         ) {
-                                            Icon(Icons.Default.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                                            Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(12.dp))
                                         }
                                     }
                                 }
@@ -2147,7 +2154,7 @@ fun EditPostScreen(
                         enabled = !uiState.isSaving
                     ) {
                         if (uiState.isSaving) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                         } else {
                             Icon(Icons.Default.Save, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
@@ -2182,14 +2189,14 @@ fun EditPostScreen(
                                             color = MaterialTheme.colorScheme.primary,
                                             shape = RoundedCornerShape(8.dp)
                                         ) {
-                                            Text(stringResource(R.string.edit_post_photo_primary), color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontWeight = FontWeight.Bold)
+                                            Text(stringResource(R.string.edit_post_photo_primary), color = MaterialTheme.colorScheme.onPrimary, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), fontWeight = FontWeight.Bold)
                                         }
                                     }
                                     IconButton(
                                         onClick = { viewModel.removeImage(url) },
                                         modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(Color.Black.copy(0.4f), CircleShape)
                                     ) {
-                                        Icon(Icons.Default.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                        Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
                                     }
                                 }
                             }
@@ -2276,7 +2283,7 @@ fun EditPostScreen(
                                         modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent).clickable { viewModel.onSizeChange(size) },
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(UiText.fromSize(size).asString(), color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium, fontSize = 13.sp)
+                                        Text(UiText.fromSize(size).asString(), color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium, fontSize = 13.sp)
                                     }
                                 }
                             }

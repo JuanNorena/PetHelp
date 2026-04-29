@@ -593,7 +593,101 @@ private fun StatsSummaryRow(stats: ModerationStats) {
 }
 
 /**
- * Tarjeta individual para mostrar un valor estadístico con colores semánticos.
+ * Fila de tarjetas con metricas globales de la plataforma.
+ */
+@Composable
+private fun GlobalMetricsRow(stats: ModerationStats) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.moderation_global_metrics_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            MetricCard(
+                label = stringResource(R.string.moderation_stat_total_users),
+                value = stats.totalUsers.toString(),
+                icon = Icons.Default.People,
+                containerColor = StatusInfoBg,
+                contentColor = StatusInfo,
+                modifier = Modifier.weight(1f)
+            )
+            MetricCard(
+                label = stringResource(R.string.moderation_stat_total_adoptions),
+                value = stats.totalAdoptions.toString(),
+                icon = Icons.Default.Pets,
+                containerColor = StatusSuccessBg,
+                contentColor = StatusSuccess,
+                modifier = Modifier.weight(1f)
+            )
+            MetricCard(
+                label = stringResource(R.string.moderation_stat_active_reports),
+                value = stats.activeReports.toString(),
+                icon = Icons.Default.Report,
+                containerColor = StatusErrorBg,
+                contentColor = StatusError,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetricCard(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp
+            )
+        }
+    }
+}
+
+/**
+ * Tarjeta individual para mostrar un valor estadistico con colores semanticos.
  */
 @Composable
 private fun StatCard(
@@ -648,7 +742,7 @@ private fun PendingPostCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, BorderDefault),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {

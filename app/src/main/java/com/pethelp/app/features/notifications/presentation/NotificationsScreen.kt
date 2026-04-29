@@ -1,6 +1,8 @@
 package com.pethelp.app.features.notifications.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -50,7 +52,7 @@ fun NotificationsScreen(navController: NavController) {
                     // Botón para volver a la pantalla anterior.
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back)
                         )
                     }

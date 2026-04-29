@@ -349,6 +349,7 @@ a pet</string>
     <string name="moderation_error_load_pending">Could not load pending posts.</string>
     <string name="moderation_empty_pending">There are no pending posts to moderate.</string>
     <string name="moderation_today_summary">Today\'s summary</string>
+    <string name="moderation_global_metrics_title">Global metrics</string>
     <string name="moderation_stat_pending">Pending</string>
     <string name="moderation_stat_approved">Approved</string>
     <string name="moderation_stat_rejected">Rejected</string>
@@ -423,6 +424,7 @@ a pet</string>
 
     <!-- Generic buttons -->
     <string name="btn_start">Start</string>
+    <string name="btn_continue_placeholder">Continue</string>
     <string name="btn_save_changes">Save Changes</string>
     <string name="splash_tagline">Find, care, adopt</string>
 
