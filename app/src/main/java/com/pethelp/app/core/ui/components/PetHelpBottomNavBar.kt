@@ -75,13 +75,15 @@ fun PetHelpBottomNavBar(navController: NavController) {
     val currentDestination = navBackStackEntry.value?.destination
 
     // PASO 2: Definimos el contenedor base. Usamos un Box para poder superponer el FAB central.
+    // ⭐ MIGRACIÓN A SEMÁNTICA: Usando MaterialTheme.colorScheme.scrim en lugar de Color.Black
+    // Esto permite que la sombra se adapte automáticamente en Dark Mode (más clara) y Light Mode (más oscura)
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
                 elevation = 12.dp,
-                spotColor = Color.Black.copy(alpha = 0.05f),
-                ambientColor = Color.Black.copy(alpha = 0.05f)
+                spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.15f),
+                ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.08f)
             )
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.TopCenter

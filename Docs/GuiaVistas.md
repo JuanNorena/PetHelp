@@ -29,18 +29,49 @@
 
 Antes de implementar cualquier pantalla, hay que alinear los **tokens de diseño** del Figma con lo que existe en código. Esto evita crear colores ad-hoc en cada pantalla.
 
-### 1.1 Paleta de colores — Figma vs Código
+### 1.1 Paleta de colores — Fuente oficial (Color.kt) ✅
 
-| Token Figma | Hex Figma | Variable Kotlin actual | Hex Kotlin | Acción |
-|---|---|---|---|---|
-| Color Primario (Verde Salvia) | `#4CAF50` | `PetHelpGreen` | `#2E7D32` | **Actualizar** → el Figma usa un verde más claro y vibrante |
-| Color Secundario (Coral) | `#FF8A65` | `WarmOrange` | `#E65100` | **Actualizar** → el Figma usa coral suave, no naranja oscuro |
-| Color Terciario (Púrpura IA) | `#B39DDB` | `SoftBlue` | `#1565C0` | **Cambiar** → Figma usa violeta, código actual tiene azul |
-| Fondo Light | `#FAFAFA` / `#F5F5F7` | `BackgroundLight` | `#F9FAF8` | ≈ OK, ajuste mínimo |
-| Fondo Dark | `#1E1E1E` / `#121212` | `BackgroundDark` | `#111512` | ≈ OK |
-| Error / Rechazo | `#E57373` | `ErrorRed` | `#B00020` | **Actualizar** → el Figma usa rojo pastel amigable |
+**La paleta de verdad está en `core/ui/theme/Color.kt`.**  
+**En las vistas NO se deben usar hex directos.** Siempre consumir `MaterialTheme.colorScheme` y constantes de `Color.kt`.
 
-> **Tarea prioritaria:** actualizar `Color.kt` para que coincida exactamente con la paleta del Figma antes de implementar pantallas. Se recomienda hacer esta actualización en un solo commit: `chore(theme): sincronizar paleta de colores con Figma`.
+#### Mapeo oficial (Color.kt → Usos)
+
+| Constante (Color.kt) | Hex | Material Theme Equivalent | Uso recomendado |
+|---|---|---|---|
+| `PetHelpPrimary` | `#00BCB4` | `primary` | Botones principales, títulos clave, iconos activos |
+| `PrimaryLightContainer` | `#E5F8F7` | `primaryContainer` | Chips seleccionados, fondos suaves neutrales |
+| `PetHelpSecondary` | `#FFB547` | `secondary` | CTAs secundarias, puntos/reputación, acciones destacadas |
+| `SecondaryLightContainer` | `#FFEDD5` | `secondaryContainer` | Tarjetas puntos, badges logros, fondos cálidos |
+| `PetHelpTertiary` | `#A78BFA` | `tertiary` | Elementos IA, etiquetas especiales, decorativos |
+| `TertiaryLightContainer` | `#F3E8FF` | `tertiaryContainer` | Badges IA, paneles informativos |
+| `BackgroundLight` | `#FAFAFA` | `background` | Fondo de pantallas (modo claro) |
+| `SurfaceLight` | `#FFFFFF` | `surface` | Tarjetas, componentes elevados |
+| `SurfaceVariantLight` | `#F5F5F5` | `surfaceVariant` | Capas sutiles, inputs deshabilitados |
+| `PetHelpDestructive` | `#FF4747` | `error` | Botones destructivos, rechazos, errores fuertes |
+| `PetHelpOutline` | `#E0E0E0` | `outlineVariant` | Bordes de inputs, divisores, separadores |
+| `TextPrimary` | `#2D2D2D` | `onSurface` | Texto principal |
+| `TextSecondary` | `#666666` | `onSurfaceVariant` | Texto secundario, hints |
+
+#### Regla clave de aplicación
+
+```kotlin
+// ❌ NUNCA (hardcoding hex)
+Button(colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCB4)))
+
+// ✅ SIEMPRE (usando MaterialTheme)
+Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary))
+
+// ✅ O si es constante especial en Color.kt
+Text(color = PetHelpDestructive)
+```
+
+**Paso a paso para cada pantalla:**
+1. Usar `MaterialTheme.colorScheme.background` en contenedores root.
+2. Usar `MaterialTheme.colorScheme.surface` para tarjetas y componentes elevados.
+3. Botones principales → `primary`. Botones secundarios → `secondary`.
+4. Elementos IA → `tertiary` o `tertiaryContainer`.
+5. Errores/rechazos → `error` (mapea a `PetHelpDestructive`).
+6. Bordes/separadores → `outlineVariant`.
 
 ### 1.2 Tipografía
 
@@ -100,17 +131,17 @@ Antes de las pantallas, crear estos composables en `core/ui/components/`:
 │                         │
 │      [Logo central]     │ ← Corazón + manos + pata (icono vectorial)
 │                         │
-│       PetHelp           │ ← headlineLarge, Bold, color primary
+│       PetHelp           │ ← headlineLarge, Bold, color = MaterialTheme.colorScheme.primary
 │  Encuentra, cuida,      │
-│       adopta            │ ← bodyLarge, color onSurfaceVariant
+│       adopta            │ ← bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant
 │                         │
 │                         │
 │   ┌─────────────────┐   │
-│   │    Comenzar      │   │ ← FilledButton pill, color primary, full-width
+│   │    Comenzar      │   │ ← FilledButton pill, containerColor = MaterialTheme.colorScheme.primary, full-width
 │   └─────────────────┘   │
 │                         │
 └─────────────────────────┘
-Fondo: verde salvia pastel o crema (#FAFAFA)
+Fondo: MaterialTheme.colorScheme.background (BackgroundLight = #FAFAFA)
 ```
 
 ### Estructura Compose
@@ -188,14 +219,14 @@ fun SplashScreen(onNavigateToLogin: () -> Unit) {
 │   └─────────────────┘   │
 │                         │
 │   ¿Olvidaste tu         │
-│     contraseña? ─►      │ ← TextButton, color tertiary (violeta)
+│     contraseña? ─►      │ ← TextButton, color = MaterialTheme.colorScheme.tertiary
 │                         │
 │   ┌─────────────────┐   │
-│   │ Iniciar Sesión   │   │ ← FilledButton pill, full-width
+│   │ Iniciar Sesión   │   │ ← FilledButton pill, full-width, containerColor = MaterialTheme.colorScheme.primary
 │   └─────────────────┘   │
 │                         │
 │  ¿No tienes cuenta?     │
-│     Regístrate  ─►      │ ← AnnotatedString, "Regístrate" en color primary
+│     Regístrate  ─►      │ ← AnnotatedString, "Regístrate" en color = MaterialTheme.colorScheme.primary
 │                         │
 └─────────────────────────┘
 ```
@@ -499,10 +530,10 @@ fun ForgotPasswordScreen(
             //    Fase 2: mostrar Snackbar("Enlace enviado — revisa tu correo")
             //    Fase 3: FirebaseAuth.sendPasswordResetEmail(email)
             
-            // 6. Si emailSent → mostrar texto de confirmación verde
+            // 6. Si emailSent → mostrar texto de confirmación (usando primary/success semantics)
             if (emailSent) {
                 // Text("Enlace enviado — revisa tu bandeja de entrada")
-                // color = primary, icon = CheckCircle
+                // color = MaterialTheme.colorScheme.primary, icon = CheckCircle
             }
         }
     }
@@ -841,7 +872,7 @@ Box(Modifier.fillMaxSize().background(Color(0xFFE8F5E9)), contentAlignment = Cen
 │╰────────────────────────╯│
 │                          │
 │ ┌ Votos: 45 ──────────┐ │ ← Sticky bottom bar con elevación
-│ │ 🐾 Solicitar Adopción│ │    FilledButton GRANDE coral/primary
+│ │ 🐾 Solicitar Adopción│ │    FilledButton GRANDE, containerColor = MaterialTheme.colorScheme.primary
 │ └──────────────────────┘ │
 └─────────────────────────┘
 ```
@@ -985,7 +1016,7 @@ fun PostDetailScreen(
 │ │ situación            │ │    minLines = 4
 │ └──────────────────────┘ │
 │                          │
-│ ✨ Categoría sugerida    │ ← IA label con sparkles (violeta)
+│ ✨ Categoría sugerida    │ ← IA label con sparkles, color = MaterialTheme.colorScheme.tertiary
 │ ┌──────────────────────┐ │
 │ │ Adopción          ▼  │ │ ← ExposedDropdownMenuBox
 │ └──────────────────────┘ │
@@ -1079,7 +1110,7 @@ fun CreatePostScreen(
             Spacer(Modifier.height(16.dp))
             
             // ─── Categoría con IA ──────────────────────
-            // Row con icono sparkles violeta + Text("Categoría sugerida por IA")
+            // Row con icono sparkles (color = MaterialTheme.colorScheme.tertiary) + Text("Categoría sugerida por IA")
             // ExposedDropdownMenuBox {
             //     TextField(readOnly = true, value = selectedCategory?.name)
             //     ExposedDropdownMenu {
@@ -1144,13 +1175,13 @@ fun CreatePostScreen(
 │ │       para Max      │ │
 │ │      - Adopción -   │ │
 │ │ ┌─────────────────┐ │ │
-│ │ │ ✨ Resumen IA:  │ │ │ ← tag violeta con bordes redondeados
-│ │ │ Posible adopción│ │ │    color: tertiary (violeta del Figma)
+│ │ │ ✨ Resumen IA:  │ │ │ ← tag con bordes redondeados, backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+│ │ │ Posible adopción│ │ │    text color = MaterialTheme.colorScheme.onTertiaryContainer
 │ │ │ real. Imagen    │ │ │
 │ │ │ coincide...     │ │ │
 │ │ └─────────────────┘ │ │
-│ │       [✅ Aprobar]   │ │ ← FilledTonalButton verde
-│ │       [❌ Rechazar]  │ │ ← FilledTonalButton error
+│ │       [✅ Aprobar]   │ │ ← FilledTonalButton, containerColor = MaterialTheme.colorScheme.primaryContainer
+│ │       [❌ Rechazar]  │ │ ← FilledTonalButton, containerColor = MaterialTheme.colorScheme.errorContainer
 │ └─────────────────────┘ │
 │                          │
 │ ┌─────────────────────┐ │ ← Siguiente tarjeta...
@@ -1417,7 +1448,7 @@ fun NotificationItem(notification: PetNotification) {
 │                          │
 │        [AVATAR]          │ ← Avatar grande (96.dp) con aro de progreso
 │     ┌──gradiente───┐    │    CircularProgressIndicator alrededor
-│     │     👤        │    │    color = secondary (coral/dorado)
+│     │     👤        │    │    color = MaterialTheme.colorScheme.secondary
 │     └──────────────┘    │
 │     Juan Sebastián       │ ← titleLarge, Bold, centrado
 │     👑 Héroe de las      │ ← Badge: Surface(secondaryContainer)
@@ -1468,8 +1499,8 @@ fun ReputationScreen(
                 // CircularProgressIndicator(
                 //     progress = userPoints / nextLevelThreshold,
                 //     modifier = Modifier.size(108.dp),
-                //     trackColor = surfaceVariant,
-                //     color = secondary,  // coral/dorado
+                //     trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                //     color = MaterialTheme.colorScheme.secondary,
                 //     strokeWidth = 4.dp
                 // )
                 // AsyncImage o placeholder avatar (96.dp) circular

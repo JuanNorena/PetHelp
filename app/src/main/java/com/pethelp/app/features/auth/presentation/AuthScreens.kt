@@ -265,8 +265,8 @@ private fun PetHelpLogo(modifier: Modifier = Modifier) {
             .shadow(
                 elevation = 20.dp,
                 shape = RoundedCornerShape(24.dp),
-                ambientColor = Color.Black.copy(alpha = 0.08f),
-                spotColor = Color.Black.copy(alpha = 0.08f)
+                ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.08f)
             )
             .background(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.60f),
@@ -513,8 +513,8 @@ fun LoginScreen(
                     .shadow(
                         elevation = 3.dp,
                         shape = RoundedCornerShape(16.dp),
-                        ambientColor = Color.Black.copy(alpha = 0.1f),
-                        spotColor = Color.Black.copy(alpha = 0.1f)
+                        ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+                        spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)
                     )
             )
 
@@ -567,8 +567,8 @@ fun LoginScreen(
                     .shadow(
                         elevation = 3.dp,
                         shape = RoundedCornerShape(16.dp),
-                        ambientColor = Color.Black.copy(alpha = 0.1f),
-                        spotColor = Color.Black.copy(alpha = 0.1f)
+                        ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+                        spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)
                     )
             )
 
@@ -1258,6 +1258,8 @@ private fun LinkSentCard(email: String, onBackToStart: () -> Unit) {
  */
 @Composable
 private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
+    val outlineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+
     Box(
         modifier = modifier.size(160.dp),
         contentAlignment = Alignment.Center
@@ -1283,7 +1285,7 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
                     Modifier.drawWithContent {
                         drawContent()
                         drawCircle(
-                            color = Color.White.copy(alpha = 0.5f),
+                            color = outlineColor,
                             radius = size.minDimension / 2,
                             style = Stroke(width = 3.5.dp.toPx())
                         )
@@ -1306,8 +1308,8 @@ private fun ForgotPasswordIcon(modifier: Modifier = Modifier) {
                 .shadow(
                     elevation = 3.dp,
                     shape = CircleShape,
-                    ambientColor = Color.Black.copy(alpha = 0.1f),
-                    spotColor = Color.Black.copy(alpha = 0.1f)
+                    ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+                    spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)
                 )
                 .background(MaterialTheme.colorScheme.surface, CircleShape)
                 .rotate(12f),
@@ -1343,8 +1345,8 @@ private fun BackButton(onClick: () -> Unit) {
             .shadow(
                 elevation = 3.dp,
                 shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.1f),
-                spotColor = Color.Black.copy(alpha = 0.1f)
+                ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+                spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)
             )
             .background(
                 color = MaterialTheme.colorScheme.surface,
@@ -1437,8 +1439,8 @@ private fun AuthTextField(
             .shadow(
                 elevation = 3.dp,
                 shape = RoundedCornerShape(14.dp),
-                ambientColor = Color.Black.copy(alpha = 0.1f),
-                spotColor = Color.Black.copy(alpha = 0.1f)
+                ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+                spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f)
             )
     )
 }

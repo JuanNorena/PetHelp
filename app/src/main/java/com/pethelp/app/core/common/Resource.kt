@@ -20,7 +20,7 @@
  *   when (val state = uiState.collectAsStateWithLifecycle().value) {
  *       is Resource.Loading -> CircularProgressIndicator()
  *       is Resource.Success -> PostList(state.data)
- *       is Resource.Error -> ErrorMessage(state.message)
+ *       is Resource.Error -> ErrorMessage(state.uiText)
  *   }
  */
 sealed class Resource<T>(
@@ -35,7 +35,7 @@ sealed class Resource<T>(
      * Mensaje descriptivo en caso de error.
      * En una operación exitosa normalmente será null.
      */
-    val message: UiText? = null
+    val message: String? = null
 ) {
 
     /** Alias de compatibilidad para la capa de presentacion. */
@@ -52,12 +52,10 @@ sealed class Resource<T>(
     /**
      * Resultado con error.
      *
-     * @param message texto con la descripción del fallo.
+     * @param uiText texto localizable con la descripción del fallo.
      * @param data datos opcionales que aún pueden estar disponibles.
      */
-    class Error<T>(message: UiText, data: T? = null) : Resource<T>(data, message) {
-        constructor(message: String, data: T? = null) : this(UiText.DynamicString(message), data)
-    }
+    class Error<T>(message: String, data: T? = null) : Resource<T>(data, message)
 
     /**
      * Estado de carga de la operación.

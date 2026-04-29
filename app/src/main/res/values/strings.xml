@@ -237,6 +237,7 @@
     <string name="moderation_error_load_pending">No fue posible cargar los pendientes.</string>
     <string name="moderation_empty_pending">No hay publicaciones pendientes por moderar.</string>
     <string name="moderation_today_summary">Resumen de hoy</string>
+    <string name="moderation_global_metrics_title">Métricas globales</string>
     <string name="moderation_stat_pending">Pendientes</string>
     <string name="moderation_stat_approved">Aprobadas</string>
     <string name="moderation_stat_rejected">Rechazadas</string>
@@ -316,6 +317,7 @@
     <string name="error_password_short">La contraseña debe tener al menos 6 caracteres.</string>
     <!-- Botones genéricos -->
     <string name="btn_start">Comenzar</string>
+    <string name="btn_continue_placeholder">Continuar</string>
     <string name="btn_save_changes">Guardar Cambios</string>
     <string name="splash_tagline">Encuentra, cuida, adopta</string>
     
