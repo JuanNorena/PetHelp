@@ -149,7 +149,7 @@ private fun ViewModeToggle(isGridView: Boolean, onToggle: () -> Unit) {
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(if (isGridView) Color.White else Color.Transparent)
+                    .background(if (isGridView) MaterialTheme.colorScheme.surface else Color.Transparent)
                     .clickable { if (!isGridView) onToggle() },
                 contentAlignment = Alignment.Center
             ) {
@@ -164,7 +164,7 @@ private fun ViewModeToggle(isGridView: Boolean, onToggle: () -> Unit) {
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(if (!isGridView) Color.White else Color.Transparent)
+                    .background(if (!isGridView) MaterialTheme.colorScheme.surface else Color.Transparent)
                     .clickable { if (isGridView) onToggle() },
                 contentAlignment = Alignment.Center
             ) {
@@ -319,7 +319,7 @@ private fun FavoriteGridCard(
                 }
                 // Distance badge
                 Surface(
-                    color = Color.Black.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.padding(8.dp).align(Alignment.BottomStart)
                 ) {
@@ -327,9 +327,9 @@ private fun FavoriteGridCard(
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.LocationOn, null, tint = Color.White, modifier = Modifier.size(10.dp))
+                        Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text(stringResource(R.string.map_distance_km, 2.0), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.map_distance_km, 2.0), color = MaterialTheme.colorScheme.onPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -339,7 +339,7 @@ private fun FavoriteGridCard(
                     Icon(
                         if(post.gender.name == "MALE") Icons.Default.Male else Icons.Default.Female,
                         null,
-                        tint = if(post.gender.name == "MALE") Color(0xFF2196F3) else Color(0xFFE91E63),
+                        tint = if(post.gender.name == "MALE") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
@@ -469,7 +469,7 @@ private fun ExploreBanner(onExploreClick: () -> Unit) {
             .fillMaxWidth()
             .padding(20.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0F2F1))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f))
     ) {
         Row(
             modifier = Modifier
@@ -483,17 +483,17 @@ private fun ExploreBanner(onExploreClick: () -> Unit) {
                     stringResource(R.string.favorites_explore_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = Color(0xFF00796B)
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     stringResource(R.string.favorites_explore_subtitle),
                     fontSize = 12.sp,
-                    color = Color(0xFF00796B).copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = onExploreClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA5)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
@@ -504,7 +504,7 @@ private fun ExploreBanner(onExploreClick: () -> Unit) {
                 Icons.Default.Pets,
                 contentDescription = null,
                 modifier = Modifier.size(60.dp).padding(start = 8.dp),
-                tint = Color(0xFF00BFA5).copy(alpha = 0.5f)
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
             )
         }
     }

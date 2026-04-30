@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 interface ProfileRepository {
     fun getCurrentUser(): Flow<Resource<User>>
     fun updateProfile(user: User): Flow<Resource<User>>
+    fun updateNotificationPreferences(pushEnabled: Boolean, emailEnabled: Boolean): Flow<Resource<Unit>>
     fun updateProfilePhoto(imageUri: String): Flow<Resource<String>>
     fun changePassword(currentPassword: String, newPassword: String): Flow<Resource<Unit>>
     fun deleteAccount(): Flow<Resource<Unit>>

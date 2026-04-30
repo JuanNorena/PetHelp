@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Usuarios
+    match /users/{userId} {
+      allow read, update: if isOwner(userId);
+      allow create: if isOwner(userId);
+
+      // Tokens FCM por usuario/dispositivo
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Notificaciones in-app
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
+      allow create, delete: if false;
+    }
+  }
+}

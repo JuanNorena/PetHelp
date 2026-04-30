@@ -413,7 +413,11 @@ a pet</string>
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_empty">You have no notifications yet</string>
+    <string name="notifications_error_index_building">We are still setting up your notifications. Please try again in a few minutes.</string>
     <string name="notification_channel_name">PetHelp Alerts</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+    <string name="notifications_channel_description">Post, comment and moderation alerts</string>
+    <string name="notifications_push_default_body">You have a new notification</string>
 
     <!-- General errors -->
     <string name="error_generic">An error occurred. Please try again.</string>
@@ -503,6 +507,9 @@ a pet</string>
     <string name="settings_notifications_section">NOTIFICATIONS</string>
     <string name="settings_push_notifications">Push notifications</string>
     <string name="settings_email_alerts">Email alerts</string>
+    <string name="settings_app_version">PetHelp v%1$s</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="language_english">English</string>
     <string name="settings_privacy_section">PRIVACY</string>
     <string name="settings_privacy_policy">Privacy Policy</string>
     <string name="settings_profile_visibility">Profile visibility</string>

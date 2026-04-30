@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.common.UiText
+import com.pethelp.app.core.notifications.FcmTokenSyncManager
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,7 +53,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val fcmTokenSyncManager: FcmTokenSyncManager
 ) : ViewModel() {
 
     // ── Estado principal de la UI (State Machine) ────────────────────────────
@@ -187,6 +189,9 @@ class AuthViewModel @Inject constructor(
                     // Login exitoso: Guardamos el usuario en el estado global.
                     resource.data?.let { user ->
                         _uiState.value = AuthUiState.Authenticated(user)
+                        viewModelScope.launch {
+                            runCatching { fcmTokenSyncManager.syncPendingAndCurrentToken() }
+                        }
                     }
                 }
                 is Resource.Error -> {
@@ -248,6 +253,9 @@ class AuthViewModel @Inject constructor(
                     // Registro exitoso: El usuario ya está logueado automáticamente.
                     resource.data?.let { user ->
                         _uiState.value = AuthUiState.Authenticated(user)
+                        viewModelScope.launch {
+                            runCatching { fcmTokenSyncManager.syncPendingAndCurrentToken() }
+                        }
                     }
                 }
                 is Resource.Error -> {

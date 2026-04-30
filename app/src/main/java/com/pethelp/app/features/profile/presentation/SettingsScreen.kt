@@ -39,6 +39,8 @@ fun SettingsScreen(
     navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val profileUiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -94,7 +96,7 @@ fun SettingsScreen(
                     icon = Icons.Default.Language,
                     iconColor = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(R.string.settings_language),
-                    value = if (currentLanguage == "es") "Español" else "English",
+                    value = if (currentLanguage == "es") stringResource(R.string.language_spanish) else stringResource(R.string.language_english),
                     onClick = { navController.navigate(Screen.Language) }
                 )
             }
@@ -104,15 +106,21 @@ fun SettingsScreen(
             // NOTIFICACIONES
             SettingsSectionTitle(stringResource(R.string.settings_notifications_section))
             SettingsCard {
-                var pushEnabled by remember { mutableStateOf(true) }
-                var emailEnabled by remember { mutableStateOf(false) }
+                val currentUser = (profileUiState as? ProfileUiState.Success)?.user
+                val pushEnabled = currentUser?.pushNotificationsEnabled ?: true
+                val emailEnabled = currentUser?.emailAlertsEnabled ?: false
 
                 SettingsToggleItem(
                     icon = Icons.Default.NotificationsNone,
                     iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.settings_push_notifications),
                     checked = pushEnabled,
-                    onCheckedChange = { pushEnabled = it }
+                    onCheckedChange = { newPush ->
+                        viewModel.updateNotificationPreferences(
+                            pushEnabled = newPush,
+                            emailEnabled = emailEnabled
+                        )
+                    }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 SettingsToggleItem(
@@ -120,7 +128,12 @@ fun SettingsScreen(
                     iconColor = MaterialTheme.colorScheme.secondary,
                     title = stringResource(R.string.settings_email_alerts),
                     checked = emailEnabled,
-                    onCheckedChange = { emailEnabled = it }
+                    onCheckedChange = { newEmail ->
+                        viewModel.updateNotificationPreferences(
+                            pushEnabled = pushEnabled,
+                            emailEnabled = newEmail
+                        )
+                    }
                 )
             }
 
@@ -201,7 +214,7 @@ fun SettingsScreen(
             Spacer(Modifier.height(24.dp))
 
             Text(
-                text = "PetHelp v1.0.0",
+                text = stringResource(R.string.settings_app_version, "1.0.0"),
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 fontSize = 12.sp

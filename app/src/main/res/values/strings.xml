@@ -307,7 +307,11 @@
     <!-- ── Notificaciones ──────────────────────────────────── -->
     <string name="notifications_title">Notificaciones</string>
     <string name="notifications_empty">No tienes notificaciones por ahora</string>
+    <string name="notifications_error_index_building">Estamos terminando de configurar tus notificaciones. Intenta de nuevo en unos minutos.</string>
     <string name="notification_channel_name">PetHelp Alertas</string>
+    <string name="notifications_mark_all_read">Marcar todas como leídas</string>
+    <string name="notifications_channel_description">Alertas de publicaciones, comentarios y moderación</string>
+    <string name="notifications_push_default_body">Tienes una nueva notificación</string>
 
     <!-- ── Errores generales ──────────────────────────────── -->
     <string name="error_generic">Ocurrió un error. Por favor intenta de nuevo.</string>
@@ -400,6 +404,9 @@
     <string name="settings_notifications_section">NOTIFICACIONES</string>
     <string name="settings_push_notifications">Notificaciones Push</string>
     <string name="settings_email_alerts">Alertas por Email</string>
+    <string name="settings_app_version">PetHelp v%1$s</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_english">Inglés</string>
     <string name="settings_privacy_section">PRIVACIDAD</string>
     <string name="settings_privacy_policy">Política de Privacidad</string>
     <string name="settings_profile_visibility">Visibilidad del perfil</string>

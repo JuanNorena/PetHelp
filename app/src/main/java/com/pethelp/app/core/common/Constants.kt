@@ -21,6 +21,7 @@ object Constants {
     const val COLLECTION_POSTS = "posts"
     const val COLLECTION_COMMENTS = "comments"
     const val COLLECTION_NOTIFICATIONS = "notifications"
+    const val COLLECTION_FCM_TOKENS = "fcmTokens"
     const val COLLECTION_VOTES = "votes"
     const val COLLECTION_ADOPTION_REQUESTS = "adoptionRequests"
     const val COLLECTION_BADGES = "badges"
@@ -52,6 +53,11 @@ object Constants {
     const val NOTIFICATION_CHANNEL_ID = "pethelp_channel"
     const val NOTIFICATION_CHANNEL_NAME = "PetHelp Alertas"
     const val DEFAULT_NOTIFICATION_RADIUS_KM = 10.0
+    const val NOTIFICATION_INTENT_POST_ID = "postId"
+
+    // ── FCM local persistence ───────────────────────────────────────────────
+    const val FCM_PREFS_NAME = "pethelp_fcm_prefs"
+    const val FCM_PENDING_TOKEN_KEY = "pending_fcm_token"
 
     // ── Reputación — puntos por acción ────────────────────────────────────────
     // Puntos que se asignan al usuario cuando realiza acciones relevantes.

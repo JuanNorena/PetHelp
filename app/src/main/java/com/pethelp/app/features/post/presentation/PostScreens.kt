@@ -476,7 +476,7 @@ private fun PostDetailContent(
                         Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(stringResource(R.string.post_detail_no_comments), color = Color.Gray, fontSize = 14.sp)
+                        Text(stringResource(R.string.post_detail_no_comments), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
                 }
             } else {
@@ -590,7 +590,7 @@ fun AdoptionRequestScreen(
                 }
                 is AdoptionRequestViewModel.UiEvent.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(
-                        message = event.uiText?.asString(context) ?: "Error"
+                        message = event.uiText?.asString(context) ?: context.getString(R.string.common_error)
                     )
                 }
             }
@@ -657,13 +657,7 @@ fun AdoptionRequestScreen(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
             ) {
                 Text(
-                    text = buildAnnotatedString {
-                        append("Estás a punto de solicitar la adopción de ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                            append(petName)
-                        }
-                        append(". Cuéntale al publicador por qué serías un buen hogar.")
-                    },
+                    text = stringResource(R.string.adoption_request_intro, petName),
                     modifier = Modifier.padding(20.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     lineHeight = 22.sp
@@ -680,7 +674,7 @@ fun AdoptionRequestScreen(
                 OutlinedTextField(
                     value = state.message,
                     onValueChange = { viewModel.onEvent(AdoptionRequestEvent.OnMessageChange(it)) },
-                    placeholder = { Text("Hola, estoy interesado en adoptar a $petName...", color = Color.Gray.copy(alpha = 0.6f)) },
+                    placeholder = { Text(stringResource(R.string.adoption_request_message_hint, petName), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
@@ -700,23 +694,23 @@ fun AdoptionRequestScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🏠 Información del hogar", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.adoption_request_home_info), fontWeight = FontWeight.Bold)
                         Spacer(Modifier.weight(1f))
-                        Text("(Opcional)", fontSize = 12.sp, color = Color.Gray)
+                        Text(stringResource(R.string.adoption_request_optional), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.adoption_request_housing_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SelectableChip(
-                                label = "Casa",
+                                label = stringResource(R.string.housing_house),
                                 icon = Icons.Default.Home,
                                 selected = state.housingType == "Casa",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("Casa")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
-                                label = "Apartamento",
+                                label = stringResource(R.string.housing_apartment),
                                 icon = Icons.Default.LocationCity,
                                 selected = state.housingType == "Apartamento",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("Apartamento")) },
@@ -726,17 +720,17 @@ fun AdoptionRequestScreen(
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("¿Tienes espacio exterior?", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.adoption_request_outdoor_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SelectableChip(
-                                label = "Sí",
+                                label = stringResource(R.string.common_yes),
                                 icon = Icons.Default.Nature, // Placeholder
                                 selected = state.hasOutdoorSpace == "Sí",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("Sí")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
-                                label = "No",
+                                label = stringResource(R.string.common_no),
                                 icon = Icons.Default.Block,
                                 selected = state.hasOutdoorSpace == "No",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("No")) },
@@ -749,14 +743,14 @@ fun AdoptionRequestScreen(
                         Text(stringResource(R.string.adoption_request_experience_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SelectableChip(
-                                label = "Sí tengo",
+                                label = stringResource(R.string.experience_yes),
                                 icon = Icons.Default.Pets,
                                 selected = state.hasExperience == "Sí tengo",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("Sí tengo")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
-                                label = "Soy nuevo",
+                                label = stringResource(R.string.experience_no),
                                 icon = Icons.Default.CheckCircle,
                                 selected = state.hasExperience == "Soy nuevo",
                                 onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("Soy nuevo")) },
@@ -785,19 +779,19 @@ fun AdoptionRequestScreen(
                         OutlinedTextField(
                             value = state.phone,
                             onValueChange = { viewModel.onEvent(AdoptionRequestEvent.OnPhoneChange(it)) },
-                            placeholder = { Text("Ej: 55 1234 5678", color = Color.Gray.copy(alpha = 0.5f)) },
+                            placeholder = { Text(stringResource(R.string.adoption_request_phone_hint), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            leadingIcon = { Icon(Icons.Default.Phone, null, tint = Color.Gray) }
+                            leadingIcon = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                         )
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.adoption_request_contact_pref_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Column(Modifier.selectableGroup()) {
-                            ContactPreferenceOption("Chat en PetHelp", state.contactPreference == "Chat en PetHelp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Chat en PetHelp")) }
-                            ContactPreferenceOption("WhatsApp", state.contactPreference == "WhatsApp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("WhatsApp")) }
-                            ContactPreferenceOption("Llamada telefónica", state.contactPreference == "Llamada telefónica") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Llamada telefónica")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_pethelp), state.contactPreference == "Chat en PetHelp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Chat en PetHelp")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_whatsapp), state.contactPreference == "WhatsApp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("WhatsApp")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_phone_call), state.contactPreference == "Llamada telefónica") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Llamada telefónica")) }
                         }
                     }
                 }
@@ -809,14 +803,10 @@ fun AdoptionRequestScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = buildAnnotatedString {
-                            append("El publicador verá que te encuentras aproximadamente a ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("3 km") }
-                            append(" de distancia.")
-                        },
+                        text = stringResource(R.string.adoption_request_distance_info, "3 km"),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -851,7 +841,7 @@ private fun SelectableChip(
             Icon(
                 icon, 
                 null, 
-                tint = if (selected) MaterialTheme.colorScheme.primary else Color.Gray,
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
@@ -1340,9 +1330,9 @@ fun AdoptionSuccessScreen(navController: NavController) {
                     shape = RoundedCornerShape(28.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
-                    Icon(Icons.Default.Home, null, tint = Color.Gray)
+                    Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.adoption_success_btn_home), color = Color.Gray, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.adoption_success_btn_home), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1727,7 +1717,7 @@ fun CreatePostScreen(
                                         ) {
                                             Text(
                                                 "${index + 1}/5",
-                                                color = Color.White,
+                                                color = MaterialTheme.colorScheme.onPrimary,
                                                 fontSize = 10.sp,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
@@ -2194,7 +2184,7 @@ fun EditPostScreen(
                                     }
                                     IconButton(
                                         onClick = { viewModel.removeImage(url) },
-                                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(Color.Black.copy(0.4f), CircleShape)
+                                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(MaterialTheme.colorScheme.scrim.copy(0.4f), CircleShape)
                                     ) {
                                         Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(14.dp))
                                     }

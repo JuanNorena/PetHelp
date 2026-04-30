@@ -107,6 +107,32 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    fun updateNotificationPreferences(pushEnabled: Boolean, emailEnabled: Boolean) {
+        profileRepository.updateNotificationPreferences(pushEnabled, emailEnabled).onEach { resource ->
+            when (resource) {
+                is Resource.Loading -> Unit
+                is Resource.Success -> {
+                    val currentState = _uiState.value
+                    if (currentState is ProfileUiState.Success) {
+                        _uiState.value = currentState.copy(
+                            user = currentState.user.copy(
+                                pushNotificationsEnabled = pushEnabled,
+                                emailAlertsEnabled = emailEnabled
+                            )
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    viewModelScope.launch {
+                        _snackbarMessage.emit(
+                            resource.message ?: UiText.StringResource(R.string.error_generic)
+                        )
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
     fun uploadProfilePhoto(imageUri: String) {
         val currentState = _uiState.value as? ProfileUiState.Success ?: return
 

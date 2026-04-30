@@ -107,6 +107,35 @@ class FirebaseProfileRepository @Inject constructor(
         }
     }
 
+    override fun updateNotificationPreferences(
+        pushEnabled: Boolean,
+        emailEnabled: Boolean
+    ): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+
+        val firebaseUser = firebaseAuth.currentUser
+        if (firebaseUser == null) {
+            emit(Resource.Error(UiText.DynamicString("No hay sesión activa.")))
+            return@flow
+        }
+
+        try {
+            firestore.collection(USERS_COLLECTION)
+                .document(firebaseUser.uid)
+                .update(
+                    mapOf(
+                        "pushNotificationsEnabled" to pushEnabled,
+                        "emailAlertsEnabled" to emailEnabled
+                    )
+                )
+                .await()
+
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(UiText.DynamicString(e.localizedMessage ?: "Error al actualizar preferencias de notificación.")))
+        }
+    }
+
     override fun updateProfilePhoto(imageUri: String): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
