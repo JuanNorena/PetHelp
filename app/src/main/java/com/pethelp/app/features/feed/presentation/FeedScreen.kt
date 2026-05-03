@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
@@ -57,7 +59,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.pethelp.app.R
-import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Post
@@ -70,56 +71,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Pantalla principal del Feed de publicaciones en PetHelp.
- *
- * **Responsabilidad:**
- * Mostrar una lista cronológica de mascotas en adopción o reportadas, permitiendo al usuario filtrar por
- * categorías y acceder a los detalles de cada publicación. También sirve como punto de entrada al perfil
- * y a las notificaciones.
- *
- * **Arquitectura y Reactividad:**
- * - **ViewModel ([FeedViewModel]):** Gestiona el estado de la lista de publicaciones y los filtros aplicados.
- * - **State Management:** Utiliza `collectAsStateWithLifecycle()` para observar los cambios en el estado
- *   de forma segura según el ciclo de vida de Android.
- * - **Navegación:** Utiliza [NavController] para transitar hacia el perfil, notificaciones o detalles de post.
- *
- * **Flujo de UI (Condicional):**
- * 1. **Cargando:** Muestra un indicador de progreso central si la lista está vacía.
- * 2. **Error:** Muestra un mensaje descriptivo y un botón de reintento.
- * 3. **Vacío:** Muestra una ilustración amigable e informativo si no hay posts que coincidan con el filtro.
- * 4. **Lista (Éxito):** Despliega un `LazyColumn` optimizado con tarjetas interactivas.
- *
- * **Notas para Junior Developers:**
- * - El uso de `Scaffold` permite estructurar la pantalla con barras superiores e inferiores estándar.
- * - Se integra con [AuthViewModel] únicamente para obtener la foto de perfil del usuario en la barra superior.
- * - `LazyRow` y `LazyColumn` se utilizan para listas horizontales y verticales respectivamente, cargando solo
- *   los elementos visibles para ahorrar memoria.
- *
- * @param navController Controlador de navegación para mover al usuario entre pantallas.
- * @param viewModel Instancia del ViewModel encargada de la lógica del Feed (inyectada por Hilt).
- * @since 1.0.0
- * @author Equipo de Desarrollo PetHelp
- * @see FeedViewModel Para la lógica de filtrado y carga de datos.
- * @see PetHelpBottomNavBar Componente de navegación global.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     navController: NavController,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
-    // PASO 1: Observar los estados de los ViewModels.
-    // Usamos collectAsStateWithLifecycle para que la recolección se detenga si la app está en segundo plano.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.uiState.collectAsStateWithLifecycle()
 
-    // PASO 2: Estructura base de la pantalla con Scaffold.
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            // La barra superior incluye el título, acciones y los chips de filtrado.
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 TopAppBar(
                     title = {
@@ -131,7 +95,22 @@ fun FeedScreen(
                         )
                     },
                     actions = {
-                        // Icono de notificaciones.
+                        IconButton(onClick = { navController.navigate(Screen.Favorites) }) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = stringResource(R.string.feed_favorites_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        IconButton(onClick = { navController.navigate(Screen.Chat) }) {
+                            Icon(
+                                imageVector = Icons.Filled.ChatBubbleOutline,
+                                contentDescription = stringResource(R.string.feed_messages_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
                         IconButton(onClick = { navController.navigate(Screen.Notifications) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
@@ -139,7 +118,6 @@ fun FeedScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        // Avatar dinámico del usuario autenticado.
                         FeedProfileAvatar(
                             authState = authState,
                             onClick = { navController.navigate(Screen.Profile) }
@@ -151,7 +129,6 @@ fun FeedScreen(
                     )
                 )
 
-                // PASO 3: Carrusel horizontal de filtros por categoría.
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -159,7 +136,6 @@ fun FeedScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
-                        // Opción para limpiar filtros y ver todo.
                         FilterChipUI(
                             label = stringResource(R.string.filter_all),
                             selected = uiState.selectedCategory == null,
@@ -167,25 +143,21 @@ fun FeedScreen(
                         )
                     }
 
-                    // Genera dinámicamente un chip por cada categoría definida en el Enum.
                     items(PostCategory.entries) { category ->
                         FilterChipUI(
-                            label = UiText.fromCategory(category).asString(),
+                            label = categoryToDisplayName(category),
                             selected = uiState.selectedCategory == category,
                             onClick = { viewModel.selectCategory(category) }
                         )
                     }
                 }
 
-                // Línea divisoria sutil para separar la cabecera del contenido.
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         },
         bottomBar = { PetHelpBottomNavBar(navController) }
     ) { padding ->
-        // PASO 4: Manejo reactivo del contenido principal (Máquina de estados).
         when {
-            // ESTADO: Cargando datos por primera vez.
             uiState.isLoading && uiState.allPublicPosts.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -197,7 +169,6 @@ fun FeedScreen(
                 }
             }
 
-            // ESTADO: Ocurrió un error crítico de red o servidor.
             uiState.error != null && uiState.allPublicPosts.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -210,7 +181,7 @@ fun FeedScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = uiState.error?.asString() ?: "",
+                            text = uiState.error?.asString().orEmpty(),
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 24.dp)
@@ -222,7 +193,6 @@ fun FeedScreen(
                 }
             }
 
-            // ESTADO: No hay publicaciones disponibles o ninguna coincide con el filtro.
             uiState.filteredPosts.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -262,7 +232,6 @@ fun FeedScreen(
                 }
             }
 
-            // ESTADO: Éxito. Mostramos la lista de tarjetas.
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -271,7 +240,6 @@ fun FeedScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Usamos una clave única (id) para optimizar el rendimiento de las recomposiciones.
                     items(uiState.filteredPosts, key = { it.id }) { post ->
                         FeedPostCard(
                             post = post,
@@ -284,21 +252,11 @@ fun FeedScreen(
     }
 }
 
-/**
- * Componente de avatar circular para la barra superior.
- *
- * Muestra la foto del usuario si está autenticado y tiene una URL de imagen,
- * de lo contrario muestra un icono de persona genérico.
- *
- * @param authState Estado actual de la autenticación del usuario.
- * @param onClick Acción a ejecutar al presionar el avatar (normalmente ir al perfil).
- */
 @Composable
 private fun FeedProfileAvatar(
     authState: AuthUiState,
     onClick: () -> Unit
 ) {
-    // Extraemos la URL de la foto solo si el estado es Authenticated.
     val photoUrl = (authState as? AuthUiState.Authenticated)?.user?.photoUrl.orEmpty()
 
     Surface(
@@ -312,7 +270,6 @@ private fun FeedProfileAvatar(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         if (photoUrl.isNotBlank()) {
-            // Imagen remota cargada con Coil.
             AsyncImage(
                 model = photoUrl,
                 contentDescription = stringResource(R.string.profile_avatar_desc),
@@ -320,7 +277,6 @@ private fun FeedProfileAvatar(
                 contentScale = ContentScale.Crop
             )
         } else {
-            // Placeholder si no hay imagen.
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -333,17 +289,6 @@ private fun FeedProfileAvatar(
     }
 }
 
-/**
- * Tarjeta interactiva que representa una publicación en el feed.
- *
- * **Diseño Visual:**
- * - Imagen superior con bordes redondeados.
- * - Información textual clara: Título, Categoría y etiquetas.
- * - Indicador de ubicación y fecha de creación.
- *
- * @param post Objeto con todos los datos de la publicación.
- * @param onClick Acción al presionar la tarjeta para ver el detalle.
- */
 @Composable
 private fun FeedPostCard(
     post: Post,
@@ -358,7 +303,6 @@ private fun FeedPostCard(
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column {
-            // PASO 1: Sección de imagen de cabecera.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -374,7 +318,6 @@ private fun FeedPostCard(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Icono de huella como placeholder si no hay fotos.
                     Icon(
                         imageVector = Icons.Default.Pets,
                         contentDescription = null,
@@ -384,7 +327,6 @@ private fun FeedPostCard(
                 }
             }
 
-            // PASO 2: Cuerpo informativo de la tarjeta.
             Column(
                 modifier = Modifier.padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -398,18 +340,16 @@ private fun FeedPostCard(
                 )
 
                 Text(
-                    text = UiText.fromCategory(post.category).asString(),
+                    text = categoryToDisplayName(post.category),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Etiquetas rápidas de sexo y tamaño.
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TagChip(label = UiText.fromGender(post.gender).asString())
-                    TagChip(label = UiText.fromSize(post.size).asString())
+                    TagChip(label = genderToDisplayName(post.gender))
+                    TagChip(label = sizeToDisplayName(post.size))
                 }
 
-                // Ubicación (si está disponible).
                 if (post.locationName.isNotBlank()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -431,7 +371,6 @@ private fun FeedPostCard(
                     }
                 }
 
-                // Fecha de publicación formateada.
                 Text(
                     text = formatDate(post.createdAt),
                     style = MaterialTheme.typography.bodySmall,
@@ -442,13 +381,6 @@ private fun FeedPostCard(
     }
 }
 
-/**
- * Componente visual para los botones de filtrado (Chips).
- *
- * @param label Texto a mostrar en el chip.
- * @param selected Indica si el filtro está actualmente activo.
- * @param onClick Acción al presionar el chip.
- */
 @Composable
 private fun FilterChipUI(
     label: String,
@@ -478,11 +410,6 @@ private fun FilterChipUI(
     }
 }
 
-/**
- * Pequeño indicador visual de etiquetas (Tags) para atributos de la mascota.
- *
- * @param label Texto de la etiqueta (ej. "Macho", "Grande").
- */
 @Composable
 private fun TagChip(label: String) {
     Box(
@@ -499,12 +426,35 @@ private fun TagChip(label: String) {
     }
 }
 
-/**
- * Convierte un timestamp en milisegundos a un formato de fecha legible por humanos.
- *
- * @param timestamp Milisegundos desde la época Unix.
- * @return String formateado como "dd/MM/yyyy HH:mm" o "-" si el valor es inválido.
- */
+@Composable
+private fun categoryToDisplayName(category: PostCategory): String {
+    return when (category) {
+        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
+        PostCategory.LOST -> stringResource(R.string.category_lost)
+        PostCategory.FOUND -> stringResource(R.string.category_found)
+        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
+        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
+    }
+}
+
+@Composable
+private fun genderToDisplayName(gender: AnimalGender): String {
+    return when (gender) {
+        AnimalGender.MALE -> stringResource(R.string.post_gender_male)
+        AnimalGender.FEMALE -> stringResource(R.string.post_gender_female)
+        AnimalGender.UNKNOWN -> stringResource(R.string.post_gender_unknown)
+    }
+}
+
+@Composable
+private fun sizeToDisplayName(size: AnimalSize): String {
+    return when (size) {
+        AnimalSize.SMALL -> stringResource(R.string.tag_small)
+        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
+        AnimalSize.LARGE -> stringResource(R.string.tag_large)
+    }
+}
+
 private fun formatDate(timestamp: Long): String {
     if (timestamp <= 0L) return "-"
     return SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))

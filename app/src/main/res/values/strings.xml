@@ -65,6 +65,8 @@
     <string name="feed_empty_posts_subtitle">Sé el primero en publicar\nuna mascota</string>
     <string name="feed_empty_filtered">No hay publicaciones en esta categoría</string>
     <string name="feed_notifications_desc">Notificaciones</string>
+    <string name="feed_favorites_desc">Favoritos</string>
+    <string name="feed_messages_desc">Mensajes</string>
     <string name="btn_new_post">Nueva publicación</string>
     <string name="view_list">Vista lista</string>
     <string name="view_map">Vista mapa</string>
@@ -307,11 +309,25 @@
     <!-- ── Notificaciones ──────────────────────────────────── -->
     <string name="notifications_title">Notificaciones</string>
     <string name="notifications_empty">No tienes notificaciones por ahora</string>
-    <string name="notifications_error_index_building">Estamos terminando de configurar tus notificaciones. Intenta de nuevo en unos minutos.</string>
     <string name="notification_channel_name">PetHelp Alertas</string>
     <string name="notifications_mark_all_read">Marcar todas como leídas</string>
     <string name="notifications_channel_description">Alertas de publicaciones, comentarios y moderación</string>
     <string name="notifications_push_default_body">Tienes una nueva notificación</string>
+
+    <!-- ── Chat / Mensajes ─────────────────────────────────── -->
+    <string name="chat_title">Mensajes</string>
+    <string name="chat_subtitle">Conversa sobre adopciones y seguimientos</string>
+    <string name="chat_search_hint">Buscar conversaciones</string>
+    <string name="chat_about_adoption">Chat de adopción</string>
+    <string name="chat_placeholder_contact">Escribe, agenda una llamada o comparte más detalles.</string>
+    <string name="chat_empty_title">Sin conversaciones todavía</string>
+    <string name="chat_empty_subtitle">Tus conversaciones aparecerán aquí cuando alguien responda a tu publicación.</string>
+    <string name="chat_thread_title">Conversación</string>
+    <string name="chat_thread_context">Hilo: %1$s</string>
+    <string name="chat_input_hint">Escribe un mensaje</string>
+    <string name="chat_send">Enviar mensaje</string>
+    <string name="chat_start_adoption_flow">Inicia la conversación de adopción</string>
+    <string name="chat_demo_context">Recuerda que puedes continuar la adopción desde aquí.</string>
 
     <!-- ── Errores generales ──────────────────────────────── -->
     <string name="error_generic">Ocurrió un error. Por favor intenta de nuevo.</string>
@@ -545,6 +561,7 @@
     <string name="post_detail_vacunada">Vacunada</string>
     <string name="post_detail_no_vacunas">Sin vacunas</string>
     <string name="post_detail_request_adoption">Solicitar Adopción</string>
+    <string name="post_detail_contact_owner">Contactar</string>
     <string name="post_detail_share">Compartir</string>
     <string name="post_detail_unknown_user">Usuario</string>
     <string name="post_detail_unknown_pet">Mascota</string>

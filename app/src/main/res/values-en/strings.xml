@@ -148,6 +148,8 @@ By clicking "Accept", you confirm that you have read, understood, and accepted t
 a pet</string>
     <string name="feed_empty_filtered">There are no posts in this category</string>
     <string name="feed_notifications_desc">Notifications</string>
+     <string name="feed_favorites_desc">Favorites</string>
+     <string name="feed_messages_desc">Messages</string>
     <string name="btn_new_post">New post</string>
     <string name="view_list">List view</string>
     <string name="view_map">Map view</string>
@@ -202,6 +204,9 @@ a pet</string>
     <string name="post_animal_type_other">Other</string>
     <string name="post_size_label">Size</string>
     <string name="post_details_title">Details</string>
+    <string name="post_detail_error">Error loading post</string>
+    <string name="post_detail_request_adoption">Request adoption</string>
+    <string name="post_detail_contact_owner">Contact</string>
     <string name="btn_next_details">Next: Details</string>
     <string name="btn_next_review">Next: Review</string>
 
@@ -343,6 +348,21 @@ a pet</string>
     <string name="adoption_request_success">Adoption request sent!</string>
     <string name="adoption_request_error">Error sending request.</string>
 
+    <!-- Chat / Messages -->
+    <string name="chat_title">Messages</string>
+    <string name="chat_subtitle">Talk about adoptions and follow-ups</string>
+    <string name="chat_search_hint">Search conversations</string>
+    <string name="chat_about_adoption">Adoption chat</string>
+    <string name="chat_placeholder_contact">Write, schedule a call, or share more details.</string>
+    <string name="chat_empty_title">No conversations yet</string>
+    <string name="chat_empty_subtitle">Your conversations will appear here when someone replies to your post.</string>
+    <string name="chat_thread_title">Conversation</string>
+    <string name="chat_thread_context">Thread: %1$s</string>
+    <string name="chat_input_hint">Write a message</string>
+    <string name="chat_send">Send message</string>
+    <string name="chat_start_adoption_flow">Start the adoption conversation</string>
+    <string name="chat_demo_context">You can continue the adoption from here.</string>
+
     <!-- Moderation -->
     <string name="moderation_panel_title">Moderation Panel</string>
     <string name="moderation_logout_confirmation">Do you want to log out from the moderation panel?</string>
@@ -413,7 +433,6 @@ a pet</string>
     <!-- Notifications -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_empty">You have no notifications yet</string>
-    <string name="notifications_error_index_building">We are still setting up your notifications. Please try again in a few minutes.</string>
     <string name="notification_channel_name">PetHelp Alerts</string>
     <string name="notifications_mark_all_read">Mark all as read</string>
     <string name="notifications_channel_description">Post, comment and moderation alerts</string>

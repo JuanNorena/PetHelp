@@ -90,6 +90,7 @@ sealed class Screen {
     @Serializable data object AdoptionRequests : Screen()
     @Serializable data object Map : Screen()
     @Serializable data object Chat : Screen()
+    @Serializable data class ChatThread(val threadId: String) : Screen()
     @Serializable data object Profile : Screen()
     @Serializable data object Favorites : Screen()
     @Serializable data object EditProfile : Screen()

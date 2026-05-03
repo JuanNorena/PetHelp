@@ -175,11 +175,32 @@ fun PostDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                // Botón Adopción
+                                OutlinedButton(
+                                    onClick = { navController.navigate(Screen.ChatThread(post.id)) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(28.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(10.dp))
+                                    Text(
+                                        stringResource(R.string.post_detail_contact_owner),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
                                 Button(
                                     onClick = { navController.navigate(Screen.AdoptionRequest(post.id, post.title)) },
                                     modifier = Modifier
-                                        .fillMaxWidth()
+                                        .weight(1.15f)
                                         .height(56.dp),
                                     shape = RoundedCornerShape(28.dp),
                                     colors = ButtonDefaults.buttonColors(
@@ -188,10 +209,10 @@ fun PostDetailScreen(
                                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                                 ) {
                                     Icon(Icons.Default.Pets, contentDescription = null, modifier = Modifier.size(20.dp))
-                                    Spacer(Modifier.width(12.dp))
+                                    Spacer(Modifier.width(10.dp))
                                     Text(
                                         stringResource(R.string.post_detail_request_adoption),
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }

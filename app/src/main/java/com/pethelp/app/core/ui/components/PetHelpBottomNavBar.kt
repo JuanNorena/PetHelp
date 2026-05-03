@@ -146,9 +146,16 @@ fun PetHelpBottomNavBar(navController: NavController) {
             NavBarItem(
                 icon = Icons.Filled.ChatBubble,
                 label = stringResource(R.string.nav_chat),
-                selected = false,
+                selected = currentDestination?.hasRoute<Screen.Chat>() == true,
                 badgeCount = 2,
-                onClick = { /* TODO: Implementar navegación a chat */ }
+                onClick = {
+                    if (currentDestination?.hasRoute<Screen.Chat>() != true) {
+                        navController.navigate(Screen.Chat) {
+                            popUpTo<Screen.Feed>() { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
 
             // Botón: Perfil

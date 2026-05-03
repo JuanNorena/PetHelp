@@ -3,15 +3,11 @@ package com.pethelp.app.features.notifications.data.repository
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.Query
 import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
-import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.NotificationType
 import com.pethelp.app.core.domain.model.PetNotification
 import com.pethelp.app.features.notifications.domain.repository.NotificationRepository
-import com.pethelp.app.R
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -38,18 +34,9 @@ class FirebaseNotificationRepository @Inject constructor(
 
         val listener = firestore.collection(Constants.COLLECTION_NOTIFICATIONS)
             .whereEqualTo("userId", uid)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    val uiText = if (
-                        error is FirebaseFirestoreException &&
-                        error.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION
-                    ) {
-                        UiText.StringResource(R.string.notifications_error_index_building)
-                    } else {
-                        UiText.DynamicString(error.localizedMessage ?: "Error loading notifications")
-                    }
-                    trySend(Resource.Error(uiText))
+                    trySend(Resource.Error(error.localizedMessage ?: "Error loading notifications"))
                     return@addSnapshotListener
                 }
 
@@ -76,7 +63,9 @@ class FirebaseNotificationRepository @Inject constructor(
                     )
                 } ?: emptyList()
 
-                trySend(Resource.Success(notifications))
+                val sortedNotifications = notifications.sortedByDescending { it.createdAt }
+
+                trySend(Resource.Success(sortedNotifications))
             }
 
         awaitClose { listener.remove() }

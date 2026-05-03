@@ -10,6 +10,8 @@ import com.pethelp.app.features.auth.presentation.ForgotPasswordScreen
 import com.pethelp.app.features.auth.presentation.LoginScreen
 import com.pethelp.app.features.auth.presentation.RegisterScreen
 import com.pethelp.app.features.auth.presentation.SplashScreen
+import com.pethelp.app.features.chat.presentation.ChatScreen
+import com.pethelp.app.features.chat.presentation.ChatThreadScreen
 import com.pethelp.app.features.feed.presentation.FeedScreen
 import com.pethelp.app.features.map.presentation.MapScreen
 import com.pethelp.app.features.moderation.presentation.ModeratorDetailScreen
@@ -127,6 +129,15 @@ fun PetHelpNavGraph(
         // ── Notificaciones ──────────────────────────────────────────────────
         composable<Screen.Notifications> {
             NotificationsScreen(navController = navController)
+        }
+
+        // ── Mensajes / Chat ─────────────────────────────────────────────────
+        composable<Screen.Chat> {
+            ChatScreen(navController = navController)
+        }
+        composable<Screen.ChatThread> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screen.ChatThread>()
+            ChatThreadScreen(navController = navController, threadId = route.threadId)
         }
 
         // ── Mapa ────────────────────────────────────────────────────────────
