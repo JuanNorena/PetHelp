@@ -328,6 +328,8 @@
     <string name="chat_send">Enviar mensaje</string>
     <string name="chat_start_adoption_flow">Inicia la conversación de adopción</string>
     <string name="chat_demo_context">Recuerda que puedes continuar la adopción desde aquí.</string>
+    <string name="chat_sent_success">Mensaje enviado</string>
+    <string name="chat_error_sending">Error al enviar: %1$s</string>
 
     <!-- ── Errores generales ──────────────────────────────── -->
     <string name="error_generic">Ocurrió un error. Por favor intenta de nuevo.</string>

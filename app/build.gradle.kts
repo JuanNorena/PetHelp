@@ -64,6 +64,8 @@ android {
             "\"${localProperty("CLOUDINARY_UPLOAD_PRESET")}\"")
         buildConfigField("String", "OPENAI_API_KEY",
             "\"${localProperty("OPENAI_API_KEY")}\"")
+        buildConfigField("String", "OPEN_ROUTER_API_KEY",
+            "\"${localProperty("OPEN_ROUTER_API_KEY")}\"")
     }
 
     buildTypes {

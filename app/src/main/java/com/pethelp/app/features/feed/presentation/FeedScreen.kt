@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -99,6 +100,14 @@ fun FeedScreen(
                             Icon(
                                 imageVector = Icons.Filled.FavoriteBorder,
                                 contentDescription = stringResource(R.string.feed_favorites_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        IconButton(onClick = { navController.navigate(Screen.AIQuiz) }) {
+                            Icon(
+                                imageVector = Icons.Filled.AutoAwesome,
+                                contentDescription = "Descubre tu mascota con IA",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

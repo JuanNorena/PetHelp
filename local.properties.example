@@ -19,3 +19,8 @@
 # ── OpenAI API Key (para funcionalidad de IA) ────────────────────────────────
 # Obtener en: https://platform.openai.com/api-keys
 # OPENAI_API_KEY=sk-...
+#
+# ── OpenRouter API Key (para cuestionario de mascotas con IA) ──────────────────
+# Obtener en: https://openrouter.ai → API Keys
+# Se usa en las pantallas de quiz de IA para recomendar mascotas.
+# OPEN_ROUTER_API_KEY=sk-or-v1-...

@@ -69,7 +69,10 @@ import com.pethelp.app.core.navigation.Screen
  * @see NavBarItem para el diseño de cada opción individual.
  */
 @Composable
-fun PetHelpBottomNavBar(navController: NavController) {
+fun PetHelpBottomNavBar(
+    navController: NavController,
+    unreadChatCount: Int = 0
+) {
     // PASO 1: Obtenemos el estado de la navegación actual para saber en qué pantalla estamos.
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
@@ -147,7 +150,7 @@ fun PetHelpBottomNavBar(navController: NavController) {
                 icon = Icons.Filled.ChatBubble,
                 label = stringResource(R.string.nav_chat),
                 selected = currentDestination?.hasRoute<Screen.Chat>() == true,
-                badgeCount = 2,
+                badgeCount = unreadChatCount,
                 onClick = {
                     if (currentDestination?.hasRoute<Screen.Chat>() != true) {
                         navController.navigate(Screen.Chat) {

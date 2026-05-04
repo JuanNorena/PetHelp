@@ -200,7 +200,7 @@ fun ModeratorPanelScreen(
                     }
                 )
             },
-            bottomBar = { PetHelpBottomNavBar(navController) }
+            bottomBar = {} // Sin navbar en panel de moderación
         ) { padding ->
             // PASO 2: Manejo de estados de carga, error y visualización de datos.
             when {
@@ -242,7 +242,7 @@ fun ModeratorPanelScreen(
                         StatsSummaryRow(stats = uiState.stats)
                         
                         // Sección de Métricas Globales.
-                        StatsSummaryRow(stats = uiState.stats)
+                        GlobalMetricsRow(stats = uiState.stats)
 
                         // Lista de Publicaciones que requieren atención.
                         Column(

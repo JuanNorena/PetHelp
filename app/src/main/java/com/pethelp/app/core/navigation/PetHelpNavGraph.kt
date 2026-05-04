@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.pethelp.app.features.ai.presentation.AIQuizScreen
+import com.pethelp.app.features.ai.presentation.AIResultsScreen
 import com.pethelp.app.features.auth.presentation.ForgotPasswordScreen
 import com.pethelp.app.features.auth.presentation.LoginScreen
 import com.pethelp.app.features.auth.presentation.RegisterScreen
@@ -138,6 +140,19 @@ fun PetHelpNavGraph(
         composable<Screen.ChatThread> { backStackEntry ->
             val route = backStackEntry.toRoute<Screen.ChatThread>()
             ChatThreadScreen(navController = navController, threadId = route.threadId)
+        }
+
+        // ── Inteligencia Artificial ─────────────────────────────────────────
+        composable<Screen.AIQuiz> {
+            AIQuizScreen(navController = navController)
+        }
+        composable<Screen.AIResults> {
+            AIResultsScreen(
+                recommendations = "",
+                navController = navController,
+                quizAnswers = emptyMap(),
+                onRestart = { navController.popBackStack(Screen.AIQuiz, false) }
+            )
         }
 
         // ── Mapa ────────────────────────────────────────────────────────────

@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -46,11 +47,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
@@ -58,6 +61,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import androidx.compose.ui.res.stringResource
 
 private data class ConversationPreview(
@@ -85,12 +89,14 @@ fun ChatScreen(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     val conversations = remember { mutableStateListOf<ConversationPreview>() }
+    var totalUnreadCount by rememberSaveable { mutableStateOf(0) }
 
     DisposableEffect(uid) {
            val query = FirebaseFirestore.getInstance().collection("threads").whereArrayContains("participants", uid).orderBy("updatedAt", Query.Direction.DESCENDING)
         val listener = query.addSnapshotListener { snap, err ->
             if (err != null) return@addSnapshotListener
             conversations.clear()
+            var totalUnread = 0
             snap?.documents?.forEach { doc ->
                 val id = doc.id
                 val title = doc.getString("title") ?: "Chat"
@@ -98,9 +104,11 @@ fun ChatScreen(navController: NavController) {
                 val lastMessage = doc.getString("lastMessage") ?: ""
                 val timeLabel = doc.getString("timeLabel") ?: ""
                 val unread = (doc.getLong("unreadCount") ?: 0L).toInt()
+                totalUnread += unread
                 val tag = doc.getString("tag") ?: ""
                 conversations.add(ConversationPreview(id, title, subtitle, lastMessage, timeLabel, unread, tag))
             }
+            totalUnreadCount = totalUnread
         }
         onDispose { listener.remove() }
     }
@@ -139,7 +147,8 @@ fun ChatScreen(navController: NavController) {
                     }
                 }
             )
-        }
+        },
+        bottomBar = { PetHelpBottomNavBar(navController = navController, unreadChatCount = totalUnreadCount) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -308,9 +317,27 @@ fun ChatThreadScreen(
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid ?: "anonymous"
     val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
 
     val messages = remember(threadId) { mutableStateListOf<ChatMessage>() }
     var draft by rememberSaveable(threadId) { mutableStateOf("") }
+    var isSendingMessage by rememberSaveable { mutableStateOf(false) }
+    var unreadChatCount by rememberSaveable { mutableStateOf(0) }
+
+    // Escuchar cambios en threads para actualizar badge de unread
+    DisposableEffect(Unit) {
+        val threadsQuery = FirebaseFirestore.getInstance().collection("threads").whereArrayContains("participants", uid)
+        val threadsListener = threadsQuery.addSnapshotListener { snap, err ->
+            if (err != null) return@addSnapshotListener
+            var totalUnread = 0
+            snap?.documents?.forEach { doc ->
+                val unreadCount = doc.getLong("unreadCount")?.toInt() ?: 0
+                totalUnread += unreadCount
+            }
+            unreadChatCount = totalUnread
+        }
+        onDispose { threadsListener.remove() }
+    }
 
     DisposableEffect(threadId) {
         val messagesQuery = FirebaseFirestore.getInstance().collection("threads").document(threadId).collection("messages").orderBy("createdAt", Query.Direction.ASCENDING)
@@ -356,56 +383,7 @@ fun ChatThreadScreen(
             )
         },
         bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text(stringResource(R.string.chat_input_hint)) },
-                        shape = RoundedCornerShape(28.dp),
-                        maxLines = 4
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    IconButton(
-                        onClick = {
-                            val text = draft.trim()
-                            if (text.isBlank()) return@IconButton
-                            draft = ""
-                            val msgRef = db.collection("threads").document(threadId).collection("messages").document()
-                            val now = FieldValue.serverTimestamp()
-                            msgRef.set(mapOf(
-                                "text" to text,
-                                "authorId" to uid,
-                                "createdAt" to now,
-                                "timeLabel" to "Ahora"
-                            ))
-                            db.collection("threads").document(threadId).set(mapOf(
-                                "lastMessage" to text,
-                                "updatedAt" to now
-                            ), SetOptions.merge())
-                        },
-                        modifier = Modifier
-                            .size(52.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = stringResource(R.string.chat_send),
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
+            PetHelpBottomNavBar(navController = navController, unreadChatCount = unreadChatCount)
         }
     ) { padding ->
         Column(
@@ -436,12 +414,99 @@ fun ChatThreadScreen(
             }
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(messages, key = { it.id }) { message ->
                     MessageBubble(message = message)
+                }
+            }
+
+            // Input de mensajes fijo en el bottom
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { draft = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text(stringResource(R.string.chat_input_hint)) },
+                        shape = RoundedCornerShape(28.dp),
+                        maxLines = 4,
+                        enabled = !isSendingMessage
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    IconButton(
+                        onClick = {
+                            val text = draft.trim()
+                            if (text.isBlank() || isSendingMessage) return@IconButton
+                            
+                            isSendingMessage = true
+                            draft = ""
+                            
+                            val msgRef = db.collection("threads").document(threadId).collection("messages").document()
+                            val now = FieldValue.serverTimestamp()
+                            msgRef.set(mapOf(
+                                "text" to text,
+                                "authorId" to uid,
+                                "createdAt" to now,
+                                "timeLabel" to "Ahora"
+                            ))
+                            .addOnSuccessListener {
+                                // Actualizar thread metadata
+                                db.collection("threads").document(threadId).set(mapOf(
+                                    "lastMessage" to text,
+                                    "updatedAt" to now
+                                ), SetOptions.merge())
+                                    .addOnSuccessListener {
+                                        isSendingMessage = false
+                                        // Toast de confirmación
+                                        Toast.makeText(context, context.getString(R.string.chat_sent_success), Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        isSendingMessage = false
+                                        Toast.makeText(context, context.getString(R.string.chat_error_sending, e.message ?: "Desconocido"), Toast.LENGTH_LONG).show()
+                                    }
+                            }
+                            .addOnFailureListener { e ->
+                                isSendingMessage = false
+                                Toast.makeText(context, context.getString(R.string.chat_error_sending, e.message ?: "Desconocido"), Toast.LENGTH_LONG).show()
+                                draft = text // Restaurar draft si falla
+                            }
+                        },
+                        modifier = Modifier
+                            .size(52.dp)
+                            .background(
+                                if (isSendingMessage) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary,
+                                CircleShape
+                            ),
+                        enabled = !isSendingMessage
+                    ) {
+                        if (isSendingMessage) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Send,
+                                contentDescription = stringResource(R.string.chat_send),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
                 }
             }
         }

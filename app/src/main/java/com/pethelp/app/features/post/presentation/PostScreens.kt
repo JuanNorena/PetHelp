@@ -78,6 +78,10 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -92,6 +96,54 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import kotlin.random.Random
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── FUNCIONES DE CHAT ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Crea o obtiene un thread de chat para una publicación
+ */
+fun createOrGetChatThread(
+    postId: String,
+    postTitle: String,
+    authorId: String,
+    onThreadCreated: (String) -> Unit
+) {
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val currentUserId = auth.currentUser?.uid ?: return
+    
+    // No crear thread si el usuario es el dueño
+    if (currentUserId == authorId) {
+        onThreadCreated(postId)
+        return
+    }
+    
+    // Usar el postId como threadId
+    val threadId = postId
+    val participants = listOf(currentUserId, authorId)
+    
+    val threadData = mapOf(
+        "title" to postTitle,
+        "subtitle" to "Chat de adopción",
+        "participants" to participants,
+        "lastMessage" to "",
+        "updatedAt" to FieldValue.serverTimestamp(),
+        "unreadCount" to 0,
+        "tag" to "adoption"
+    )
+    
+    db.collection("threads").document(threadId)
+        .set(threadData, SetOptions.merge())
+        .addOnSuccessListener {
+            onThreadCreated(threadId)
+        }
+        .addOnFailureListener { e ->
+            e.printStackTrace()
+            onThreadCreated(postId)
+        }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── DETALLE DE PUBLICACIÓN ──────────────────────────────────────────────────
@@ -176,7 +228,11 @@ fun PostDetailScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 OutlinedButton(
-                                    onClick = { navController.navigate(Screen.ChatThread(post.id)) },
+                                    onClick = {
+                                        createOrGetChatThread(post.id, post.title, post.authorId) { threadId ->
+                                            navController.navigate(Screen.ChatThread(threadId))
+                                        }
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(56.dp),
@@ -831,6 +887,74 @@ fun AdoptionRequestScreen(
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+            
+            // Sección 4: Comentarios en la adopción
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.ChatBubbleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.post_detail_comments), fontWeight = FontWeight.Bold)
+                }
+                
+                // Campo para agregar comentario
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = "",
+                        onValueChange = { },
+                        placeholder = { Text(stringResource(R.string.post_detail_comment_hint), fontSize = 12.sp) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+                    Button(
+                        onClick = { },
+                        modifier = Modifier.size(44.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            Icons.Default.Send,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                
+                // Lista de comentarios (placeholder - será dinámico después)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.post_detail_no_comments),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             
