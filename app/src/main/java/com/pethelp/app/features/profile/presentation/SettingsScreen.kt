@@ -1,5 +1,10 @@
 package com.pethelp.app.features.profile.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,12 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.core.content.ContextCompat
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
@@ -40,8 +47,26 @@ fun SettingsScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val profileUiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val currentUser = (profileUiState as? ProfileUiState.Success)?.user
+        viewModel.updateNotificationPreferences(
+            pushEnabled = granted,
+            emailEnabled = currentUser?.emailAlertsEnabled ?: false
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessage.collect { uiText ->
+            snackbarHostState.showSnackbar(uiText.asString(context))
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.profile_settings), fontWeight = FontWeight.Bold, fontSize = 20.sp) },
@@ -89,9 +114,9 @@ fun SettingsScreen(
                     onClick = { navController.navigate(Screen.Security) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                
+
                 val currentLanguage by viewModel.language.collectAsState()
-                
+
                 SettingsItem(
                     icon = Icons.Default.Language,
                     iconColor = MaterialTheme.colorScheme.tertiary,
@@ -109,17 +134,26 @@ fun SettingsScreen(
                 val currentUser = (profileUiState as? ProfileUiState.Success)?.user
                 val pushEnabled = currentUser?.pushNotificationsEnabled ?: true
                 val emailEnabled = currentUser?.emailAlertsEnabled ?: false
+                val hasNotificationPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
 
                 SettingsToggleItem(
                     icon = Icons.Default.NotificationsNone,
                     iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.settings_push_notifications),
-                    checked = pushEnabled,
+                    checked = pushEnabled && hasNotificationPermission,
                     onCheckedChange = { newPush ->
-                        viewModel.updateNotificationPreferences(
-                            pushEnabled = newPush,
-                            emailEnabled = emailEnabled
-                        )
+                        if (newPush && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            viewModel.updateNotificationPreferences(
+                                pushEnabled = newPush,
+                                emailEnabled = emailEnabled
+                            )
+                        }
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

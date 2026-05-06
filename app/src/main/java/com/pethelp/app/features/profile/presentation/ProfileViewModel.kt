@@ -8,6 +8,7 @@ import com.pethelp.app.core.data.repository.UserPreferencesRepository
 import com.pethelp.app.core.domain.model.User
 import com.pethelp.app.core.preferences.AppLanguageManager
 import com.pethelp.app.core.common.UiText
+import com.pethelp.app.core.notifications.FcmTokenSyncManager
 import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,8 @@ class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val authRepository: AuthRepository,
     private val appLanguageManager: AppLanguageManager,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val fcmTokenSyncManager: FcmTokenSyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -120,6 +122,22 @@ class ProfileViewModel @Inject constructor(
                                 emailAlertsEnabled = emailEnabled
                             )
                         )
+                    }
+                    // Gestionar token FCM segun la preferencia del usuario.
+                    // Si se activa, se guarda/rehabilita el token actual; si se desactiva,
+                    // se marcan como inactivos los tokens del usuario para que Cloud Functions no envíe push.
+                    viewModelScope.launch {
+                        try {
+                            if (pushEnabled) {
+                                fcmTokenSyncManager.syncPendingAndCurrentToken()
+                                _snackbarMessage.emit(UiText.StringResource(R.string.settings_push_enabled))
+                            } else {
+                                fcmTokenSyncManager.disableTokensForCurrentUser()
+                                _snackbarMessage.emit(UiText.StringResource(R.string.settings_push_disabled))
+                            }
+                        } catch (_: Exception) {
+                            _snackbarMessage.emit(UiText.StringResource(R.string.settings_push_token_error))
+                        }
                     }
                 }
                 is Resource.Error -> {
@@ -239,9 +257,9 @@ class ProfileViewModel @Inject constructor(
 
             val normalizedLanguage = appLanguageManager.normalizeLanguage(languageTag)
             appLanguageManager.setPreferredLanguage(normalizedLanguage)
-            
-            // Note: The UI strings will update automatically because 
-            // the Activity's configuration changes or the composable recomposes 
+
+            // Note: The UI strings will update automatically because
+            // the Activity's configuration changes or the composable recomposes
             // with the new locale context.
         }
     }

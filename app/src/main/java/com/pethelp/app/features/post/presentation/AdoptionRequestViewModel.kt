@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -51,16 +52,37 @@ class AdoptionRequestViewModel @Inject constructor(
 
     /** Envia la solicitud al repositorio para la publicacion indicada. */
     private fun submitRequest(postId: String) {
-        val userId = firebaseAuth.currentUser?.uid ?: return
-        
+        val userId = firebaseAuth.currentUser?.uid
+        if (userId.isNullOrBlank()) {
+            viewModelScope.launch {
+                _eventFlow.emit(UiEvent.ShowSnackbar(UiText.DynamicString("Inicia sesión para solicitar adopción.")))
+            }
+            return
+        }
+
+        val normalizedMessage = state.message.trim()
+        val normalizedPhone = state.phone.trim()
+        if (normalizedMessage.length < 20) {
+            viewModelScope.launch {
+                _eventFlow.emit(UiEvent.ShowSnackbar(UiText.DynamicString("Cuéntale al publicador por qué quieres adoptar. Mínimo 20 caracteres.")))
+            }
+            return
+        }
+        if (normalizedPhone.isBlank()) {
+            viewModelScope.launch {
+                _eventFlow.emit(UiEvent.ShowSnackbar(UiText.DynamicString("Ingresa un teléfono de contacto.")))
+            }
+            return
+        }
+
         repository.requestAdoption(
             postId = postId,
             userId = userId,
-            message = state.message,
+            message = normalizedMessage,
             housingType = state.housingType,
             hasOutdoorSpace = state.hasOutdoorSpace,
             hasExperience = state.hasExperience,
-            phone = state.phone,
+            phone = normalizedPhone,
             contactPreference = state.contactPreference
         ).onEach { result ->
             when (result) {

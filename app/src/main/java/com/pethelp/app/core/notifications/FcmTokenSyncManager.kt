@@ -39,6 +39,35 @@ class FcmTokenSyncManager @Inject constructor(
         saveTokenForCurrentUserOrQueue(token)
     }
 
+    suspend fun disableTokensForCurrentUser() {
+        val uid = auth.currentUser?.uid
+        prefs.edit().remove(Constants.FCM_PENDING_TOKEN_KEY).apply()
+        if (uid.isNullOrBlank()) return
+
+        val userRef = firestore.collection(Constants.COLLECTION_USERS).document(uid)
+        val activeTokens = userRef
+            .collection(Constants.COLLECTION_FCM_TOKENS)
+            .whereEqualTo("enabled", true)
+            .get()
+            .await()
+
+        if (activeTokens.isEmpty) return
+
+        activeTokens.documents.chunked(400).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { doc ->
+                batch.update(
+                    doc.reference,
+                    mapOf(
+                        "enabled" to false,
+                        "updatedAt" to System.currentTimeMillis()
+                    )
+                )
+            }
+            batch.commit().await()
+        }
+    }
+
     private suspend fun saveTokenForCurrentUserOrQueue(token: String) {
         val uid = auth.currentUser?.uid
         if (uid.isNullOrBlank()) {

@@ -65,6 +65,12 @@ interface PostRepository {
     /** Obtiene las solicitudes de adopción recibidas por un usuario (como autor de posts). */
     fun getAdoptionRequestsForUser(userId: String): Flow<Resource<List<AdoptionRequest>>>
 
+    /** Obtiene las solicitudes de adopción enviadas por un usuario solicitante. */
+    fun getAdoptionRequestsByRequester(userId: String): Flow<Resource<List<AdoptionRequest>>>
+
+    /** Obtiene la solicitud de adopción existente de un usuario para un post, si existe. */
+    fun getAdoptionRequestForUserAndPost(postId: String, userId: String): Flow<Resource<AdoptionRequest?>>
+
     /** Obtiene las solicitudes de adopción para un post específico. */
     fun getAdoptionRequestsForPost(postId: String): Flow<Resource<List<AdoptionRequest>>>
 

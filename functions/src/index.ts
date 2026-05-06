@@ -1,5 +1,8 @@
 import * as admin from "firebase-admin";
-import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import {
+  onDocumentCreated,
+  onDocumentUpdated,
+} from "firebase-functions/v2/firestore";
 import { https } from "firebase-functions/v2";
 import { logger } from "firebase-functions";
 
@@ -13,6 +16,7 @@ const COLLECTIONS = {
   notifications: "notifications",
   users: "users",
   fcmTokens: "fcmTokens",
+  adoptionRequests: "adoptionRequests",
 } as const;
 
 type NotificationType =
@@ -20,7 +24,10 @@ type NotificationType =
   | "NEW_COMMENT"
   | "NEW_MESSAGE"
   | "POST_APPROVED"
-  | "POST_REJECTED";
+  | "POST_REJECTED"
+  | "ADOPTION_REQUEST_RECEIVED"
+  | "ADOPTION_REQUEST_ACCEPTED"
+  | "ADOPTION_REQUEST_REJECTED";
 
 async function createNotification(params: {
   userId: string;
@@ -97,10 +104,17 @@ async function sendPushIfEnabled(params: {
   response.responses.forEach((res, idx) => {
     if (!res.success) {
       const code = res.error?.code ?? "unknown";
-      if (code.includes("registration-token-not-registered") || code.includes("invalid-argument")) {
+      if (
+        code.includes("registration-token-not-registered") ||
+        code.includes("invalid-argument")
+      ) {
         invalidTokens.push(tokens[idx]);
       }
-      logger.warn("Failed push", { userId: params.userId, code, token: tokens[idx] });
+      logger.warn("Failed push", {
+        userId: params.userId,
+        code,
+        token: tokens[idx],
+      });
     }
   });
 
@@ -111,7 +125,9 @@ async function sendPushIfEnabled(params: {
         .collection(COLLECTIONS.fcmTokens)
         .where("token", "==", token)
         .get();
-      tokenDocs.docs.forEach((doc) => batch.update(doc.ref, { enabled: false }));
+      tokenDocs.docs.forEach((doc) =>
+        batch.update(doc.ref, { enabled: false }),
+      );
     }
     await batch.commit();
   }
@@ -121,13 +137,20 @@ function toRadians(deg: number): number {
   return (deg * Math.PI) / 180;
 }
 
-function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+function distanceKm(
+  aLat: number,
+  aLng: number,
+  bLat: number,
+  bLng: number,
+): number {
   const earth = 6371;
   const dLat = toRadians(bLat - aLat);
   const dLng = toRadians(bLng - aLng);
   const aa =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(aLat)) * Math.cos(toRadians(bLat)) * Math.sin(dLng / 2) ** 2;
+    Math.cos(toRadians(aLat)) *
+      Math.cos(toRadians(bLat)) *
+      Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
   return earth * c;
 }
@@ -150,7 +173,9 @@ export const onCommentCreated = onDocumentCreated(
     if (!postOwnerId || postOwnerId === authorId) return;
 
     const title = "Nuevo comentario en tu publicación";
-    const body = String(comment.text ?? comment.content ?? "Alguien comento en tu publicacion.").slice(0, 120);
+    const body = String(
+      comment.text ?? comment.content ?? "Alguien comento en tu publicacion.",
+    ).slice(0, 120);
 
     const notificationId = await createNotification({
       userId: postOwnerId,
@@ -170,7 +195,7 @@ export const onCommentCreated = onDocumentCreated(
       relatedPostId: postId,
       notificationId,
     });
-  }
+  },
 );
 
 export const onChatMessageCreated = onDocumentCreated(
@@ -181,17 +206,25 @@ export const onChatMessageCreated = onDocumentCreated(
 
     const threadId = String(event.params.threadId ?? "");
     const senderId = String(message.authorId ?? "");
-    const text = String(message.text ?? "Nuevo mensaje en PetHelp.").slice(0, 140);
+    const text = String(message.text ?? "Nuevo mensaje en PetHelp.").slice(
+      0,
+      140,
+    );
     if (!threadId || !senderId) return;
 
-    const threadSnap = await db.collection(COLLECTIONS.threads).doc(threadId).get();
+    const threadSnap = await db
+      .collection(COLLECTIONS.threads)
+      .doc(threadId)
+      .get();
     if (!threadSnap.exists) return;
 
     const thread = threadSnap.data() ?? {};
     const participants = Array.isArray(thread.participants)
       ? thread.participants.filter((p): p is string => typeof p === "string")
       : [];
-    const recipients = participants.filter((userId) => userId && userId !== senderId);
+    const recipients = participants.filter(
+      (userId) => userId && userId !== senderId,
+    );
     if (recipients.length === 0) return;
 
     const title = "Nuevo mensaje en PetHelp";
@@ -218,7 +251,104 @@ export const onChatMessageCreated = onDocumentCreated(
         notificationId,
       });
     }
-  }
+  },
+);
+
+export const onAdoptionRequestCreated = onDocumentCreated(
+  `${COLLECTIONS.adoptionRequests}/{requestId}`,
+  async (event) => {
+    const request = event.data?.data();
+    if (!request) return;
+
+    const requestId = String(event.params.requestId ?? "");
+    const postId = String(request.postId ?? "");
+    const requesterId = String(request.requesterId ?? "");
+    if (!requestId || !postId || !requesterId) return;
+
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    if (!postSnap.exists) return;
+
+    const post = postSnap.data() ?? {};
+    const postOwnerId = String(post.authorId ?? request.postAuthorId ?? "");
+    if (!postOwnerId || postOwnerId === requesterId) return;
+
+    const requesterName = String(request.requesterName ?? "Alguien");
+    const postTitle = String(post.title ?? request.postTitle ?? "tu mascota");
+    const title = "Nueva solicitud de adopción";
+    const body = `${requesterName} quiere adoptar a "${postTitle}".`;
+
+    const notificationId = await createNotification({
+      userId: postOwnerId,
+      type: "ADOPTION_REQUEST_RECEIVED",
+      title,
+      body,
+      relatedPostId: postId,
+      metadata: {
+        requestId,
+        requesterId,
+      },
+    });
+
+    await sendPushIfEnabled({
+      userId: postOwnerId,
+      title,
+      body,
+      relatedPostId: postId,
+      notificationId,
+    });
+  },
+);
+
+export const onAdoptionRequestUpdated = onDocumentUpdated(
+  `${COLLECTIONS.adoptionRequests}/{requestId}`,
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+
+    const previousStatus = String(before.status ?? "");
+    const newStatus = String(after.status ?? "");
+    if (previousStatus === newStatus) return;
+    if (newStatus !== "ACCEPTED" && newStatus !== "REJECTED") return;
+
+    const requestId = String(event.params.requestId ?? "");
+    const requesterId = String(after.requesterId ?? "");
+    const postId = String(after.postId ?? "");
+    if (!requestId || !requesterId || !postId) return;
+
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    const post = postSnap.exists ? (postSnap.data() ?? {}) : {};
+    const postTitle = String(post.title ?? after.postTitle ?? "la mascota");
+    const accepted = newStatus === "ACCEPTED";
+    const title = accepted
+      ? "Solicitud de adopción aceptada"
+      : "Solicitud de adopción rechazada";
+    const body = accepted
+      ? `Tu solicitud para adoptar a "${postTitle}" fue aceptada. Revisa el chat para coordinar los siguientes pasos.`
+      : `Tu solicitud para adoptar a "${postTitle}" no fue seleccionada esta vez.`;
+
+    const notificationId = await createNotification({
+      userId: requesterId,
+      type: accepted
+        ? "ADOPTION_REQUEST_ACCEPTED"
+        : "ADOPTION_REQUEST_REJECTED",
+      title,
+      body,
+      relatedPostId: postId,
+      metadata: {
+        requestId,
+        status: newStatus,
+      },
+    });
+
+    await sendPushIfEnabled({
+      userId: requesterId,
+      title,
+      body,
+      relatedPostId: postId,
+      notificationId,
+    });
+  },
 );
 
 export const onPostModerationChanged = onDocumentUpdated(
@@ -239,10 +369,15 @@ export const onPostModerationChanged = onDocumentUpdated(
     if (!userId || !postId) return;
 
     const approved = newStatus === "VERIFIED";
-    const title = approved ? "Tu publicación fue aprobada" : "Tu publicación fue rechazada";
+    const title = approved
+      ? "Tu publicación fue aprobada"
+      : "Tu publicación fue rechazada";
     const body = approved
       ? "Tu publicación ya es visible para la comunidad."
-      : String(after.rejectionReason ?? "Revisa los detalles para volver a publicar.");
+      : String(
+          after.rejectionReason ??
+            "Revisa los detalles para volver a publicar.",
+        );
 
     const notificationId = await createNotification({
       userId,
@@ -262,7 +397,7 @@ export const onPostModerationChanged = onDocumentUpdated(
       relatedPostId: postId,
       notificationId,
     });
-  }
+  },
 );
 
 export const onNearbyPostCreated = onDocumentCreated(
@@ -277,7 +412,13 @@ export const onNearbyPostCreated = onDocumentCreated(
 
     const postLat = Number(post.latitude ?? 0);
     const postLng = Number(post.longitude ?? 0);
-    if (!postId || !Number.isFinite(postLat) || !Number.isFinite(postLng) || postLat === 0 || postLng === 0) {
+    if (
+      !postId ||
+      !Number.isFinite(postLat) ||
+      !Number.isFinite(postLng) ||
+      postLat === 0 ||
+      postLng === 0
+    ) {
       return;
     }
 
@@ -292,7 +433,12 @@ export const onNearbyPostCreated = onDocumentCreated(
 
       const userLat = Number(user.latitude ?? user.lastKnownLatitude ?? 0);
       const userLng = Number(user.longitude ?? user.lastKnownLongitude ?? 0);
-      if (!Number.isFinite(userLat) || !Number.isFinite(userLng) || userLat === 0 || userLng === 0) {
+      if (
+        !Number.isFinite(userLat) ||
+        !Number.isFinite(userLng) ||
+        userLat === 0 ||
+        userLng === 0
+      ) {
         continue;
       }
 
@@ -323,7 +469,7 @@ export const onNearbyPostCreated = onDocumentCreated(
         notificationId,
       });
     }
-  }
+  },
 );
 
 // HTTP proxy to call OpenRouter securely from the client.
@@ -351,16 +497,19 @@ export const openRouterProxy = https.onRequest(async (req, res) => {
 
     if (body.response_format) payload.response_format = body.response_format;
 
-    const r = await (globalThis as any).fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://pethelp.app",
-        "X-OpenRouter-Title": "PetHelp Android",
+    const r = await (globalThis as any).fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://pethelp.app",
+          "X-OpenRouter-Title": "PetHelp Android",
+        },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+    );
 
     const json = await r.json();
     res.status(r.status).json(json);

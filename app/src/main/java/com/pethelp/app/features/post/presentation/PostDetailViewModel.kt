@@ -11,6 +11,7 @@ import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.Post
+import com.pethelp.app.features.post.domain.model.AdoptionRequest
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import com.pethelp.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +32,7 @@ data class PostDetailUiState(
     val post: Post? = null,
     val comments: List<Comment> = emptyList(),
     val hasVoted: Boolean = false,
+    val existingAdoptionRequest: AdoptionRequest? = null,
     val isLoading: Boolean = true,
     val error: UiText? = null
 )
@@ -71,6 +73,7 @@ class PostDetailViewModel @Inject constructor(
         loadPost()
         loadComments()
         checkVoteStatus()
+        checkAdoptionRequestStatus()
     }
 
     private fun loadPost() {
@@ -111,6 +114,18 @@ class PostDetailViewModel @Inject constructor(
             postRepository.hasUserVoted(postId, userId).collect { resource ->
                 if (resource is Resource.Success) {
                     _uiState.value = _uiState.value.copy(hasVoted = resource.data ?: false)
+                }
+            }
+        }
+    }
+
+    private fun checkAdoptionRequestStatus() {
+        val userId = currentUserId
+        if (userId.isBlank()) return
+        viewModelScope.launch {
+            postRepository.getAdoptionRequestForUserAndPost(postId, userId).collect { resource ->
+                if (resource is Resource.Success) {
+                    _uiState.value = _uiState.value.copy(existingAdoptionRequest = resource.data)
                 }
             }
         }

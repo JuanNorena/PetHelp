@@ -7,10 +7,13 @@ import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Comment
 import com.pethelp.app.core.domain.model.NotificationType
+import com.pethelp.app.core.domain.model.AnimalAge
+import com.pethelp.app.core.domain.model.AnimalGender
+import com.pethelp.app.core.domain.model.AnimalSize
+import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
-import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.features.post.domain.model.AdoptionRequest
 import com.pethelp.app.features.post.domain.model.AdoptionRequestStatus
 import com.pethelp.app.features.post.domain.repository.PostRepository
@@ -151,12 +154,7 @@ class FirebasePostRepository @Inject constructor(
                 throw IllegalStateException("La publicación no existe.")
             }
 
-            val authorId = postSnapshot.getString("authorId").orEmpty()
-
-            val postRef = postsCollection.document(postId)
-            val batch = firestore.batch()
-            batch.update(
-                postRef,
+            postsCollection.document(postId).update(
                 mapOf(
                     "status" to PostStatus.VERIFIED.name,
                     "rejectionReason" to null,
@@ -164,25 +162,7 @@ class FirebasePostRepository @Inject constructor(
                     "moderatedAt" to now,
                     "updatedAt" to now
                 )
-            )
-
-            if (authorId.isNotBlank()) {
-                val notificationRef = notificationsCollection.document()
-                batch.set(
-                    notificationRef,
-                    mapOf(
-                        "userId" to authorId,
-                        "type" to NotificationType.POST_APPROVED.name,
-                        "title" to "Publicación aprobada",
-                        "body" to "Tu publicación fue aprobada por moderación.",
-                        "relatedPostId" to postId,
-                        "isRead" to false,
-                        "createdAt" to now
-                    )
-                )
-            }
-
-            batch.commit().await()
+            ).await()
 
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
@@ -210,12 +190,7 @@ class FirebasePostRepository @Inject constructor(
                 throw IllegalStateException("La publicación no existe.")
             }
 
-            val authorId = postSnapshot.getString("authorId").orEmpty()
-
-            val postRef = postsCollection.document(postId)
-            val batch = firestore.batch()
-            batch.update(
-                postRef,
+            postsCollection.document(postId).update(
                 mapOf(
                     "status" to PostStatus.REJECTED.name,
                     "rejectionReason" to normalizedReason,
@@ -223,25 +198,7 @@ class FirebasePostRepository @Inject constructor(
                     "moderatedAt" to now,
                     "updatedAt" to now
                 )
-            )
-
-            if (authorId.isNotBlank()) {
-                val notificationRef = notificationsCollection.document()
-                batch.set(
-                    notificationRef,
-                    mapOf(
-                        "userId" to authorId,
-                        "type" to NotificationType.POST_REJECTED.name,
-                        "title" to "Publicación rechazada",
-                        "body" to "Tu publicación fue rechazada. Motivo: $normalizedReason",
-                        "relatedPostId" to postId,
-                        "isRead" to false,
-                        "createdAt" to now
-                    )
-                )
-            }
-
-            batch.commit().await()
+            ).await()
 
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
@@ -266,7 +223,7 @@ class FirebasePostRepository @Inject constructor(
         try {
             val newStatus = if (isPaused) PostStatus.PENDING else PostStatus.VERIFIED // O un estado PAUSED si existiera
             // Por ahora usemos una lógica simple: si está "resuelta" no se toca, si no, se cambia.
-            // Para la imagen, asumiremos que existe un campo "isPaused" o similar, 
+            // Para la imagen, asumiremos que existe un campo "isPaused" o similar,
             // pero para ser fieles al modelo actual usaremos VERIFIED vs PENDING (o similar)
             postsCollection.document(postId).update("status", if (isPaused) "PENDING" else "VERIFIED").await()
             emit(Resource.Success(Unit))
@@ -501,13 +458,14 @@ class FirebasePostRepository @Inject constructor(
 
         try {
             val docRef = commentsCollection.document()
+            val now = System.currentTimeMillis()
             val newComment = comment.copy(
                 id = docRef.id,
-                createdAt = System.currentTimeMillis()
+                createdAt = now
             )
             docRef.set(newComment).await()
 
-            // Incrementar contador de comentarios en la publicación
+            // Incrementar contador de comentarios en la publicacion
             firestore.runTransaction { transaction ->
                 val postRef = postsCollection.document(comment.postId)
                 val snapshot = transaction.get(postRef)
@@ -515,13 +473,35 @@ class FirebasePostRepository @Inject constructor(
                 transaction.update(postRef, "commentsCount", count + 1)
             }.await()
 
+            // Generar notificacion para el autor del post (si no es el mismo usuario)
+            try {
+                val postSnapshot = postsCollection.document(comment.postId).get().await()
+                val authorId = postSnapshot.getString("authorId").orEmpty()
+                val postTitle = postSnapshot.getString("title").orEmpty()
+                if (authorId.isNotBlank() && authorId != comment.authorId) {
+                    notificationsCollection.document().set(
+                        mapOf(
+                            "userId" to authorId,
+                            "type" to NotificationType.NEW_COMMENT.name,
+                            "title" to "Nuevo comentario",
+                            "body" to "${comment.authorName} comento en tu publicacion \"$postTitle\"",
+                            "relatedPostId" to comment.postId,
+                            "isRead" to false,
+                            "createdAt" to now
+                        )
+                    ).await()
+                }
+            } catch (_: Exception) {
+                // No bloquear el flujo si falla la notificacion
+            }
+
             emit(Resource.Success(newComment))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al publicar el comentario."))
         }
     }
 
-    // ── Solicitar adopción ──────────────────────────────────────────────────
+    // ── Solicitar adopcion ──────────────────────────────────────────────────
     override fun requestAdoption(
         postId: String,
         userId: String,
@@ -534,20 +514,89 @@ class FirebasePostRepository @Inject constructor(
     ): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
 
+        val normalizedMessage = message.trim()
+        val normalizedPhone = phone.trim()
+
+        if (postId.isBlank() || userId.isBlank()) {
+            emit(Resource.Error("Debes iniciar sesión para solicitar adopción."))
+            return@flow
+        }
+        if (normalizedMessage.length < 20) {
+            emit(Resource.Error("Cuéntale al publicador por qué quieres adoptar. Mínimo 20 caracteres."))
+            return@flow
+        }
+        if (normalizedPhone.isBlank()) {
+            emit(Resource.Error("Ingresa un teléfono de contacto para continuar el proceso."))
+            return@flow
+        }
+
         try {
-            val requestDoc = mapOf(
-                "postId" to postId,
-                "requesterId" to userId,
-                "message" to message,
-                "housingType" to housingType,
-                "hasOutdoorSpace" to hasOutdoorSpace,
-                "hasExperience" to hasExperience,
-                "phone" to phone,
-                "contactPreference" to contactPreference,
-                "status" to "PENDING",
-                "createdAt" to System.currentTimeMillis()
-            )
-            adoptionRequestsCollection.document().set(requestDoc).await()
+            val now = System.currentTimeMillis()
+            val postSnapshot = postsCollection.document(postId).get().await()
+            val post = snapshotToPost(postSnapshot)
+                ?: throw IllegalStateException("La publicación no existe.")
+
+            if (post.category != PostCategory.ADOPTION) {
+                throw IllegalStateException("Solo puedes solicitar adopción en publicaciones de adopción.")
+            }
+            if (post.status != PostStatus.VERIFIED && post.status != PostStatus.ACTIVE) {
+                throw IllegalStateException("Esta mascota aún no está disponible para adopción.")
+            }
+            if (post.authorId == userId) {
+                throw IllegalStateException("No puedes solicitar adopción en tu propia publicación.")
+            }
+
+            val existingRequest = adoptionRequestsCollection
+                .whereEqualTo("postId", postId)
+                .whereEqualTo("requesterId", userId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { snapshotToAdoptionRequest(it) }
+                .firstOrNull { it.status != AdoptionRequestStatus.REJECTED }
+
+            if (existingRequest != null) {
+                throw IllegalStateException(
+                    when (existingRequest.status) {
+                        AdoptionRequestStatus.PENDING -> "Ya enviaste una solicitud para esta mascota."
+                        AdoptionRequestStatus.ACCEPTED -> "Tu solicitud para esta mascota ya fue aceptada."
+                        AdoptionRequestStatus.REJECTED -> "Tu solicitud anterior fue rechazada."
+                    }
+                )
+            }
+
+            val userSnapshot = firestore.collection(Constants.COLLECTION_USERS)
+                .document(userId)
+                .get()
+                .await()
+            val requesterName = userSnapshot.getString("name")
+                ?.takeIf { it.isNotBlank() }
+                ?: firebaseAuth.currentUser?.displayName
+                ?: "Usuario"
+            val requesterPhotoUrl = userSnapshot.getString("photoUrl")
+                ?: firebaseAuth.currentUser?.photoUrl?.toString()
+                ?: ""
+
+            adoptionRequestsCollection.document().set(
+                mapOf(
+                    "postId" to postId,
+                    "postTitle" to post.title,
+                    "postAuthorId" to post.authorId,
+                    "requesterId" to userId,
+                    "requesterName" to requesterName,
+                    "requesterPhotoUrl" to requesterPhotoUrl,
+                    "message" to normalizedMessage,
+                    "housingType" to housingType,
+                    "hasOutdoorSpace" to hasOutdoorSpace,
+                    "hasExperience" to hasExperience,
+                    "phone" to normalizedPhone,
+                    "contactPreference" to contactPreference,
+                    "status" to AdoptionRequestStatus.PENDING.name,
+                    "createdAt" to now,
+                    "updatedAt" to now
+                )
+            ).await()
+
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al enviar la solicitud de adopción."))
@@ -558,15 +607,72 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Loading())
 
         try {
-            val postIds = postsCollection.whereEqualTo("authorId", userId).get().await().documents.map { it.id }
-            val requests = if (postIds.isEmpty()) {
-                emptyList()
-            } else {
-                adoptionRequestsCollection.whereIn("postId", postIds.take(30)).get().await().documents.mapNotNull { snapshotToAdoptionRequest(it) }
-            }
-            emit(Resource.Success(requests.sortedByDescending { it.createdAt }))
+            val authorPosts = postsCollection
+                .whereEqualTo("authorId", userId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { snapshotToPost(it) }
+                .associateBy { it.id }
+
+            val requests = authorPosts.keys
+                .chunked(30)
+                .flatMap { postIdsChunk ->
+                    adoptionRequestsCollection
+                        .whereIn("postId", postIdsChunk)
+                        .get()
+                        .await()
+                        .documents
+                        .mapNotNull { snapshotToAdoptionRequest(it) }
+                }
+                .map { request -> enrichAdoptionRequest(request, authorPosts[request.postId]) }
+                .sortedByDescending { it.createdAt }
+
+            emit(Resource.Success(requests))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al obtener las solicitudes de adopción."))
+        }
+    }
+
+    override fun getAdoptionRequestsByRequester(userId: String): Flow<Resource<List<AdoptionRequest>>> = flow {
+        emit(Resource.Loading())
+
+        try {
+            val requests = adoptionRequestsCollection
+                .whereEqualTo("requesterId", userId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { snapshotToAdoptionRequest(it) }
+                .map { enrichAdoptionRequest(it) }
+                .sortedByDescending { it.createdAt }
+
+            emit(Resource.Success(requests))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al obtener tus solicitudes de adopción."))
+        }
+    }
+
+    override fun getAdoptionRequestForUserAndPost(
+        postId: String,
+        userId: String
+    ): Flow<Resource<AdoptionRequest?>> = flow {
+        emit(Resource.Loading())
+
+        try {
+            val request = adoptionRequestsCollection
+                .whereEqualTo("postId", postId)
+                .whereEqualTo("requesterId", userId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { snapshotToAdoptionRequest(it) }
+                .maxByOrNull { it.createdAt }
+                ?.let { enrichAdoptionRequest(it) }
+
+            emit(Resource.Success(request))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error al verificar tu solicitud de adopción."))
         }
     }
 
@@ -574,8 +680,16 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Loading())
 
         try {
-            val requests = adoptionRequestsCollection.whereEqualTo("postId", postId).get().await().documents.mapNotNull { snapshotToAdoptionRequest(it) }
-            emit(Resource.Success(requests.sortedByDescending { it.createdAt }))
+            val post = postsCollection.document(postId).get().await().let { snapshotToPost(it) }
+            val requests = adoptionRequestsCollection
+                .whereEqualTo("postId", postId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { snapshotToAdoptionRequest(it) }
+                .map { enrichAdoptionRequest(it, post) }
+                .sortedByDescending { it.createdAt }
+            emit(Resource.Success(requests))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al obtener las solicitudes de adopción."))
         }
@@ -585,8 +699,72 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Loading())
 
         try {
-            adoptionRequestsCollection.document(requestId).update("status", AdoptionRequestStatus.ACCEPTED.name).await()
-            postsCollection.document(postId).update("status", PostStatus.ADOPTED.name).await()
+            val now = System.currentTimeMillis()
+            val currentUserId = firebaseAuth.currentUser?.uid
+                ?: throw IllegalStateException("Debes iniciar sesión para aceptar solicitudes.")
+
+            val acceptedRef = adoptionRequestsCollection.document(requestId)
+            val requestSnapshot = acceptedRef.get().await()
+            if (!requestSnapshot.exists()) {
+                throw IllegalStateException("La solicitud de adopción no existe.")
+            }
+            val requestPostId = requestSnapshot.getString("postId").orEmpty()
+            if (requestPostId != postId) {
+                throw IllegalStateException("La solicitud no corresponde a esta publicación.")
+            }
+            val currentStatus = runCatching {
+                AdoptionRequestStatus.valueOf(requestSnapshot.getString("status") ?: AdoptionRequestStatus.PENDING.name)
+            }.getOrDefault(AdoptionRequestStatus.PENDING)
+            if (currentStatus != AdoptionRequestStatus.PENDING) {
+                throw IllegalStateException("Esta solicitud ya fue gestionada.")
+            }
+
+            val postRef = postsCollection.document(postId)
+            val postSnapshot = postRef.get().await()
+            val post = snapshotToPost(postSnapshot)
+                ?: throw IllegalStateException("La publicación no existe.")
+            if (post.authorId != currentUserId) {
+                throw IllegalStateException("Solo el publicador puede aceptar esta solicitud.")
+            }
+            if (post.status == PostStatus.ADOPTED || post.status == PostStatus.RESOLVED) {
+                throw IllegalStateException("Esta publicación ya fue finalizada.")
+            }
+
+            val batch = firestore.batch()
+            batch.update(
+                acceptedRef,
+                mapOf(
+                    "status" to AdoptionRequestStatus.ACCEPTED.name,
+                    "updatedAt" to now
+                )
+            )
+            batch.update(
+                postRef,
+                mapOf(
+                    "status" to PostStatus.ADOPTED.name,
+                    "updatedAt" to now
+                )
+            )
+
+            val otherPending = adoptionRequestsCollection
+                .whereEqualTo("postId", postId)
+                .whereEqualTo("status", AdoptionRequestStatus.PENDING.name)
+                .get()
+                .await()
+
+            otherPending.documents.forEach { doc ->
+                if (doc.id != requestId) {
+                    batch.update(
+                        doc.reference,
+                        mapOf(
+                            "status" to AdoptionRequestStatus.REJECTED.name,
+                            "updatedAt" to now
+                        )
+                    )
+                }
+            }
+
+            batch.commit().await()
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al aceptar la solicitud de adopción."))
@@ -597,7 +775,36 @@ class FirebasePostRepository @Inject constructor(
         emit(Resource.Loading())
 
         try {
-            adoptionRequestsCollection.document(requestId).update("status", AdoptionRequestStatus.REJECTED.name).await()
+            val now = System.currentTimeMillis()
+            val currentUserId = firebaseAuth.currentUser?.uid
+                ?: throw IllegalStateException("Debes iniciar sesión para rechazar solicitudes.")
+
+            val requestRef = adoptionRequestsCollection.document(requestId)
+            val requestSnapshot = requestRef.get().await()
+            if (!requestSnapshot.exists()) {
+                throw IllegalStateException("La solicitud de adopción no existe.")
+            }
+            val postId = requestSnapshot.getString("postId").orEmpty()
+            val status = runCatching {
+                AdoptionRequestStatus.valueOf(requestSnapshot.getString("status") ?: AdoptionRequestStatus.PENDING.name)
+            }.getOrDefault(AdoptionRequestStatus.PENDING)
+            if (status != AdoptionRequestStatus.PENDING) {
+                throw IllegalStateException("Esta solicitud ya fue gestionada.")
+            }
+
+            val post = postsCollection.document(postId).get().await().let { snapshotToPost(it) }
+                ?: throw IllegalStateException("La publicación no existe.")
+            if (post.authorId != currentUserId) {
+                throw IllegalStateException("Solo el publicador puede rechazar esta solicitud.")
+            }
+
+            requestRef.update(
+                mapOf(
+                    "status" to AdoptionRequestStatus.REJECTED.name,
+                    "updatedAt" to now
+                )
+            ).await()
+
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al rechazar la solicitud de adopción."))
@@ -623,11 +830,26 @@ class FirebasePostRepository @Inject constructor(
                 } catch (_: Exception) { PostStatus.PENDING },
                 animalType = doc.getString("animalType") ?: "",
                 breed = doc.getString("breed") ?: "",
+                age = runCatching {
+                    AnimalAge.valueOf(doc.getString("age") ?: AnimalAge.YOUNG.name)
+                }.getOrDefault(AnimalAge.YOUNG),
+                gender = runCatching {
+                    AnimalGender.valueOf(doc.getString("gender") ?: AnimalGender.UNKNOWN.name)
+                }.getOrDefault(AnimalGender.UNKNOWN),
                 size = try {
                     AnimalSize.valueOf(doc.getString("size") ?: "MEDIUM")
                 } catch (_: Exception) { AnimalSize.MEDIUM },
                 vaccinated = doc.getBoolean("vaccinated") ?: false,
+                dewormed = doc.getBoolean("dewormed") ?: false,
+                sterilized = doc.getBoolean("sterilized") ?: false,
+                specialCares = doc.getBoolean("specialCares") ?: false,
+                behavior = (doc.get("behavior") as? List<*>)
+                    ?.mapNotNull { raw -> runCatching { PetBehavior.valueOf(raw.toString()) }.getOrNull() }
+                    ?: emptyList(),
                 imageUrls = (doc.get("imageUrls") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+                street = doc.getString("street") ?: "",
+                neighborhood = doc.getString("neighborhood") ?: "",
+                city = doc.getString("city") ?: "",
                 latitude = doc.getDouble("latitude") ?: 0.0,
                 longitude = doc.getDouble("longitude") ?: 0.0,
                 locationName = doc.getString("locationName") ?: "",
@@ -646,6 +868,8 @@ class FirebasePostRepository @Inject constructor(
                 AdoptionRequest(
                     id = doc.id,
                     postId = doc.getString("postId") ?: "",
+                    postTitle = doc.getString("postTitle") ?: "",
+                    postAuthorId = doc.getString("postAuthorId") ?: "",
                     requesterId = doc.getString("requesterId") ?: "",
                     requesterName = doc.getString("requesterName") ?: "",
                     requesterPhotoUrl = doc.getString("requesterPhotoUrl") ?: "",
@@ -658,12 +882,32 @@ class FirebasePostRepository @Inject constructor(
                     status = runCatching {
                         AdoptionRequestStatus.valueOf(doc.getString("status") ?: AdoptionRequestStatus.PENDING.name)
                     }.getOrDefault(AdoptionRequestStatus.PENDING),
-                    createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                    createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
+                    updatedAt = doc.getLong("updatedAt") ?: doc.getLong("createdAt") ?: System.currentTimeMillis()
                 )
             } catch (_: Exception) {
                 null
             }
         }
+
+    private suspend fun enrichAdoptionRequest(
+        request: AdoptionRequest,
+        knownPost: Post? = null
+    ): AdoptionRequest {
+        val post = knownPost ?: if (request.postId.isNotBlank()) {
+            runCatching {
+                postsCollection.document(request.postId).get().await().let { snapshotToPost(it) }
+            }.getOrNull()
+        } else {
+            null
+        }
+
+        return request.copy(
+            postTitle = request.postTitle.ifBlank { post?.title.orEmpty() },
+            postAuthorId = request.postAuthorId.ifBlank { post?.authorId.orEmpty() },
+            postStatus = request.postStatus ?: post?.status
+        )
+    }
 
     private fun postToMap(post: Post): Map<String, Any?> = mapOf(
         "authorId" to post.authorId,
@@ -675,9 +919,18 @@ class FirebasePostRepository @Inject constructor(
         "status" to post.status.name,
         "animalType" to post.animalType,
         "breed" to post.breed,
+        "age" to post.age.name,
+        "gender" to post.gender.name,
         "size" to post.size.name,
         "vaccinated" to post.vaccinated,
+        "dewormed" to post.dewormed,
+        "sterilized" to post.sterilized,
+        "specialCares" to post.specialCares,
+        "behavior" to post.behavior.map { it.name },
         "imageUrls" to post.imageUrls,
+        "street" to post.street,
+        "neighborhood" to post.neighborhood,
+        "city" to post.city,
         "latitude" to post.latitude,
         "longitude" to post.longitude,
         "locationName" to post.locationName,

@@ -44,6 +44,14 @@ class AdoptionRequestsViewModel @Inject constructor(
                 is Resource.Error -> state = state.copy(isLoading = false, error = result.uiText)
             }
         }.launchIn(viewModelScope)
+
+        repository.getAdoptionRequestsByRequester(userId).onEach { result ->
+            when (result) {
+                is Resource.Loading -> state = state.copy(isLoading = true, error = null)
+                is Resource.Success -> state = state.copy(isLoading = false, sentRequests = result.data ?: emptyList(), error = null)
+                is Resource.Error -> state = state.copy(isLoading = false, error = result.uiText)
+            }
+        }.launchIn(viewModelScope)
     }
 
     /** Acepta una solicitud y vuelve a consultar la lista para reflejar cambios. */
@@ -82,5 +90,6 @@ data class AdoptionRequestsState(
     val isLoading: Boolean = false,
     val isActionLoading: Boolean = false,
     val requests: List<AdoptionRequest> = emptyList(),
+    val sentRequests: List<AdoptionRequest> = emptyList(),
     val error: UiText? = null
 )

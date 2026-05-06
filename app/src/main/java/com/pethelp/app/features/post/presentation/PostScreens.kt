@@ -2,9 +2,9 @@
  * Pantallas relacionadas con las publicaciones (Posts) de PetHelp.
  *
  * Este archivo contiene:
- * - `PostDetailScreen`: muestra la información completa de una publicación, comentarios, votos y solicitud de adopción.
- * - `CreatePostScreen`: permite crear una publicación nueva con fotos, texto y categoría.
- * - `EditPostScreen`: permite editar una publicación existente con un diseño renovado.
+ * - `PostDetailScreen`: muestra la informaciÃ³n completa de una publicaciÃ³n, comentarios, votos y solicitud de adopciÃ³n.
+ * - `CreatePostScreen`: permite crear una publicaciÃ³n nueva con fotos, texto y categorÃ­a.
+ * - `EditPostScreen`: permite editar una publicaciÃ³n existente con un diseÃ±o renovado.
  */
 package com.pethelp.app.features.post.presentation
 
@@ -97,12 +97,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import kotlin.random.Random
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ─── FUNCIONES DE CHAT ──────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€â”€ FUNCIONES DE CHAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Crea o obtiene un thread de chat para una publicación
+ * Crea o obtiene un thread de chat para una publicaciÃ³n
  */
 fun createOrGetChatThread(
     postId: String,
@@ -113,21 +113,21 @@ fun createOrGetChatThread(
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val currentUserId = auth.currentUser?.uid ?: return
-    
-    // No crear thread si el usuario es el dueño
+
+    // No crear thread si el usuario es el dueÃ±o
     if (currentUserId == authorId) {
         onThreadCreated(postId)
         return
     }
-    
+
     // Usar el postId como threadId
     val threadId = "post_${postId}_${currentUserId}_${authorId}"
     val participants = listOf(currentUserId, authorId)
-    
+
     val threadData = mapOf(
         "postId" to postId,
         "title" to postTitle,
-        "subtitle" to "Chat de adopción",
+        "subtitle" to "Chat de adopciÃ³n",
         "participants" to participants,
         "lastMessage" to "",
         "lastSenderId" to "",
@@ -139,7 +139,7 @@ fun createOrGetChatThread(
         ),
         "tag" to "adoption"
     )
-    
+
     val threadRef = db.collection("threads").document(threadId)
     threadRef.get()
         .addOnSuccessListener { snapshot ->
@@ -160,12 +160,12 @@ fun createOrGetChatThread(
         }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ─── DETALLE DE PUBLICACIÓN ──────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€â”€ DETALLE DE PUBLICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Pantalla de detalle de una publicación.
+ * Pantalla de detalle de una publicaciÃ³n.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -217,7 +217,23 @@ fun PostDetailScreen(
             }
             else -> {
                 val post = uiState.post ?: return@Scaffold
-                
+                val isOwnPost = post.authorId == viewModel.currentUserId
+                val canContactOwner = viewModel.currentUserId.isNotBlank() && !isOwnPost
+                val isAdoptionPost = post.category == PostCategory.ADOPTION
+                val isAvailableForAdoption = post.status == PostStatus.VERIFIED || post.status == PostStatus.ACTIVE
+                val existingRequest = uiState.existingAdoptionRequest
+                val adoptionButtonEnabled = canContactOwner && isAdoptionPost && isAvailableForAdoption && existingRequest == null
+                val adoptionButtonText = when {
+                    isOwnPost -> stringResource(R.string.post_detail_own_post)
+                    !isAdoptionPost -> stringResource(R.string.post_detail_not_adoption_post)
+                    post.status == PostStatus.ADOPTED -> stringResource(R.string.post_detail_already_adopted)
+                    post.status == PostStatus.RESOLVED -> stringResource(R.string.post_detail_post_resolved)
+                    existingRequest?.status == AdoptionRequestStatus.PENDING -> stringResource(R.string.post_detail_request_pending)
+                    existingRequest?.status == AdoptionRequestStatus.ACCEPTED -> stringResource(R.string.post_detail_request_accepted)
+                    existingRequest?.status == AdoptionRequestStatus.REJECTED -> stringResource(R.string.post_detail_request_rejected)
+                    else -> stringResource(R.string.post_detail_request_adoption)
+                }
+
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.background,
                     bottomBar = {
@@ -242,47 +258,52 @@ fun PostDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                OutlinedButton(
-                                    onClick = {
-                                        createOrGetChatThread(post.id, post.title, post.authorId) { threadId ->
-                                            navController.navigate(Screen.ChatThread(threadId))
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(56.dp),
-                                    shape = RoundedCornerShape(28.dp),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(10.dp))
-                                    Text(
-                                        stringResource(R.string.post_detail_contact_owner),
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
+                                if (canContactOwner) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            createOrGetChatThread(post.id, post.title, post.authorId) { threadId ->
+                                                navController.navigate(Screen.ChatThread(threadId))
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(56.dp),
+                                        shape = RoundedCornerShape(28.dp),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(
+                                            stringResource(R.string.post_detail_contact_owner),
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
 
-                                Spacer(modifier = Modifier.width(12.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                }
 
                                 Button(
                                     onClick = { navController.navigate(Screen.AdoptionRequest(post.id, post.title)) },
+                                    enabled = adoptionButtonEnabled,
                                     modifier = Modifier
                                         .weight(1.15f)
                                         .height(56.dp),
                                     shape = RoundedCornerShape(28.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
                                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                                 ) {
                                     Icon(Icons.Default.Pets, contentDescription = null, modifier = Modifier.size(20.dp))
                                     Spacer(Modifier.width(10.dp))
                                     Text(
-                                        stringResource(R.string.post_detail_request_adoption),
+                                        adoptionButtonText,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -359,7 +380,7 @@ private fun PostDetailContent(
     var showAllComments by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val scrollState = rememberLazyListState()
-    
+
     // Calcular comentarios a mostrar
     val displayedComments = remember(comments, showAllComments) {
         if (showAllComments || comments.size <= 5) {
@@ -378,12 +399,12 @@ private fun PostDetailContent(
             state = scrollState,
             modifier = Modifier.fillMaxSize()
         ) {
-            // ── Imagen principal (Espaciador) ──
+            // â”€â”€ Imagen principal (Espaciador) â”€â”€
             item {
                 Box(modifier = Modifier.fillMaxWidth().height(imageHeight))
             }
 
-            // ── Cuerpo de la Publicación ──────────────────────────────────
+            // â”€â”€ Cuerpo de la PublicaciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Column(
                     modifier = Modifier
@@ -406,7 +427,7 @@ private fun PostDetailContent(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Título y Autor
+                    // TÃ­tulo y Autor
                     Text(
                         text = post.title,
                         fontSize = 32.sp,
@@ -415,7 +436,7 @@ private fun PostDetailContent(
                         letterSpacing = (-1).sp,
                         lineHeight = 38.sp
                     )
-                    
+
                     Spacer(Modifier.height(16.dp))
 
                     Surface(
@@ -478,7 +499,7 @@ private fun PostDetailContent(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // Ubicación
+                    // UbicaciÃ³n
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -491,9 +512,9 @@ private fun PostDetailContent(
                             Text(stringResource(R.string.filter_nearby), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
                     }
-                    
+
                     Spacer(Modifier.height(16.dp))
-                    
+
                     // Mapa
                     val isDark = isSystemInDarkTheme()
                     val petLocation = remember(post.latitude, post.longitude) { LatLng(post.latitude, post.longitude) }
@@ -512,7 +533,7 @@ private fun PostDetailContent(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // Sección Comentarios Header
+                    // SecciÃ³n Comentarios Header
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -561,7 +582,7 @@ private fun PostDetailContent(
                 }
             }
 
-            // ── Lista de Comentarios (con fondo blanco para consistencia) ──
+            // â”€â”€ Lista de Comentarios (con fondo blanco para consistencia) â”€â”€
             if (comments.isEmpty()) {
                 item {
                     Column(
@@ -584,7 +605,7 @@ private fun PostDetailContent(
 
                 items(
                     items = displayedComments,
-                    key = { it.id } // Usar ID de Firebase es lo más seguro
+                    key = { it.id } // Usar ID de Firebase es lo mÃ¡s seguro
                 ) { comment ->
                     Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface) {
                         CommentItem(comment, Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
@@ -608,7 +629,7 @@ private fun PostDetailContent(
             }
         }
 
-        // ── Imagen fija con parallax detrás ──
+        // â”€â”€ Imagen fija con parallax detrÃ¡s â”€â”€
         val firstItemOffset by remember { derivedStateOf { scrollState.firstVisibleItemScrollOffset } }
         val firstItemIndex by remember { derivedStateOf { scrollState.firstVisibleItemIndex } }
 
@@ -640,7 +661,7 @@ private fun PostDetailContent(
             }
         }
 
-        // ── Botones de acción (Volver) fijos ──
+        // â”€â”€ Botones de acciÃ³n (Volver) fijos â”€â”€
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -756,7 +777,7 @@ fun AdoptionRequestScreen(
                 )
             }
 
-            // Sección 1: Mensaje
+            // SecciÃ³n 1: Mensaje
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.ChatBubbleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
@@ -778,7 +799,7 @@ fun AdoptionRequestScreen(
                 )
             }
 
-            // Sección 2: Información del hogar
+            // SecciÃ³n 2: InformaciÃ³n del hogar
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(24.dp),
@@ -797,15 +818,15 @@ fun AdoptionRequestScreen(
                             SelectableChip(
                                 label = stringResource(R.string.housing_house),
                                 icon = Icons.Default.Home,
-                                selected = state.housingType == "Casa",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("Casa")) },
+                                selected = state.housingType == "house",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("house")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
                                 label = stringResource(R.string.housing_apartment),
                                 icon = Icons.Default.LocationCity,
-                                selected = state.housingType == "Apartamento",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("Apartamento")) },
+                                selected = state.housingType == "apartment",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnHousingTypeChange("apartment")) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -817,15 +838,15 @@ fun AdoptionRequestScreen(
                             SelectableChip(
                                 label = stringResource(R.string.common_yes),
                                 icon = Icons.Default.Nature, // Placeholder
-                                selected = state.hasOutdoorSpace == "Sí",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("Sí")) },
+                                selected = state.hasOutdoorSpace == "yes",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("yes")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
                                 label = stringResource(R.string.common_no),
                                 icon = Icons.Default.Block,
-                                selected = state.hasOutdoorSpace == "No",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("No")) },
+                                selected = state.hasOutdoorSpace == "no",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnOutdoorSpaceChange("no")) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -837,15 +858,15 @@ fun AdoptionRequestScreen(
                             SelectableChip(
                                 label = stringResource(R.string.experience_yes),
                                 icon = Icons.Default.Pets,
-                                selected = state.hasExperience == "Sí tengo",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("Sí tengo")) },
+                                selected = state.hasExperience == "yes",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("yes")) },
                                 modifier = Modifier.weight(1f)
                             )
                             SelectableChip(
                                 label = stringResource(R.string.experience_no),
                                 icon = Icons.Default.CheckCircle,
-                                selected = state.hasExperience == "Soy nuevo",
-                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("Soy nuevo")) },
+                                selected = state.hasExperience == "no",
+                                onClick = { viewModel.onEvent(AdoptionRequestEvent.OnExperienceChange("no")) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -853,7 +874,7 @@ fun AdoptionRequestScreen(
                 }
             }
 
-            // Sección 3: Información de contacto
+            // SecciÃ³n 3: InformaciÃ³n de contacto
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(24.dp),
@@ -881,9 +902,9 @@ fun AdoptionRequestScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.adoption_request_contact_pref_label), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         Column(Modifier.selectableGroup()) {
-                            ContactPreferenceOption(stringResource(R.string.contact_pethelp), state.contactPreference == "Chat en PetHelp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Chat en PetHelp")) }
-                            ContactPreferenceOption(stringResource(R.string.contact_whatsapp), state.contactPreference == "WhatsApp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("WhatsApp")) }
-                            ContactPreferenceOption(stringResource(R.string.contact_phone_call), state.contactPreference == "Llamada telefónica") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("Llamada telefónica")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_pethelp), state.contactPreference == "pethelp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("pethelp")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_whatsapp), state.contactPreference == "whatsapp") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("whatsapp")) }
+                            ContactPreferenceOption(stringResource(R.string.contact_phone_call), state.contactPreference == "phone") { viewModel.onEvent(AdoptionRequestEvent.OnContactPreferenceChange("phone")) }
                         }
                     }
                 }
@@ -904,75 +925,7 @@ fun AdoptionRequestScreen(
                     )
                 }
             }
-            
-            // Sección 4: Comentarios en la adopción
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ChatBubbleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.post_detail_comments), fontWeight = FontWeight.Bold)
-                }
-                
-                // Campo para agregar comentario
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = "",
-                        onValueChange = { },
-                        placeholder = { Text(stringResource(R.string.post_detail_comment_hint), fontSize = 12.sp) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        textStyle = MaterialTheme.typography.bodySmall,
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    )
-                    Button(
-                        onClick = { },
-                        modifier = Modifier.size(44.dp),
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Icon(
-                            Icons.Default.Send,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-                
-                // Lista de comentarios (placeholder - será dinámico después)
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.post_detail_no_comments),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-            
+
             Spacer(Modifier.height(80.dp))
         }
     }
@@ -999,15 +952,15 @@ private fun SelectableChip(
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
-                icon, 
-                null, 
+                icon,
+                null,
                 tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                label, 
-                fontSize = 14.sp, 
+                label,
+                fontSize = 14.sp,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1055,16 +1008,23 @@ fun AdoptionRequestsScreen(
             request.status == AdoptionRequestStatus.PENDING && request.postStatus != PostStatus.ADOPTED
         }
     }
+    val sentRequests = remember(state.sentRequests) { state.sentRequests }
     val historyRequests = remember(state.requests) {
         state.requests.filter { request ->
             request.status != AdoptionRequestStatus.PENDING || request.postStatus == PostStatus.ADOPTED
         }
     }
-    val visibleRequests = if (selectedTab == 0) pendingRequests else historyRequests
+    val visibleRequests = when (selectedTab) {
+        0 -> pendingRequests
+        1 -> sentRequests
+        else -> historyRequests
+    }
 
-    LaunchedEffect(pendingRequests.size, historyRequests.size) {
-        if (selectedTab == 0 && pendingRequests.isEmpty() && historyRequests.isNotEmpty()) {
+    LaunchedEffect(pendingRequests.size, sentRequests.size, historyRequests.size) {
+        if (selectedTab == 0 && pendingRequests.isEmpty() && sentRequests.isNotEmpty()) {
             selectedTab = 1
+        } else if (selectedTab == 0 && pendingRequests.isEmpty() && sentRequests.isEmpty() && historyRequests.isNotEmpty()) {
+            selectedTab = 2
         }
     }
 
@@ -1105,6 +1065,7 @@ fun AdoptionRequestsScreen(
             ) {
                 AdoptionRequestsTabs(
                     pendingCount = pendingRequests.size,
+                    sentCount = sentRequests.size,
                     historyCount = historyRequests.size,
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it }
@@ -1122,10 +1083,10 @@ fun AdoptionRequestsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         AdoptionRequestsEmptyState(
-                            title = if (selectedTab == 0) {
-                                if (state.requests.isEmpty()) R.string.adoption_requests_empty else R.string.adoption_requests_empty_pending
-                            } else {
-                                R.string.adoption_requests_empty_history
+                            title = when (selectedTab) {
+                                0 -> if (state.requests.isEmpty()) R.string.adoption_requests_empty else R.string.adoption_requests_empty_pending
+                                1 -> R.string.adoption_requests_empty_sent
+                                else -> R.string.adoption_requests_empty_history
                             },
                         )
                     }
@@ -1140,7 +1101,10 @@ fun AdoptionRequestsScreen(
                                 request = request,
                                 onAccept = { viewModel.acceptRequest(request) },
                                 onReject = { viewModel.rejectRequest(request.id) },
-                                isLoading = state.isActionLoading
+                                isLoading = state.isActionLoading,
+                                showOwnerActions = selectedTab != 1,
+                                title = if (selectedTab == 1) request.postTitle.ifBlank { stringResource(R.string.common_none) } else null,
+                                subtitle = if (selectedTab == 1) stringResource(R.string.adoption_request_sent_item_subtitle) else null
                             )
                         }
                     }
@@ -1153,6 +1117,7 @@ fun AdoptionRequestsScreen(
 @Composable
 private fun AdoptionRequestsTabs(
     pendingCount: Int,
+    sentCount: Int,
     historyCount: Int,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit
@@ -1170,9 +1135,15 @@ private fun AdoptionRequestsTabs(
             modifier = Modifier.weight(1f)
         )
         AdoptionTabPill(
-            text = stringResource(R.string.adoption_requests_tab_history_count, historyCount),
+            text = stringResource(R.string.adoption_requests_tab_sent_count, sentCount),
             selected = selectedTab == 1,
             onClick = { onTabSelected(1) },
+            modifier = Modifier.weight(1f)
+        )
+        AdoptionTabPill(
+            text = stringResource(R.string.adoption_requests_tab_history_count, historyCount),
+            selected = selectedTab == 2,
+            onClick = { onTabSelected(2) },
             modifier = Modifier.weight(1f)
         )
     }
@@ -1236,7 +1207,10 @@ fun AdoptionRequestItem(
     request: AdoptionRequest,
     onAccept: () -> Unit,
     onReject: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    showOwnerActions: Boolean = true,
+    title: String? = null,
+    subtitle: String? = null
 ) {
     val displayStatus = if (request.status == AdoptionRequestStatus.PENDING && request.postStatus == PostStatus.ADOPTED) {
         AdoptionRequestStatus.REJECTED
@@ -1263,7 +1237,7 @@ fun AdoptionRequestItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            request.requesterName.ifBlank { stringResource(R.string.common_none) },
+                            title ?: request.requesterName.ifBlank { stringResource(R.string.common_none) },
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -1274,7 +1248,7 @@ fun AdoptionRequestItem(
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        stringResource(R.string.adoption_request_item_subtitle),
+                        subtitle ?: stringResource(R.string.adoption_request_item_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1313,7 +1287,7 @@ fun AdoptionRequestItem(
                 }
             }
 
-            if (displayStatus == AdoptionRequestStatus.PENDING) {
+            if (showOwnerActions && displayStatus == AdoptionRequestStatus.PENDING) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(
                         onClick = onReject,
@@ -1469,11 +1443,11 @@ fun AdoptionSuccessScreen(navController: NavController) {
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
-                    onClick = { 
-                        // Navegar al chat (asumiendo que hay una pantalla de chat o lista de chats)
-                        navController.navigate(Screen.Feed) { 
-                            popUpTo(Screen.Feed) { inclusive = true } 
-                        } 
+                    onClick = {
+                        navController.navigate(Screen.Chat) {
+                            popUpTo(Screen.Feed) { inclusive = false }
+                            launchSingleTop = true
+                        }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(28.dp),
@@ -1617,9 +1591,9 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ─── CREAR PUBLICACIÓN ──────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€â”€ CREAR PUBLICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1807,7 +1781,7 @@ fun CreatePostScreen(
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-            // ── Zona de Fotos ───────────────────────────────────────────
+            // â”€â”€ Zona de Fotos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
@@ -1869,7 +1843,7 @@ fun CreatePostScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-                                        // Badge de número (1/5)
+                                        // Badge de nÃºmero (1/5)
                                         Surface(
                                             modifier = Modifier.align(Alignment.BottomStart).padding(6.dp),
                                             color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f),
@@ -1882,7 +1856,7 @@ fun CreatePostScreen(
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }
-                                        // Botón eliminar
+                                        // BotÃ³n eliminar
                                         IconButton(
                                             onClick = { viewModel.removeImage(index) },
                                             modifier = Modifier
@@ -1914,7 +1888,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // ── Título ──────────────────────────────────────────────────
+            // â”€â”€ TÃ­tulo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -1940,7 +1914,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // ── Descripción ─────────────────────────────────────────────
+            // â”€â”€ DescripciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -1966,7 +1940,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // ── Categoría IA ────────────────────────────────────────────
+            // â”€â”€ CategorÃ­a IA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
@@ -2074,7 +2048,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // ── Tipo de Mascota y Raza ─────────────────────────────────
+            // â”€â”€ Tipo de Mascota y Raza â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(stringResource(R.string.post_animal_type_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2115,7 +2089,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // ── Tamaño ──────────────────────────────────────────────────
+            // â”€â”€ TamaÃ±o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.post_size_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2248,9 +2222,9 @@ private fun SelectableChip(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ─── EDITAR PUBLICACIÓN ──────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€â”€ EDITAR PUBLICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -2376,7 +2350,7 @@ fun EditPostScreen(
                 contentPadding = PaddingValues(24.dp),
                 verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
-                // ── FOTOS ─────────────────────────────────────────────────
+                // â”€â”€ FOTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(stringResource(R.string.edit_post_photos_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2431,7 +2405,7 @@ fun EditPostScreen(
                     }
                 }
 
-                // ── INFO BÁSICA ───────────────────────────────────────────
+                // â”€â”€ INFO BÃSICA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                         EditField(label = stringResource(R.string.edit_post_name_label), value = uiState.title, onValueChange = viewModel::onTitleChange)
@@ -2492,7 +2466,7 @@ fun EditPostScreen(
                     }
                 }
 
-                // ── DESCRIPCIÓN ───────────────────────────────────────────
+                // â”€â”€ DESCRIPCIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -2514,7 +2488,7 @@ fun EditPostScreen(
                     }
                 }
 
-                // ── UBICACIÓN ─────────────────────────────────────────────
+                // â”€â”€ UBICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(stringResource(R.string.edit_post_location_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2530,7 +2504,7 @@ fun EditPostScreen(
                                     Text(uiState.locationName.ifBlank { stringResource(R.string.edit_post_location_none) }, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
                                     Text("${uiState.street}, ${uiState.neighborhood}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
-                                TextButton(onClick = { 
+                                TextButton(onClick = {
                                     navController.navigate(
                                         Screen.LocationSelection(
                                             title = uiState.title,
@@ -2556,7 +2530,7 @@ fun EditPostScreen(
                     }
                 }
 
-                // ── ESTADO ────────────────────────────────────────────────
+                // â”€â”€ ESTADO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(stringResource(R.string.edit_post_status_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2583,7 +2557,7 @@ fun EditPostScreen(
                     }
                 }
 
-                // ── SALUD ─────────────────────────────────────────────────
+                // â”€â”€ SALUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(stringResource(R.string.edit_post_health_label), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
@@ -2593,7 +2567,7 @@ fun EditPostScreen(
                             HealthItemData(uiState.dewormed, stringResource(R.string.edit_post_health_dewormed), Icons.Default.BugReport, viewModel::onDewormedChange),
                             HealthItemData(uiState.specialCares, stringResource(R.string.edit_post_health_special), Icons.Default.MedicalServices, viewModel::onSpecialCaresChange)
                         )
-                        
+
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             for (i in 0 until gridItems.size step 2) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -10,6 +10,16 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isModerator() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'MODERATOR';
+    }
+
+    function isPostAuthor(postId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/posts/$(postId)).data.authorId == request.auth.uid;
+    }
+
     // Usuarios
     match /users/{userId} {
       allow read, update: if isOwner(userId);
@@ -19,6 +29,74 @@ service cloud.firestore {
       match /fcmTokens/{tokenId} {
         allow read, write: if isOwner(userId);
       }
+    }
+
+    // Publicaciones
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.status == 'PENDING';
+      allow update: if isSignedIn()
+        && (
+          resource.data.authorId == request.auth.uid
+          || isModerator()
+        );
+      allow delete: if isSignedIn()
+        && (
+          resource.data.authorId == request.auth.uid
+          || isModerator()
+        );
+    }
+
+    // Comentarios
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && exists(/databases/$(database)/documents/posts/$(request.resource.data.postId));
+      allow update: if isSignedIn()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['authorName', 'authorPhotoUrl']);
+      allow delete: if false;
+    }
+
+    // Votos / favoritos
+    match /votes/{voteId} {
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && exists(/databases/$(database)/documents/posts/$(request.resource.data.postId));
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Solicitudes de adopción
+    match /adoptionRequests/{requestId} {
+      allow read: if isSignedIn()
+        && (
+          resource.data.requesterId == request.auth.uid
+          || isPostAuthor(resource.data.postId)
+          || isModerator()
+        );
+
+      allow create: if isSignedIn()
+        && request.resource.data.requesterId == request.auth.uid
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.postId is string
+        && exists(/databases/$(database)/documents/posts/$(request.resource.data.postId))
+        && get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.authorId != request.auth.uid
+        && get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.category == 'ADOPTION'
+        && get(/databases/$(database)/documents/posts/$(request.resource.data.postId)).data.status in ['VERIFIED', 'ACTIVE'];
+
+      allow update: if isSignedIn()
+        && isPostAuthor(resource.data.postId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['ACCEPTED', 'REJECTED'];
+
+      allow delete: if false;
     }
 
     // Notificaciones in-app

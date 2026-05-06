@@ -26,6 +26,8 @@ import com.pethelp.app.core.domain.model.PostStatus
 data class AdoptionRequest(
     val id: String = "",
     val postId: String = "",
+    val postTitle: String = "",
+    val postAuthorId: String = "",
     val requesterId: String = "",
     val requesterName: String = "",
     val requesterPhotoUrl: String = "",
@@ -37,7 +39,8 @@ data class AdoptionRequest(
     val contactPreference: String = "",
     val status: AdoptionRequestStatus = AdoptionRequestStatus.PENDING,
     val postStatus: PostStatus? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
 /**
