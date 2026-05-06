@@ -9,6 +9,7 @@ const db = admin.firestore();
 const COLLECTIONS = {
   posts: "posts",
   comments: "comments",
+  threads: "threads",
   notifications: "notifications",
   users: "users",
   fcmTokens: "fcmTokens",
@@ -17,6 +18,7 @@ const COLLECTIONS = {
 type NotificationType =
   | "NEW_POST_NEARBY"
   | "NEW_COMMENT"
+  | "NEW_MESSAGE"
   | "POST_APPROVED"
   | "POST_REJECTED";
 
@@ -148,7 +150,7 @@ export const onCommentCreated = onDocumentCreated(
     if (!postOwnerId || postOwnerId === authorId) return;
 
     const title = "Nuevo comentario en tu publicación";
-    const body = String(comment.content ?? "Alguien comentó en tu publicación.").slice(0, 120);
+    const body = String(comment.text ?? comment.content ?? "Alguien comento en tu publicacion.").slice(0, 120);
 
     const notificationId = await createNotification({
       userId: postOwnerId,
@@ -168,6 +170,54 @@ export const onCommentCreated = onDocumentCreated(
       relatedPostId: postId,
       notificationId,
     });
+  }
+);
+
+export const onChatMessageCreated = onDocumentCreated(
+  `${COLLECTIONS.threads}/{threadId}/messages/{messageId}`,
+  async (event) => {
+    const message = event.data?.data();
+    if (!message) return;
+
+    const threadId = String(event.params.threadId ?? "");
+    const senderId = String(message.authorId ?? "");
+    const text = String(message.text ?? "Nuevo mensaje en PetHelp.").slice(0, 140);
+    if (!threadId || !senderId) return;
+
+    const threadSnap = await db.collection(COLLECTIONS.threads).doc(threadId).get();
+    if (!threadSnap.exists) return;
+
+    const thread = threadSnap.data() ?? {};
+    const participants = Array.isArray(thread.participants)
+      ? thread.participants.filter((p): p is string => typeof p === "string")
+      : [];
+    const recipients = participants.filter((userId) => userId && userId !== senderId);
+    if (recipients.length === 0) return;
+
+    const title = "Nuevo mensaje en PetHelp";
+    const relatedPostId = String(thread.postId ?? "");
+
+    for (const recipientId of recipients) {
+      const notificationId = await createNotification({
+        userId: recipientId,
+        type: "NEW_MESSAGE",
+        title,
+        body: text,
+        relatedPostId: relatedPostId || undefined,
+        metadata: {
+          threadId,
+          messageId: event.params.messageId,
+        },
+      });
+
+      await sendPushIfEnabled({
+        userId: recipientId,
+        title,
+        body: text,
+        relatedPostId: relatedPostId || undefined,
+        notificationId,
+      });
+    }
   }
 );
 
@@ -291,13 +341,23 @@ export const openRouterProxy = https.onRequest(async (req, res) => {
     const messages = body.messages ?? [];
     const reasoning = body.reasoning ?? { enabled: true };
 
-    const payload = { model, messages, reasoning };
+    const payload: Record<string, unknown> = {
+      model,
+      messages,
+      reasoning,
+      temperature: body.temperature ?? 0.35,
+      max_tokens: body.max_tokens ?? body.maxTokens ?? 900,
+    };
+
+    if (body.response_format) payload.response_format = body.response_format;
 
     const r = await (globalThis as any).fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://pethelp.app",
+        "X-OpenRouter-Title": "PetHelp Android",
       },
       body: JSON.stringify(payload),
     });

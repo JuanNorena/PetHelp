@@ -18,6 +18,7 @@ data class AiUiState(
     val error: String? = null,
     val conversationHistory: List<AiMessage> = emptyList(),
     val quizAnswers: Map<String, String> = emptyMap(),
+    val currentQuestionIndex: Int = 0,
     val recommendations: String = "",
     val showRecommendations: Boolean = false
 )
@@ -34,6 +35,17 @@ class AiViewModel @Inject constructor(
         val currentAnswers = _uiState.value.quizAnswers.toMutableMap()
         currentAnswers[question] = answer
         _uiState.value = _uiState.value.copy(quizAnswers = currentAnswers)
+    }
+
+    fun goToNextQuestion(totalQuestions: Int) {
+        val nextIndex = (_uiState.value.currentQuestionIndex + 1)
+            .coerceAtMost((totalQuestions - 1).coerceAtLeast(0))
+        _uiState.value = _uiState.value.copy(currentQuestionIndex = nextIndex)
+    }
+
+    fun goToPreviousQuestion() {
+        val previousIndex = (_uiState.value.currentQuestionIndex - 1).coerceAtLeast(0)
+        _uiState.value = _uiState.value.copy(currentQuestionIndex = previousIndex)
     }
 
     fun submitQuiz() {

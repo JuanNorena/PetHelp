@@ -80,7 +80,9 @@ fun AIResultsScreen(
             .limit(6)
             .get()
             .addOnSuccessListener { snapshot ->
-                matchedPosts = snapshot.toObjects(Post::class.java)
+                matchedPosts = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Post::class.java)?.copy(id = doc.id)
+                }
                 isLoadingPosts = false
             }
             .addOnFailureListener {

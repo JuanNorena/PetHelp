@@ -62,6 +62,8 @@ enum class NotificationType {
      */
     NEW_COMMENT,
 
+    NEW_MESSAGE,
+
     /**
      * Una publicación del usuario fue aprobada por un moderador.
      */

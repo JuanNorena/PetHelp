@@ -16,8 +16,11 @@ import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.upload.ImageUploader
+import com.pethelp.app.features.ai.domain.repository.AiChatRepository
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -50,6 +53,10 @@ data class CreatePostUiState(
     val longitude: Double = 0.0,
     val locationName: String = "",
     val isLoading: Boolean = false,
+    val isSuggestingCategory: Boolean = false,
+    val aiCategoryReason: String = "",
+    val aiCategoryConfidence: Int? = null,
+    val aiCategoryError: String? = null,
     val isSuccess: Boolean = false,
     val createdPostId: String? = null,
     val error: UiText? = null
@@ -78,7 +85,8 @@ class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val imageUploader: ImageUploader
+    private val imageUploader: ImageUploader,
+    private val aiChatRepository: AiChatRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreatePostUiState())
@@ -87,12 +95,16 @@ class CreatePostViewModel @Inject constructor(
     private val _snackbarMessage = MutableSharedFlow<UiText>()
     val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
+    private var categorySuggestionJob: Job? = null
+
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
+        scheduleCategorySuggestion()
     }
 
     fun updateDescription(description: String) {
         _uiState.value = _uiState.value.copy(description = description)
+        scheduleCategorySuggestion()
     }
 
     fun updateCategory(category: PostCategory) {
@@ -101,6 +113,7 @@ class CreatePostViewModel @Inject constructor(
 
     fun updateAnimalType(animalType: String) {
         _uiState.value = _uiState.value.copy(animalType = animalType)
+        scheduleCategorySuggestion()
     }
 
     fun updateBreed(breed: String) {
@@ -269,6 +282,68 @@ class CreatePostViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isLoading = false, error = UiText.DynamicString(message))
                 _snackbarMessage.emit(UiText.DynamicString(message))
             }
+        }
+    }
+
+    fun suggestCategoryWithAi(showErrors: Boolean = true) {
+        categorySuggestionJob?.cancel()
+        requestCategorySuggestion(showErrors = showErrors)
+    }
+
+    private fun requestCategorySuggestion(showErrors: Boolean) {
+        val state = _uiState.value
+        if (state.title.trim().length < 4 || state.description.trim().length < 12) {
+            if (showErrors) {
+                viewModelScope.launch {
+                    _snackbarMessage.emit(UiText.DynamicString("Agrega titulo y descripcion para sugerir categoria con IA."))
+                }
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSuggestingCategory = true,
+                aiCategoryError = null
+            )
+
+            val result = aiChatRepository.suggestPostCategory(
+                title = state.title,
+                description = state.description,
+                animalType = state.animalType
+            )
+
+            result.onSuccess { suggestion ->
+                _uiState.value = _uiState.value.copy(
+                    category = suggestion.category,
+                    isSuggestingCategory = false,
+                    aiCategoryReason = suggestion.reason,
+                    aiCategoryConfidence = suggestion.confidence,
+                    aiCategoryError = null
+                )
+            }
+
+            result.onFailure { error ->
+                val message = error.localizedMessage ?: "No fue posible sugerir categoria con IA."
+                _uiState.value = _uiState.value.copy(
+                    isSuggestingCategory = false,
+                    aiCategoryError = message
+                )
+                if (showErrors) {
+                    _snackbarMessage.emit(UiText.DynamicString(message))
+                }
+            }
+        }
+    }
+
+    private fun scheduleCategorySuggestion() {
+        val state = _uiState.value
+        if (state.title.trim().length < 4 || state.description.trim().length < 24) return
+
+        categorySuggestionJob?.cancel()
+        categorySuggestionJob = viewModelScope.launch {
+            delay(900)
+            requestCategorySuggestion(showErrors = false)
         }
     }
 

@@ -121,27 +121,42 @@ fun createOrGetChatThread(
     }
     
     // Usar el postId como threadId
-    val threadId = postId
+    val threadId = "post_${postId}_${currentUserId}_${authorId}"
     val participants = listOf(currentUserId, authorId)
     
     val threadData = mapOf(
+        "postId" to postId,
         "title" to postTitle,
         "subtitle" to "Chat de adopción",
         "participants" to participants,
         "lastMessage" to "",
+        "lastSenderId" to "",
+        "createdAt" to FieldValue.serverTimestamp(),
         "updatedAt" to FieldValue.serverTimestamp(),
-        "unreadCount" to 0,
+        "unreadByUser" to mapOf(
+            currentUserId to 0,
+            authorId to 0
+        ),
         "tag" to "adoption"
     )
     
-    db.collection("threads").document(threadId)
-        .set(threadData, SetOptions.merge())
-        .addOnSuccessListener {
-            onThreadCreated(threadId)
+    val threadRef = db.collection("threads").document(threadId)
+    threadRef.get()
+        .addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                onThreadCreated(threadId)
+            } else {
+                threadRef.set(threadData, SetOptions.merge())
+                    .addOnSuccessListener { onThreadCreated(threadId) }
+                    .addOnFailureListener { e ->
+                        e.printStackTrace()
+                        onThreadCreated(threadId)
+                    }
+            }
         }
         .addOnFailureListener { e ->
             e.printStackTrace()
-            onThreadCreated(postId)
+            onThreadCreated(threadId)
         }
 }
 
@@ -1969,9 +1984,28 @@ fun CreatePostScreen(
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(stringResource(R.string.post_ai_category_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                                Text(stringResource(R.string.post_ai_category_subtitle), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = when {
+                                        uiState.isSuggestingCategory -> "Analizando titulo y descripcion..."
+                                        uiState.aiCategoryReason.isNotBlank() -> uiState.aiCategoryReason
+                                        uiState.aiCategoryError != null -> uiState.aiCategoryError.orEmpty()
+                                        else -> stringResource(R.string.post_ai_category_subtitle)
+                                    },
+                                    fontSize = 12.sp,
+                                    color = if (uiState.aiCategoryError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f))
+                            if (uiState.isSuggestingCategory) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            } else {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f))
+                            }
                         }
 
                         var expanded by remember { mutableStateOf(false) }
@@ -2003,6 +2037,38 @@ fun CreatePostScreen(
                                     )
                                 }
                             }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            AssistChip(
+                                onClick = { viewModel.suggestCategoryWithAi() },
+                                enabled = !uiState.isSuggestingCategory,
+                                label = {
+                                    Text(
+                                        text = if (uiState.aiCategoryConfidence != null)
+                                            "Confianza IA: ${uiState.aiCategoryConfidence}%"
+                                        else
+                                            "Sugerir con IA"
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            )
+                            Text(
+                                text = "Puedes cambiarla manualmente antes de publicar.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }

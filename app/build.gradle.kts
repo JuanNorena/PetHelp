@@ -66,6 +66,8 @@ android {
             "\"${localProperty("OPENAI_API_KEY")}\"")
         buildConfigField("String", "OPEN_ROUTER_API_KEY",
             "\"${localProperty("OPEN_ROUTER_API_KEY")}\"")
+        buildConfigField("String", "OPEN_ROUTER_PROXY_URL",
+            "\"${localProperty("OPEN_ROUTER_PROXY_URL")}\"")
     }
 
     buildTypes {

@@ -24,3 +24,7 @@
 # Obtener en: https://openrouter.ai → API Keys
 # Se usa en las pantallas de quiz de IA para recomendar mascotas.
 # OPEN_ROUTER_API_KEY=sk-or-v1-...
+#
+# Opcional y recomendado para produccion: URL HTTPS de la Cloud Function
+# openRouterProxy. Si se configura, Android no envia la API key directamente.
+# OPEN_ROUTER_PROXY_URL=https://<region>-<project-id>.cloudfunctions.net/openRouterProxy

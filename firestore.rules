@@ -30,5 +30,31 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
       allow create, delete: if false;
     }
+
+    // Conversaciones de adopcion
+    match /threads/{threadId} {
+      allow read: if isSignedIn()
+        && request.auth.uid in resource.data.participants;
+
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.participants;
+
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participants
+        && request.auth.uid in request.resource.data.participants;
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/threads/$(threadId)).data.participants;
+
+        allow create: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/threads/$(threadId)).data.participants
+          && request.resource.data.authorId == request.auth.uid;
+
+        allow update, delete: if false;
+      }
+    }
   }
 }
