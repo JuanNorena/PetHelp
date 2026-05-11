@@ -2,7 +2,6 @@ package com.pethelp.app.features.map.presentation
 
 import androidx.compose.ui.res.stringResource
 import com.pethelp.app.R
-import java.util.Locale
 import android.Manifest
 import android.location.Location
 import androidx.compose.foundation.BorderStroke
@@ -32,26 +31,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.maps.android.compose.*
 import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Post
@@ -107,6 +104,8 @@ fun MapScreen(
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var permissionRequested by rememberSaveable { mutableStateOf(false) }
+    val locationPermissionMessage = stringResource(R.string.map_location_permission_required)
+    val locationUnavailableMessage = stringResource(R.string.map_location_unavailable)
 
     // PASO 2: Recolección de estado desde el ViewModel (UDF).
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -129,11 +128,46 @@ fun MapScreen(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(armenia, 14f)
     }
+    var userLocation by remember { mutableStateOf<LatLng?>(null) }
 
     // PASO 3: Gestión de permisos de ubicación.
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
     )
+
+    suspend fun resolveUserLocation(): LatLng? {
+        if (!locationPermissionsState.allPermissionsGranted) return null
+
+        val freshLocation = runCatching {
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                CancellationTokenSource().token
+            ).await()
+        }.getOrNull()
+
+        val location = freshLocation ?: runCatching {
+            fusedLocationClient.lastLocation.await()
+        }.getOrNull()
+
+        return location?.let { LatLng(it.latitude, it.longitude) }
+    }
+
+    suspend fun centerCameraOnUserLocation() {
+        if (!locationPermissionsState.allPermissionsGranted) {
+            locationPermissionsState.launchMultiplePermissionRequest()
+            snackbarHostState.showSnackbar(locationPermissionMessage)
+            return
+        }
+
+        val latLng = resolveUserLocation()
+        if (latLng == null) {
+            snackbarHostState.showSnackbar(locationUnavailableMessage)
+            return
+        }
+
+        userLocation = latLng
+        cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+    }
 
     LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
         if (!locationPermissionsState.allPermissionsGranted && !permissionRequested) {
@@ -142,17 +176,17 @@ fun MapScreen(
         }
 
         if (locationPermissionsState.allPermissionsGranted) {
-            val location = runCatching { fusedLocationClient.lastLocation.await() }.getOrNull()
-            if (location != null) {
-                val userLatLng = LatLng(location.latitude, location.longitude)
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+            val latLng = resolveUserLocation()
+            if (latLng != null) {
+                userLocation = latLng
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
             }
         }
     }
 
     // Punto de referencia para calcular distancias (posición actual o centro del mapa)
-    val referenceLocation = remember(cameraPositionState.position) {
-        cameraPositionState.position.target
+    val referenceLocation = remember(userLocation, cameraPositionState.position) {
+        userLocation ?: cameraPositionState.position.target
     }
 
     var mapType by remember { mutableStateOf(MapType.NORMAL) }
@@ -196,7 +230,7 @@ fun MapScreen(
                     onClick = {
                         scope.launch {
                             drawerState.close()
-                            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(armenia, 15f))
+                            centerCameraOnUserLocation()
                         }
                     },
                     icon = { Icon(Icons.Default.MyLocation, null) },
@@ -385,9 +419,7 @@ fun MapScreen(
                 ) {
                     MapControlBtn(Icons.Default.MyLocation, surfaceColor, MaterialTheme.colorScheme.primary) {
                         scope.launch {
-                            cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(armenia, 15f)
-                            )
+                            centerCameraOnUserLocation()
                         }
                     }
                     MapControlBtn(Icons.Default.Layers, surfaceColor, textColor) {

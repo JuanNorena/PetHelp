@@ -3,13 +3,14 @@ package com.pethelp.app
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.MapsInitializer
 import com.pethelp.app.core.navigation.PetHelpNavGraph
@@ -26,13 +27,9 @@ import dagger.hilt.android.AndroidEntryPoint
  * - Toda la navegación se gestiona dentro del NavGraph de Compose.
  * - enableEdgeToEdge() activa el diseño pantalla completa (Material You).
  */
-import android.content.Context
-import android.content.res.Configuration
-import java.util.Locale
-import androidx.fragment.app.FragmentActivity
 
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Instalar Splash Screen antes de super.onCreate()
@@ -48,25 +45,9 @@ class MainActivity : FragmentActivity() {
             val profileViewModel: ProfileViewModel = hiltViewModel()
             val gamificationViewModel: GamificationViewModel = hiltViewModel()
             val isDarkMode by profileViewModel.isDarkMode.collectAsState()
-            val language by profileViewModel.language.collectAsState()
 
             LaunchedEffect(Unit) {
                 gamificationViewModel.onAppOpen()
-            }
-
-            // Update locale dynamically
-            LaunchedEffect(language) {
-                val locale = Locale(language)
-                Locale.setDefault(locale)
-                val config = resources.configuration
-                config.setLocale(locale)
-                
-                // For modern Android (N and above)
-                resources.updateConfiguration(config, resources.displayMetrics)
-                
-                // Trigger an activity recreation to ensure all strings are refreshed
-                // if we are not at the initial state.
-                // recreate() // Optional: uncomment if you want full restart on change
             }
 
             PetHelpTheme(darkTheme = isDarkMode) {

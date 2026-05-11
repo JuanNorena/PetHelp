@@ -1,6 +1,9 @@
 package com.pethelp.app
 
 import android.app.Application
+import com.google.firebase.appcheck.AppCheckProviderFactory
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.pethelp.app.core.preferences.AppLanguageManager
 import dagger.hilt.android.HiltAndroidApp
@@ -23,6 +26,10 @@ class PetHelpApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+            getAppCheckProviderFactory()
+        )
+
         // Aplica el idioma guardado antes de levantar pantallas.
         runBlocking {
             appLanguageManager.applySavedLanguage()
@@ -38,5 +45,15 @@ class PetHelpApplication : Application() {
                 .firebaseAuthSettings
                 .setAppVerificationDisabledForTesting(true)
         }
+    }
+
+    private fun getAppCheckProviderFactory(): AppCheckProviderFactory {
+        if (!BuildConfig.DEBUG) {
+            return PlayIntegrityAppCheckProviderFactory.getInstance()
+        }
+
+        return Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory")
+            .getMethod("getInstance")
+            .invoke(null) as AppCheckProviderFactory
     }
 }

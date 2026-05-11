@@ -8,6 +8,8 @@ import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import com.pethelp.app.core.domain.model.PostStatus
+import com.pethelp.app.features.ai.domain.repository.AiChatRepository
+import com.pethelp.app.features.ai.domain.repository.ModerationAiAnalysis
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -58,6 +60,9 @@ data class ModerationUiState(
     val moderatedPostsToday: List<Post> = emptyList(),
     val stats: ModerationStats = ModerationStats(),
     val selectedPost: Post? = null,
+    val aiAnalysis: ModerationAiAnalysis? = null,
+    val isAiAnalysisLoading: Boolean = false,
+    val aiAnalysisError: UiText? = null,
     val isLoading: Boolean = false,
     val isActionLoading: Boolean = false,
     val error: UiText? = null,
@@ -88,7 +93,8 @@ data class ModerationUiState(
  */
 @HiltViewModel
 class ModerationViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val aiChatRepository: AiChatRepository
 ) : ViewModel() {
 
     // ── Estados de la UI ────────────────────────────────────────────────────
@@ -108,6 +114,7 @@ class ModerationViewModel @Inject constructor(
     private var pendingPostsJob: Job? = null
     private var moderatedPostsJob: Job? = null
     private var postDetailJob: Job? = null
+    private var aiAnalysisJob: Job? = null
 
     init {
         // Al iniciar, cargamos toda la información necesaria para el Dashboard.
@@ -238,15 +245,25 @@ class ModerationViewModel @Inject constructor(
             postRepository.getPostById(postId).collectLatest { resource ->
                 when (resource) {
                     is Resource.Loading -> {
-                        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = true,
+                            error = null,
+                            aiAnalysis = null,
+                            aiAnalysisError = null,
+                            isAiAnalysisLoading = false
+                        )
                     }
 
                     is Resource.Success -> {
+                        val post = resource.data
                         _uiState.value = _uiState.value.copy(
-                            selectedPost = resource.data,
+                            selectedPost = post,
                             isLoading = false,
                             error = null
                         )
+                        if (post != null) {
+                            loadAiAnalysis(post)
+                        }
                     }
 
                     is Resource.Error -> {
@@ -256,6 +273,33 @@ class ModerationViewModel @Inject constructor(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun loadAiAnalysis(post: Post) {
+        aiAnalysisJob?.cancel()
+        aiAnalysisJob = viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isAiAnalysisLoading = true,
+                aiAnalysisError = null,
+                aiAnalysis = null
+            )
+
+            val result = aiChatRepository.analyzePostForModeration(post)
+            result.onSuccess { analysis ->
+                _uiState.value = _uiState.value.copy(
+                    aiAnalysis = analysis,
+                    isAiAnalysisLoading = false,
+                    aiAnalysisError = null
+                )
+            }.onFailure { exception ->
+                _uiState.value = _uiState.value.copy(
+                    isAiAnalysisLoading = false,
+                    aiAnalysisError = UiText.DynamicString(
+                        exception.message ?: "No fue posible generar el analisis de IA."
+                    )
+                )
             }
         }
     }

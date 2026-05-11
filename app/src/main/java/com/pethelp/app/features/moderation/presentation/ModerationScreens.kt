@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,10 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Pets
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +25,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,10 +42,12 @@ import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
-import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.features.ai.domain.repository.ModerationAiAnalysis
+import com.pethelp.app.features.ai.domain.repository.ModerationRiskLevel
 import com.pethelp.app.features.auth.presentation.AuthUiState
 import com.pethelp.app.features.auth.presentation.AuthViewModel
+import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -417,108 +420,17 @@ fun ModeratorDetailScreen(
                 }
 
                 uiState.selectedPost != null -> {
-                    val post = uiState.selectedPost
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding)
-                            .verticalScroll(rememberScrollState())
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = post?.title.orEmpty(),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                    uiState.selectedPost?.let { selectedPost ->
+                        ModeratorPostDetailContent(
+                            post = selectedPost,
+                            aiAnalysis = uiState.aiAnalysis,
+                            isAiAnalysisLoading = uiState.isAiAnalysisLoading,
+                            aiAnalysisError = uiState.aiAnalysisError,
+                            isActionLoading = uiState.isActionLoading,
+                            padding = padding,
+                            onApprove = { viewModel.approvePost(postId) },
+                            onReject = { showRejectDialog = true }
                         )
-
-                        // Metadatos de la publicación.
-                        Text(
-                            text = stringResource(R.string.moderation_detail_author_label, post?.authorName.orEmpty()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Text(
-                            text = stringResource(R.string.moderation_detail_category_label, UiText.fromCategory(post?.category ?: com.pethelp.app.core.domain.model.PostCategory.ADOPTION).asString()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Text(
-                            text = stringResource(R.string.moderation_detail_published_label, formatDate(post?.createdAt ?: 0L)),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        HorizontalDivider()
-
-                        // Descripción del contenido.
-                        Text(
-                            text = post?.description.orEmpty(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        // Historial de rechazos previos (si aplica).
-                        if (!post?.rejectionReason.isNullOrBlank()) {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = StatusErrorBg),
-                                shape = RoundedCornerShape(14.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(14.dp)) {
-                                    Text(
-                                        text = stringResource(R.string.moderation_previous_rejection_title),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = ErrorText,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = post?.rejectionReason.orEmpty(),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = StatusError
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // PASO 5: Botones de acción del moderador.
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Button(
-                                onClick = { viewModel.approvePost(postId) },
-                                enabled = !uiState.isActionLoading,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.btn_approve))
-                            }
-
-                            OutlinedButton(
-                                onClick = { showRejectDialog = true },
-                                enabled = !uiState.isActionLoading,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(stringResource(R.string.btn_reject))
-                            }
-                        }
-
-                        // Indicador de guardado en curso.
-                        if (uiState.isActionLoading) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.moderation_saving_decision),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
                     }
                 }
 
@@ -533,6 +445,529 @@ fun ModeratorDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ModeratorPostDetailContent(
+    post: Post,
+    aiAnalysis: ModerationAiAnalysis?,
+    isAiAnalysisLoading: Boolean,
+    aiAnalysisError: UiText?,
+    isActionLoading: Boolean,
+    padding: PaddingValues,
+    onApprove: () -> Unit,
+    onReject: () -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 24.dp)
+    ) {
+        item {
+            ModerationHeroSection(post = post)
+        }
+
+        item {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ModerationAiAnalysisCard(
+                    analysis = aiAnalysis,
+                    isLoading = isAiAnalysisLoading,
+                    error = aiAnalysisError
+                )
+                ModerationAuthorCard(post = post)
+                ModerationDescriptionCard(post = post)
+                ModerationPetInfoCard(post = post)
+                ModerationHealthCard(post = post)
+                ModerationLocationCard(post = post)
+                ModerationPreviousRejectionCard(post = post)
+                ModerationDecisionActions(
+                    isActionLoading = isActionLoading,
+                    onApprove = onApprove,
+                    onReject = onReject
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModerationHeroSection(post: Post) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            if (post.imageUrls.isNotEmpty()) {
+                AsyncImage(
+                    model = post.imageUrls.first(),
+                    contentDescription = stringResource(R.string.moderation_photo_main_desc),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.ImageNotSupported,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(54.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.moderation_no_photos),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp),
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    Text(
+                        text = stringResource(R.string.moderation_priority_review),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = post.title.ifBlank { stringResource(R.string.moderation_untitled_post) },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusBadge(post.status)
+                InfoChip(
+                    icon = Icons.Default.Category,
+                    label = UiText.fromCategory(post.category).asString()
+                )
+            }
+        }
+
+        if (post.imageUrls.size > 1) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(post.imageUrls) { imageUrl ->
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.moderation_photo_thumbnail_desc),
+                        modifier = Modifier
+                            .size(width = 96.dp, height = 72.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModerationAiAnalysisCard(
+    analysis: ModerationAiAnalysis?,
+    isLoading: Boolean,
+    error: UiText?
+) {
+    val riskColors = when (analysis?.riskLevel) {
+        ModerationRiskLevel.HIGH -> StatusErrorBg to StatusError
+        ModerationRiskLevel.MEDIUM -> StatusWarningBg to StatusWarning
+        else -> StatusSuccessBg to StatusSuccess
+    }
+
+    SectionCard {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.moderation_ai_review_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.moderation_ai_review_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (analysis != null) {
+                Surface(shape = RoundedCornerShape(50), color = riskColors.first) {
+                    Text(
+                        text = stringResource(R.string.moderation_ia_match, analysis.confidence),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        color = riskColors.second,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        when {
+            isLoading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                Text(
+                    text = stringResource(R.string.moderation_ai_loading),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            error != null -> Text(
+                text = error.asString(),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            analysis != null -> {
+                Text(
+                    text = analysis.summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(12.dp))
+                ModerationAnalysisList(stringResource(R.string.moderation_ai_strengths), analysis.strengths, StatusSuccess)
+                ModerationAnalysisList(stringResource(R.string.moderation_ai_concerns), analysis.concerns, StatusWarning)
+                ModerationAnalysisList(stringResource(R.string.moderation_ai_missing), analysis.missingFields, StatusError)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.moderation_ai_recommendation, analysis.recommendation),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModerationAnalysisList(title: String, items: List<String>, color: Color) {
+    if (items.isEmpty()) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 6.dp)) {
+        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = color)
+        items.forEach { item ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                Box(modifier = Modifier.padding(top = 7.dp).size(6.dp).background(color, CircleShape))
+                Text(item, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModerationAuthorCard(post: Post) {
+    SectionCard {
+        SectionTitle(Icons.Default.Person, stringResource(R.string.moderation_author_section))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (post.authorPhotoUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = post.authorPhotoUrl,
+                        contentDescription = stringResource(R.string.profile_avatar_desc),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        text = post.authorName.firstOrNull()?.uppercase().orEmpty().ifBlank { "?" },
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(post.authorName.ifBlank { stringResource(R.string.post_detail_unknown_user) }, fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(R.string.moderation_author_id, post.authorId.ifBlank { "-" }),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = stringResource(R.string.moderation_detail_published_label, formatDate(post.createdAt)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModerationDescriptionCard(post: Post) {
+    SectionCard {
+        SectionTitle(Icons.Default.Description, stringResource(R.string.post_desc_hint))
+        Text(
+            text = post.description.ifBlank { stringResource(R.string.moderation_empty_description) },
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 22.sp
+        )
+    }
+}
+
+@Composable
+private fun ModerationPetInfoCard(post: Post) {
+    val context = LocalContext.current
+    val behaviorText = post.behavior
+        .joinToString { behavior -> UiText.fromBehavior(behavior).asString(context) }
+        .ifBlank { "-" }
+
+    SectionCard {
+        SectionTitle(Icons.Default.Pets, stringResource(R.string.post_summary_details))
+        InfoGrid(
+            listOf(
+                Triple(Icons.Default.Pets, stringResource(R.string.post_summary_animal_type), post.animalType.ifBlank { "-" }),
+                Triple(Icons.Default.Badge, stringResource(R.string.post_summary_breed), post.breed.ifBlank { "-" }),
+                Triple(Icons.Default.Cake, stringResource(R.string.post_summary_age), UiText.fromAge(post.age).asString()),
+                Triple(Icons.Default.Wc, stringResource(R.string.post_summary_gender), UiText.fromGender(post.gender).asString()),
+                Triple(Icons.Default.Straighten, stringResource(R.string.post_summary_size), UiText.fromSize(post.size).asString()),
+                Triple(Icons.Default.ChatBubble, stringResource(R.string.post_summary_behavior), behaviorText)
+            )
+        )
+    }
+}
+
+@Composable
+private fun ModerationHealthCard(post: Post) {
+    SectionCard {
+        SectionTitle(Icons.Default.HealthAndSafety, stringResource(R.string.post_summary_health))
+        ChipGrid(
+            listOf(
+                stringResource(R.string.post_vaccinated_label) to post.vaccinated,
+                stringResource(R.string.post_dewormed_label) to post.dewormed,
+                stringResource(R.string.post_sterilized_label) to post.sterilized,
+                stringResource(R.string.edit_post_health_special) to post.specialCares
+            )
+        )
+    }
+}
+
+@Composable
+private fun ModerationLocationCard(post: Post) {
+    SectionCard {
+        SectionTitle(Icons.Default.LocationOn, stringResource(R.string.post_summary_location))
+        InfoGrid(
+            listOf(
+                Triple(Icons.Default.Place, stringResource(R.string.post_location_selected_label), post.locationName.ifBlank { "-" }),
+                Triple(Icons.Default.LocationCity, stringResource(R.string.post_summary_city), post.city.ifBlank { "-" }),
+                Triple(Icons.Default.Map, stringResource(R.string.post_neighborhood_label), post.neighborhood.ifBlank { "-" }),
+                Triple(Icons.Default.PinDrop, stringResource(R.string.common_location), "${post.latitude}, ${post.longitude}")
+            )
+        )
+    }
+}
+
+@Composable
+private fun ModerationPreviousRejectionCard(post: Post) {
+    if (post.rejectionReason.isNullOrBlank()) return
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = StatusErrorBg),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SectionTitle(Icons.Default.Report, stringResource(R.string.moderation_previous_rejection_title), StatusError)
+            Text(
+                text = post.rejectionReason,
+                style = MaterialTheme.typography.bodyMedium,
+                color = StatusError
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModerationDecisionActions(
+    isActionLoading: Boolean,
+    onApprove: () -> Unit,
+    onReject: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = onApprove,
+                enabled = !isActionLoading,
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.btn_approve))
+            }
+
+            OutlinedButton(
+                onClick = onReject,
+                enabled = !isActionLoading,
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.Cancel, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.btn_reject))
+            }
+        }
+
+        if (isActionLoading) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.moderation_saving_decision),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
+    }
+}
+
+@Composable
+private fun SectionTitle(icon: ImageVector, title: String, color: Color = MaterialTheme.colorScheme.primary) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))
+        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+@Composable
+private fun InfoGrid(items: List<Triple<ImageVector, String, String>>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        items.chunked(2).forEach { rowItems ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                rowItems.forEach { item ->
+                    InfoTile(icon = item.first, label = item.second, value = item.third, modifier = Modifier.weight(1f))
+                }
+                if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoTile(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Column {
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BooleanChip(label: String, enabled: Boolean) {
+    val color = if (enabled) StatusSuccess else StatusNeutral
+    val bg = if (enabled) StatusSuccessBg else StatusNeutralBg
+
+    Surface(shape = RoundedCornerShape(50), color = bg) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(if (enabled) Icons.Default.Check else Icons.Default.Close, null, tint = color, modifier = Modifier.size(16.dp))
+            Text(label, color = color, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+private fun ChipGrid(items: List<Pair<String, Boolean>>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        items.chunked(2).forEach { rowItems ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                rowItems.forEach { item ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        BooleanChip(item.first, item.second)
+                    }
+                }
+                if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoChip(icon: ImageVector, label: String) {
+    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(15.dp))
+            Text(label, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -749,12 +1184,31 @@ private fun PendingPostCard(
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Surface(
+                    modifier = Modifier.size(74.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    if (post.imageUrls.isNotEmpty()) {
+                        AsyncImage(
+                            model = post.imageUrls.first(),
+                            contentDescription = stringResource(R.string.moderation_photo_thumbnail_desc),
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.ImageNotSupported, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = post.title,
+                        text = post.title.ifBlank { stringResource(R.string.moderation_untitled_post) },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -770,11 +1224,9 @@ private fun PendingPostCard(
                     )
                 }
 
-                // Badge de coincidencia de IA.
                 MatchBadge(percentage = post.iaMatchPercentage ?: 0)
             }
 
-            // Resumen de IA (opcional).
             if (!post.iaSummary.isNullOrBlank()) {
                 Box(
                     modifier = Modifier
@@ -804,12 +1256,10 @@ private fun PendingPostCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.moderation_detail_category_label, UiText.fromCategory(post.category).asString()),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    InfoChip(Icons.Default.Category, UiText.fromCategory(post.category).asString())
+                    InfoChip(Icons.Default.PhotoLibrary, stringResource(R.string.moderation_photo_count, post.imageUrls.size))
+                }
                 
                 Text(
                     text = stringResource(R.string.moderation_view_details),

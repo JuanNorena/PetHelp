@@ -617,9 +617,9 @@ private fun MissionCard(mission: Mission) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = mission.title, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                    Text(text = localizedMissionTitle(mission), fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     Text(
-                        text = mission.description,
+                        text = localizedMissionDescription(mission),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -633,7 +633,7 @@ private fun MissionCard(mission: Mission) {
             }
             Spacer(Modifier.height(12.dp))
             LinearProgressIndicator(
-                progress = progress,
+                progress = { progress },
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50))
@@ -658,6 +658,34 @@ private fun MissionCard(mission: Mission) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun localizedMissionTitle(mission: Mission): String {
+    return when (mission.id) {
+        "daily_post" -> stringResource(R.string.mission_daily_post_title)
+        "daily_comment" -> stringResource(R.string.mission_daily_comment_title)
+        "daily_adoption" -> stringResource(R.string.mission_daily_adoption_title)
+        "daily_like" -> stringResource(R.string.mission_daily_like_title)
+        "first_post" -> stringResource(R.string.mission_first_post_title)
+        "first_comment" -> stringResource(R.string.mission_first_comment_title)
+        "first_adoption" -> stringResource(R.string.mission_first_adoption_title)
+        else -> mission.title
+    }
+}
+
+@Composable
+private fun localizedMissionDescription(mission: Mission): String {
+    return when (mission.id) {
+        "daily_post" -> stringResource(R.string.mission_daily_post_desc)
+        "daily_comment" -> stringResource(R.string.mission_daily_comment_desc)
+        "daily_adoption" -> stringResource(R.string.mission_daily_adoption_desc)
+        "daily_like" -> stringResource(R.string.mission_daily_like_desc)
+        "first_post" -> stringResource(R.string.mission_first_post_desc)
+        "first_comment" -> stringResource(R.string.mission_first_comment_desc)
+        "first_adoption" -> stringResource(R.string.mission_first_adoption_desc)
+        else -> mission.description
     }
 }
 
@@ -715,17 +743,41 @@ private fun BadgeCard(badge: BadgeDisplay) {
                 Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
             }
             Text(
-                text = badge.definition.name,
+                text = localizedBadgeName(badge),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = badge.definition.description,
+                text = localizedBadgeDescription(badge),
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2
             )
         }
+    }
+}
+
+@Composable
+private fun localizedBadgeName(badge: BadgeDisplay): String {
+    return when (badge.definition.id) {
+        "badge_first_post" -> stringResource(R.string.badge_first_post_name)
+        "badge_first_comment" -> stringResource(R.string.badge_first_comment_name)
+        "badge_helper" -> stringResource(R.string.badge_helper_name)
+        "badge_adopter" -> stringResource(R.string.badge_adopter_name)
+        "badge_streak_7" -> stringResource(R.string.badge_streak_7_name)
+        else -> badge.definition.name
+    }
+}
+
+@Composable
+private fun localizedBadgeDescription(badge: BadgeDisplay): String {
+    return when (badge.definition.id) {
+        "badge_first_post" -> stringResource(R.string.badge_first_post_desc)
+        "badge_first_comment" -> stringResource(R.string.badge_first_comment_desc)
+        "badge_helper" -> stringResource(R.string.badge_helper_desc)
+        "badge_adopter" -> stringResource(R.string.badge_adopter_desc)
+        "badge_streak_7" -> stringResource(R.string.badge_streak_7_desc)
+        else -> badge.definition.description
     }
 }
 
@@ -1016,7 +1068,7 @@ fun EditProfileScreen(
                          if (user.photoUrl.isNotBlank()) {
                              AsyncImage(
                                  model = user.photoUrl,
-                                 contentDescription = "Foto de perfil",
+                                 contentDescription = stringResource(R.string.profile_avatar_desc),
                                  modifier = Modifier.fillMaxSize(),
                                  contentScale = ContentScale.Crop
                              )
