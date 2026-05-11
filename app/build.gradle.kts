@@ -115,6 +115,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.ai)
     // ── Desugaring (habilita APIs de java.time y otras en todos los niveles de API;
     //    recomendado aunque minSdk >= 26 para consistencia entre dispositivos) ───
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")

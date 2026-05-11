@@ -9,7 +9,9 @@ import com.pethelp.app.features.ai.domain.repository.AiChatRequest
 import com.pethelp.app.features.ai.domain.repository.AiChatResponse
 import com.pethelp.app.features.ai.domain.repository.AiMessage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.random.Random
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -26,39 +28,82 @@ class AiChatRepositoryImpl @Inject constructor(
 
     override suspend fun callOpenRouter(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
-            try {
-                val apiKey = BuildConfig.OPEN_ROUTER_API_KEY
-                val proxyUrl = BuildConfig.OPEN_ROUTER_PROXY_URL
-                if (apiKey.isEmpty() && proxyUrl.isEmpty()) {
-                    return@withContext Result.failure(Exception("OPEN_ROUTER_API_KEY not configured"))
-                }
-
-                val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaType())
-                val url = proxyUrl.ifBlank { OPENROUTER_API_URL }
-                val requestBuilder = Request.Builder()
-                    .url(url)
-                    .addHeader("Accept", "application/json")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("HTTP-Referer", "https://pethelp.app")
-                    .addHeader("X-OpenRouter-Title", "PetHelp Android")
-                    .post(requestBody)
-
-                if (proxyUrl.isBlank()) {
-                    requestBuilder.addHeader("Authorization", "Bearer $apiKey")
-                }
-
-                val response = httpClient.newCall(requestBuilder.build()).execute()
-                val bodyString = response.body?.string() ?: "{}"
-
-                if (response.isSuccessful) {
-                    val parsedResponse = gson.fromJson(bodyString, AiChatResponse::class.java)
-                    Result.success(parsedResponse)
-                } else {
-                    Result.failure(Exception(parseOpenRouterError(response.code, bodyString)))
-                }
-            } catch (e: Exception) {
-                Result.failure(e)
+            val apiKey = BuildConfig.OPEN_ROUTER_API_KEY
+            val proxyUrl = BuildConfig.OPEN_ROUTER_PROXY_URL
+            if (apiKey.isEmpty() && proxyUrl.isEmpty()) {
+                return@withContext Result.failure(Exception("OPEN_ROUTER_API_KEY not configured"))
             }
+
+            val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaType())
+            val url = proxyUrl.ifBlank { OPENROUTER_API_URL }
+
+            val maxRetries = 3
+            var attempt = 0
+            var delayMs = 500L
+
+            suspend fun executeWithRetry(): Result<AiChatResponse> {
+                while (true) {
+                    try {
+                        val requestBuilder = Request.Builder()
+                            .url(url)
+                            .addHeader("Accept", "application/json")
+                            .addHeader("Content-Type", "application/json")
+                            .addHeader("HTTP-Referer", "https://pethelp.app")
+                            .addHeader("X-OpenRouter-Title", "PetHelp Android")
+                            .post(requestBody)
+
+                        if (proxyUrl.isBlank()) {
+                            requestBuilder.addHeader("Authorization", "Bearer $apiKey")
+                        }
+
+                        val response = httpClient.newCall(requestBuilder.build()).execute()
+                        val bodyString = response.body?.string() ?: "{}"
+
+                        if (response.isSuccessful) {
+                            val parsedResponse = gson.fromJson(bodyString, AiChatResponse::class.java)
+                            return Result.success(parsedResponse)
+                        }
+
+                        val code = response.code
+                        val msg = parseOpenRouterError(code, bodyString)
+                        val shouldRetry = code == 429 || code in 500..599
+
+                        val providerHint = runCatching {
+                            val root = gson.fromJson(bodyString, Map::class.java)
+                            val error = root["error"] as? Map<*, *>
+                            val metadata = error?.get("metadata") as? Map<*, *>
+                            val raw = metadata?.get("raw") as? String
+                            val isByok = metadata?.get("is_byok") as? Boolean
+                            when {
+                                isByok == false && raw != null -> " Provider hint: $raw"
+                                raw != null -> " Provider hint: $raw"
+                                else -> ""
+                            }
+                        }.getOrDefault("")
+
+                        if (shouldRetry && attempt < maxRetries) {
+                            attempt++
+                            val jitter = Random.nextLong(0, 200)
+                            delay(delayMs + jitter)
+                            delayMs = (delayMs * 2).coerceAtMost(5000L)
+                            continue
+                        }
+
+                        return Result.failure(Exception("$msg$providerHint"))
+                    } catch (e: Exception) {
+                        if (attempt < maxRetries) {
+                            attempt++
+                            val jitter = Random.nextLong(0, 200)
+                            delay(delayMs + jitter)
+                            delayMs = (delayMs * 2).coerceAtMost(5000L)
+                            continue
+                        }
+                        return Result.failure(e)
+                    }
+                }
+            }
+
+            return@withContext executeWithRetry()
         }
     }
 
@@ -92,12 +137,12 @@ class AiChatRepositoryImpl @Inject constructor(
                     .trim()
 
                 if (assistantMessage.isBlank()) {
-                    Result.failure(Exception("La IA no devolvio recomendaciones."))
+                    return@withContext Result.failure(Exception("La IA no devolvio recomendaciones."))
                 } else {
-                    Result.success(assistantMessage)
+                    return@withContext Result.success(assistantMessage)
                 }
             } catch (e: Exception) {
-                Result.failure(e)
+                return@withContext Result.failure(e)
             }
         }
     }
@@ -136,9 +181,9 @@ class AiChatRepositoryImpl @Inject constructor(
                     ?.content
                     .orEmpty()
 
-                Result.success(parseCategorySuggestion(content))
+                return@withContext Result.success(parseCategorySuggestion(content))
             } catch (e: Exception) {
-                Result.failure(e)
+                return@withContext Result.failure(e)
             }
         }
     }
@@ -214,7 +259,11 @@ class AiChatRepositoryImpl @Inject constructor(
             val root = gson.fromJson(body, Map::class.java)
             val error = root["error"] as? Map<*, *>
             val message = error?.get("message") as? String
-            "OpenRouter HTTP $code: ${message ?: body.take(240)}"
+            if (code == 429) {
+                "La IA esta temporalmente limitada por el proveedor. Intenta de nuevo en unos segundos."
+            } else {
+                "OpenRouter HTTP $code: ${message ?: body.take(240)}"
+            }
         }.getOrElse {
             "OpenRouter HTTP $code: ${body.take(240)}"
         }

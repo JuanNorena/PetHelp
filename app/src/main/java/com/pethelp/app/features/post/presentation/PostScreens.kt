@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -315,6 +316,8 @@ fun PostDetailScreen(
                     PostDetailContent(
                         post = post,
                         comments = uiState.comments,
+                        isFavorite = uiState.isFavorite,
+                        onFavoriteClick = { viewModel.toggleFavorite() },
                         onBackClick = { navController.popBackStack() },
                         onCommentSubmit = { viewModel.addComment(it) },
                         modifier = Modifier.padding(innerPadding)
@@ -372,6 +375,8 @@ private fun InfoChipCard(
 private fun PostDetailContent(
     post: Post,
     comments: List<Comment>,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     onBackClick: () -> Unit,
     onCommentSubmit: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -661,13 +666,13 @@ private fun PostDetailContent(
             }
         }
 
-        // â”€â”€ Botones de acciÃ³n (Volver) fijos â”€â”€
+        // â”€â”€ Botones de acciÃ³n (Volver y Favorito) fijos â”€â”€
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(
                 onClick = onBackClick,
@@ -676,6 +681,19 @@ private fun PostDetailContent(
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), CircleShape)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            IconButton(
+                onClick = onFavoriteClick,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
+                    tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -1227,12 +1245,28 @@ fun AdoptionRequestItem(
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                AsyncImage(
-                    model = request.requesterPhotoUrl,
-                    contentDescription = null,
-                    modifier = Modifier.size(52.dp).clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                if (request.requesterPhotoUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = request.requesterPhotoUrl,
+                        contentDescription = null,
+                        modifier = Modifier.size(52.dp).clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1259,6 +1293,18 @@ fun AdoptionRequestItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                if (request.postImageUrl.isNotBlank()) {
+                    Spacer(Modifier.width(12.dp))
+                    AsyncImage(
+                        model = request.postImageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             Surface(
@@ -1280,7 +1326,7 @@ fun AdoptionRequestItem(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     InfoChip(text = UiText.fromExperience(request.hasExperience).asString(), icon = Icons.Default.Pets)
-                    InfoChip(text = UiText.fromContactPreference(request.contactPreference).asString(), icon = Icons.Default.Chat)
+                    InfoChip(text = UiText.fromContactPreference(request.contactPreference).asString(), icon = Icons.AutoMirrored.Filled.Chat)
                 }
                 if (request.phone.isNotBlank()) {
                     InfoChip(text = request.phone, icon = Icons.Default.Phone)

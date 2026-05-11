@@ -32,6 +32,7 @@ data class PostDetailUiState(
     val post: Post? = null,
     val comments: List<Comment> = emptyList(),
     val hasVoted: Boolean = false,
+    val isFavorite: Boolean = false,
     val existingAdoptionRequest: AdoptionRequest? = null,
     val isLoading: Boolean = true,
     val error: UiText? = null
@@ -73,6 +74,7 @@ class PostDetailViewModel @Inject constructor(
         loadPost()
         loadComments()
         checkVoteStatus()
+        checkFavoriteStatus()
         checkAdoptionRequestStatus()
     }
 
@@ -99,9 +101,24 @@ class PostDetailViewModel @Inject constructor(
         viewModelScope.launch {
             postRepository.getComments(postId).collect { resource ->
                 if (resource is Resource.Success) {
-                    _uiState.value = _uiState.value.copy(
-                        comments = resource.data ?: emptyList()
-                    )
+                    val incoming = resource.data ?: emptyList()
+                    val current = _uiState.value.comments
+                    val temp = current.filter { it.id.startsWith("temp_") }
+
+                    val replacedTempIds = temp.filter { tempComment ->
+                        incoming.any { real ->
+                            real.authorId == tempComment.authorId &&
+                                real.text == tempComment.text &&
+                                real.createdAt in (tempComment.createdAt - 100)..(tempComment.createdAt + 2000)
+                        }
+                    }.map { it.id }
+
+                    val merged = incoming + temp.filter { it.id !in replacedTempIds }
+                    val deduped = merged
+                        .distinctBy { "${it.authorId}_${it.createdAt}_${it.text}" }
+                        .sortedBy { it.createdAt }
+
+                    _uiState.value = _uiState.value.copy(comments = deduped)
                 }
             }
         }
@@ -114,6 +131,18 @@ class PostDetailViewModel @Inject constructor(
             postRepository.hasUserVoted(postId, userId).collect { resource ->
                 if (resource is Resource.Success) {
                     _uiState.value = _uiState.value.copy(hasVoted = resource.data ?: false)
+                }
+            }
+        }
+    }
+
+    private fun checkFavoriteStatus() {
+        val userId = currentUserId
+        if (userId.isBlank()) return
+        viewModelScope.launch {
+            postRepository.hasUserVoted(postId, userId).collect { resource ->
+                if (resource is Resource.Success) {
+                    _uiState.value = _uiState.value.copy(isFavorite = resource.data ?: false)
                 }
             }
         }
@@ -171,22 +200,62 @@ class PostDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             val userDoc = getCurrentUserDoc(userId)
-            val comment = Comment(
+            val now = System.currentTimeMillis()
+            val tempComment = Comment(
+                id = "temp_${now}_${userId.hashCode()}",
                 postId = postId,
                 authorId = userId,
                 authorName = userDoc?.getString("name")
                     ?.takeIf { it.isNotBlank() }
                     ?: currentUserName.ifBlank { "Usuario" },
                 authorPhotoUrl = userDoc?.getString("photoUrl").orEmpty(),
-                text = text.trim()
+                text = text.trim(),
+                createdAt = now
             )
 
-            postRepository.addComment(comment).collect { resource ->
+            // Actualizacion optimista: mostrar en UI de inmediato
+            _uiState.value = _uiState.value.copy(
+                comments = _uiState.value.comments + tempComment
+            )
+
+            postRepository.addComment(tempComment).collect { resource ->
                 when (resource) {
-                    is Resource.Error -> _snackbarMessage.emit(
-                        resource.message ?: UiText.StringResource(R.string.comment_error)
-                    )
+                    is Resource.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            comments = _uiState.value.comments.filter { it.id != tempComment.id }
+                        )
+                        _snackbarMessage.emit(
+                            resource.message ?: UiText.StringResource(R.string.comment_error)
+                        )
+                    }
                     else -> { /* success handled by live listener */ }
+                }
+            }
+        }
+    }
+
+    /** Alterna el estado de favorito del usuario autenticado sobre la publicacion actual. */
+    fun toggleFavorite() {
+        val userId = currentUserId
+        if (userId.isBlank()) {
+            viewModelScope.launch { _snackbarMessage.emit(UiText.StringResource(R.string.vote_login_required)) }
+            return
+        }
+        viewModelScope.launch {
+            val isFavorite = _uiState.value.isFavorite
+            postRepository.toggleFavorite(postId, userId, isFavorite).collect { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        val updatedVotes = resource.data ?: (_uiState.value.post?.votes ?: 0)
+                        _uiState.value = _uiState.value.copy(
+                            isFavorite = !isFavorite,
+                            post = _uiState.value.post?.copy(votes = updatedVotes)
+                        )
+                    }
+                    is Resource.Error -> _snackbarMessage.emit(
+                        resource.message ?: UiText.StringResource(R.string.vote_error)
+                    )
+                    is Resource.Loading -> { /* no-op */ }
                 }
             }
         }

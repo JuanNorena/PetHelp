@@ -67,6 +67,7 @@ junitExt                = "1.2.1"
 espressoCore            = "3.6.1"
 mockk                   = "1.13.12"
 turbine                 = "1.2.0"
+firebaseAi = "17.12.0"
 
 # ─────────────────────────────────────────────────────────────
 [libraries]
@@ -154,6 +155,7 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui",    name = "
 mockk                           = { group = "io.mockk",                 name = "mockk",                     version.ref = "mockk" }
 turbine                         = { group = "app.cash.turbine",         name = "turbine",                   version.ref = "turbine" }
 kotlinx-coroutines-test         = { group = "org.jetbrains.kotlinx",   name = "kotlinx-coroutines-test",   version.ref = "coroutines" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai", version.ref = "firebaseAi" }
 
 # ─────────────────────────────────────────────────────────────
 [plugins]

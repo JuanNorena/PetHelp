@@ -8,12 +8,14 @@ import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
+import com.pethelp.app.features.auth.domain.repository.AuthRepository
 import com.pethelp.app.features.post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,7 +37,8 @@ data class FeedUiState(
     val allPublicPosts: List<Post> = emptyList(),
     val selectedCategory: PostCategory? = null,
     val isLoading: Boolean = false,
-    val error: UiText? = null
+    val error: UiText? = null,
+    val favoritesSet: Set<String> = emptySet()
 ) {
     /**
      * Propiedad derivada que calcula la lista de publicaciones a mostrar.
@@ -80,7 +83,8 @@ data class FeedUiState(
  */
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     // ── Estado Interno y Público ─────────────────────────────────────────────
@@ -97,6 +101,38 @@ class FeedViewModel @Inject constructor(
      */
     init {
         loadPublicPosts()
+        observeUserFavorites()
+    }
+
+    private fun observeUserFavorites() {
+        viewModelScope.launch {
+            authRepository.getCurrentUser().collect { resource ->
+                if (resource is Resource.Success) {
+                    val userId = resource.data?.id ?: return@collect
+                    postRepository.getFavoritePosts(userId).collect { favRes ->
+                        if (favRes is Resource.Success) {
+                            val ids = (favRes.data ?: emptyList()).map { it.id }.toSet()
+                            _uiState.update { it.copy(favoritesSet = ids) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** Alterna favorito para el usuario actual. */
+    fun toggleFavorite(postId: String) {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUser().first().data?.id ?: return@launch
+            val isCurrentlyFavorite = _uiState.value.favoritesSet.contains(postId)
+            postRepository.toggleFavorite(postId, userId, isCurrentlyFavorite).collect { resource ->
+                if (resource is Resource.Success) {
+                    val newSet = _uiState.value.favoritesSet.toMutableSet()
+                    if (isCurrentlyFavorite) newSet.remove(postId) else newSet.add(postId)
+                    _uiState.update { it.copy(favoritesSet = newSet) }
+                }
+            }
+        }
     }
 
     // ── Gestión de Datos ─────────────────────────────────────────────────────

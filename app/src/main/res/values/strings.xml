@@ -19,6 +19,7 @@
     <string name="login_greeting">¡Hola de nuevo!</string>
     <string name="login_subtitle">Bienvenido, te echamos de menos.</string>
     <string name="common_cancel">Cancelar</string>
+    <string name="common_allow">Permitir</string>
     <string name="forgot_password_link">¿Olvidaste tu contraseña?</string>
     <string name="register_heading">Crea tu\ncuenta</string>
     <string name="btn_register_me">Registrarme</string>
@@ -177,6 +178,8 @@
     <string name="map_drawer_layers">Capas de Mapa</string>
     <string name="map_drawer_settings">Configuración</string>
     <string name="map_search_hint">Buscar mascotas...</string>
+    <string name="map_permission_title">Permite la ubicacion</string>
+    <string name="map_permission_body">Necesitamos tu ubicacion para mostrar mascotas cercanas.</string>
     <string name="map_nearby_indicator">%1$d mascotas cerca</string>
     <string name="map_sheet_near_you">Cerca de ti</string>
     <string name="map_sheet_view_details">Ver detalle</string>

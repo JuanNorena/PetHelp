@@ -27,6 +27,7 @@ data class AdoptionRequest(
     val id: String = "",
     val postId: String = "",
     val postTitle: String = "",
+    val postImageUrl: String = "",
     val postAuthorId: String = "",
     val requesterId: String = "",
     val requesterName: String = "",
