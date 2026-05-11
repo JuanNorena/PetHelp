@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +48,7 @@ import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -57,6 +59,7 @@ import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.launch
 
 /**
@@ -101,6 +104,9 @@ fun MapScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var permissionRequested by rememberSaveable { mutableStateOf(false) }
 
     // PASO 2: Recolección de estado desde el ViewModel (UDF).
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -119,14 +125,29 @@ fun MapScreen(
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val outlineColor = MaterialTheme.colorScheme.outlineVariant
 
+    val armenia = LatLng(4.535, -75.675)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(armenia, 14f)
+    }
+
     // PASO 3: Gestión de permisos de ubicación.
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
     )
 
-    val armenia = LatLng(4.535, -75.675)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(armenia, 14f)
+    LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
+        if (!locationPermissionsState.allPermissionsGranted && !permissionRequested) {
+            permissionRequested = true
+            locationPermissionsState.launchMultiplePermissionRequest()
+        }
+
+        if (locationPermissionsState.allPermissionsGranted) {
+            val location = runCatching { fusedLocationClient.lastLocation.await() }.getOrNull()
+            if (location != null) {
+                val userLatLng = LatLng(location.latitude, location.longitude)
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+            }
+        }
     }
 
     // Punto de referencia para calcular distancias (posición actual o centro del mapa)
@@ -212,6 +233,11 @@ fun MapScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
+                if (!locationPermissionsState.allPermissionsGranted) {
+                    LocationPermissionBanner(
+                        onRequest = { locationPermissionsState.launchMultiplePermissionRequest() }
+                    )
+                }
                 // PASO 5: Integración del Mapa de Google.
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
@@ -426,6 +452,46 @@ fun MapScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocationPermissionBanner(onRequest: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                Icons.Default.MyLocation,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.map_permission_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.map_permission_body),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            TextButton(onClick = onRequest) {
+                Text(stringResource(R.string.common_allow))
             }
         }
     }

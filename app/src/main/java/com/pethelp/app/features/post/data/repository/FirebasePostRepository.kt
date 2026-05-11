@@ -14,6 +14,7 @@ import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
+import com.pethelp.app.core.domain.model.UserLevel
 import com.pethelp.app.features.post.domain.model.AdoptionRequest
 import com.pethelp.app.features.post.domain.model.AdoptionRequestStatus
 import com.pethelp.app.features.post.domain.repository.PostRepository
@@ -41,6 +42,7 @@ class FirebasePostRepository @Inject constructor(
     private val votesCollection get() = firestore.collection(Constants.COLLECTION_VOTES)
     private val adoptionRequestsCollection get() = firestore.collection(Constants.COLLECTION_ADOPTION_REQUESTS)
     private val notificationsCollection get() = firestore.collection(Constants.COLLECTION_NOTIFICATIONS)
+    private val usersCollection get() = firestore.collection(Constants.COLLECTION_USERS)
 
     // ── Obtener publicación por ID (con listener en tiempo real) ─────────────
     override fun getPostById(postId: String): Flow<Resource<Post>> = callbackFlow {
@@ -302,6 +304,8 @@ class FirebasePostRepository @Inject constructor(
 
             val postMap = postToMap(newPost)
             docRef.set(postMap).await()
+
+            addUserPoints(currentUser.uid, Constants.POINTS_CREATE_POST)
 
             emit(Resource.Success(newPost))
         } catch (e: Exception) {
@@ -581,6 +585,7 @@ class FirebasePostRepository @Inject constructor(
                 mapOf(
                     "postId" to postId,
                     "postTitle" to post.title,
+                    "postImageUrl" to (post.imageUrls.firstOrNull() ?: ""),
                     "postAuthorId" to post.authorId,
                     "requesterId" to userId,
                     "requesterName" to requesterName,
@@ -709,6 +714,7 @@ class FirebasePostRepository @Inject constructor(
                 throw IllegalStateException("La solicitud de adopción no existe.")
             }
             val requestPostId = requestSnapshot.getString("postId").orEmpty()
+            val requesterId = requestSnapshot.getString("requesterId").orEmpty()
             if (requestPostId != postId) {
                 throw IllegalStateException("La solicitud no corresponde a esta publicación.")
             }
@@ -765,6 +771,10 @@ class FirebasePostRepository @Inject constructor(
             }
 
             batch.commit().await()
+
+            if (requesterId.isNotBlank()) {
+                addUserPoints(requesterId, Constants.POINTS_ADOPTION_ACCEPTED)
+            }
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al aceptar la solicitud de adopción."))
@@ -869,6 +879,7 @@ class FirebasePostRepository @Inject constructor(
                     id = doc.id,
                     postId = doc.getString("postId") ?: "",
                     postTitle = doc.getString("postTitle") ?: "",
+                    postImageUrl = doc.getString("postImageUrl") ?: "",
                     postAuthorId = doc.getString("postAuthorId") ?: "",
                     requesterId = doc.getString("requesterId") ?: "",
                     requesterName = doc.getString("requesterName") ?: "",
@@ -902,11 +913,47 @@ class FirebasePostRepository @Inject constructor(
             null
         }
 
+        val requesterPhotoUrl = if (request.requesterPhotoUrl.isBlank() && request.requesterId.isNotBlank()) {
+            runCatching {
+                usersCollection.document(request.requesterId).get().await().getString("photoUrl")
+            }.getOrNull().orEmpty()
+        } else {
+            request.requesterPhotoUrl
+        }
+
+        val postImageUrl = request.postImageUrl.ifBlank { post?.imageUrls?.firstOrNull().orEmpty() }
+
         return request.copy(
             postTitle = request.postTitle.ifBlank { post?.title.orEmpty() },
             postAuthorId = request.postAuthorId.ifBlank { post?.authorId.orEmpty() },
-            postStatus = request.postStatus ?: post?.status
+            postStatus = request.postStatus ?: post?.status,
+            requesterPhotoUrl = requesterPhotoUrl,
+            postImageUrl = postImageUrl
         )
+    }
+
+    private fun calculateUserLevel(points: Int): UserLevel {
+        return UserLevel.values()
+            .sortedByDescending { it.minPoints }
+            .first { points >= it.minPoints }
+    }
+
+    private suspend fun addUserPoints(userId: String, delta: Int) {
+        if (userId.isBlank() || delta == 0) return
+        firestore.runTransaction { transaction ->
+            val userRef = usersCollection.document(userId)
+            val snapshot = transaction.get(userRef)
+            val currentPoints = snapshot.getLong("points")?.toInt() ?: 0
+            val updatedPoints = (currentPoints + delta).coerceAtLeast(0)
+            val updatedLevel = calculateUserLevel(updatedPoints)
+            transaction.update(
+                userRef,
+                mapOf(
+                    "points" to updatedPoints,
+                    "level" to updatedLevel.name
+                )
+            )
+        }.await()
     }
 
     private fun postToMap(post: Post): Map<String, Any?> = mapOf(

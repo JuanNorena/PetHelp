@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -250,8 +251,11 @@ fun FeedScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.filteredPosts, key = { it.id }) { post ->
+                        val isFavorite = uiState.favoritesSet.contains(post.id)
                         FeedPostCard(
                             post = post,
+                            isFavorite = isFavorite,
+                            onFavoriteClick = { viewModel.toggleFavorite(post.id) },
                             onClick = { navController.navigate(Screen.PostDetail(post.id)) }
                         )
                     }
@@ -301,6 +305,8 @@ private fun FeedProfileAvatar(
 @Composable
 private fun FeedPostCard(
     post: Post,
+    isFavorite: Boolean = false,
+    onFavoriteClick: () -> Unit = {},
     onClick: () -> Unit
 ) {
     Card(
@@ -332,6 +338,19 @@ private fun FeedPostCard(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(44.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
+                        tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

@@ -66,6 +66,7 @@ object Constants {
     const val POINTS_COMMENT = 5
     const val POINTS_RECEIVE_VOTE = 3
     const val POINTS_POST_VERIFIED = 15
+    const val POINTS_ADOPTION_ACCEPTED = 30
 
     // ── Niveles de usuario ────────────────────────────────────────────────────
     // Define los nombres de cada nivel y los puntos mínimos necesarios.

@@ -156,19 +156,6 @@ fun SettingsScreen(
                         }
                     }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                SettingsToggleItem(
-                    icon = Icons.Default.PhoneIphone,
-                    iconColor = MaterialTheme.colorScheme.secondary,
-                    title = stringResource(R.string.settings_email_alerts),
-                    checked = emailEnabled,
-                    onCheckedChange = { newEmail ->
-                        viewModel.updateNotificationPreferences(
-                            pushEnabled = pushEnabled,
-                            emailEnabled = newEmail
-                        )
-                    }
-                )
             }
 
             Spacer(Modifier.height(24.dp))
@@ -181,14 +168,6 @@ fun SettingsScreen(
                     iconColor = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(R.string.settings_privacy_policy),
                     onClick = { navController.navigate(Screen.Privacy) }
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                SettingsItem(
-                    icon = Icons.Default.Visibility,
-                    iconColor = MaterialTheme.colorScheme.primary,
-                    title = stringResource(R.string.settings_profile_visibility),
-                    value = stringResource(R.string.settings_visibility_public),
-                    onClick = { navController.navigate(Screen.ProfileVisibility) }
                 )
             }
 
