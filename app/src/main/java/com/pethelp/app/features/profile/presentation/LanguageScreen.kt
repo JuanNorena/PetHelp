@@ -102,7 +102,7 @@ fun LanguageScreen(
             ) {
                 Column {
                     LanguageItem(
-                        title = "Español",
+                        title = stringResource(R.string.language_spanish),
                         subtitle = stringResource(R.string.settings_language_spanish),
                         isSelected = currentLanguage == AppLanguageManager.LANGUAGE_SPANISH,
                         onClick = { viewModel.setLanguage(AppLanguageManager.LANGUAGE_SPANISH) }
@@ -112,7 +112,7 @@ fun LanguageScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                     )
                     LanguageItem(
-                        title = "English",
+                        title = stringResource(R.string.language_english),
                         subtitle = stringResource(R.string.settings_language_english),
                         isSelected = currentLanguage == AppLanguageManager.LANGUAGE_ENGLISH,
                         onClick = { viewModel.setLanguage(AppLanguageManager.LANGUAGE_ENGLISH) }

@@ -106,6 +106,9 @@ hilt-navigation-compose         = { group = "androidx.hilt",            name = "
 # Usar los nombres SIN sufijo -ktx (los -ktx ya no se publican en BoM 34+).
 firebase-bom                    = { group = "com.google.firebase",      name = "firebase-bom",              version.ref = "firebaseBom" }
 firebase-auth                   = { group = "com.google.firebase",      name = "firebase-auth" }
+firebase-appcheck               = { group = "com.google.firebase",      name = "firebase-appcheck" }
+firebase-appcheck-debug         = { group = "com.google.firebase",      name = "firebase-appcheck-debug" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase",      name = "firebase-appcheck-playintegrity" }
 firebase-firestore              = { group = "com.google.firebase",      name = "firebase-firestore" }
 firebase-storage                = { group = "com.google.firebase",      name = "firebase-storage" }
 firebase-messaging              = { group = "com.google.firebase",      name = "firebase-messaging" }

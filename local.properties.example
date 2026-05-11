@@ -16,15 +16,6 @@
 # CLOUDINARY_API_SECRET=tu_api_secret
 # CLOUDINARY_URL=cloudinary://<your_api_key>:<your_api_secret>@<your_cloud_name>
 #
-# ── OpenAI API Key (para funcionalidad de IA) ────────────────────────────────
-# Obtener en: https://platform.openai.com/api-keys
-# OPENAI_API_KEY=sk-...
-#
-# ── OpenRouter API Key (para cuestionario de mascotas con IA) ──────────────────
-# Obtener en: https://openrouter.ai → API Keys
-# Se usa en las pantallas de quiz de IA para recomendar mascotas.
-# OPEN_ROUTER_API_KEY=sk-or-v1-...
-#
-# Opcional y recomendado para produccion: URL HTTPS de la Cloud Function
-# openRouterProxy. Si se configura, Android no envia la API key directamente.
-# OPEN_ROUTER_PROXY_URL=https://<region>-<project-id>.cloudfunctions.net/openRouterProxy
+# ── Firebase AI Logic (Gemini) ───────────────────────────────────────────────
+# Se configura en Firebase Console > AI Logic.
+# No requiere API keys en local.properties.

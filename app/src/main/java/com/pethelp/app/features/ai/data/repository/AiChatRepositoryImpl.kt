@@ -1,109 +1,65 @@
 package com.pethelp.app.features.ai.data.repository
 
-import com.google.gson.Gson
-import com.pethelp.app.BuildConfig
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.content
+import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.features.ai.domain.repository.AiCategorySuggestion
 import com.pethelp.app.features.ai.domain.repository.AiChatRepository
 import com.pethelp.app.features.ai.domain.repository.AiChatRequest
 import com.pethelp.app.features.ai.domain.repository.AiChatResponse
 import com.pethelp.app.features.ai.domain.repository.AiMessage
+import com.pethelp.app.features.ai.domain.repository.Choice
+import com.pethelp.app.features.ai.domain.repository.ModerationAiAnalysis
+import com.pethelp.app.features.ai.domain.repository.ModerationRiskLevel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
-class AiChatRepositoryImpl @Inject constructor(
-    private val httpClient: okhttp3.OkHttpClient,
-    private val gson: Gson
-) : AiChatRepository {
+class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
 
-    companion object {
-        private const val OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-    }
-
-    override suspend fun callOpenRouter(request: AiChatRequest): Result<AiChatResponse> {
+    override suspend fun callGemini(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
-            val apiKey = BuildConfig.OPEN_ROUTER_API_KEY
-            val proxyUrl = BuildConfig.OPEN_ROUTER_PROXY_URL
-            if (apiKey.isEmpty() && proxyUrl.isEmpty()) {
-                return@withContext Result.failure(Exception("OPEN_ROUTER_API_KEY not configured"))
+            if (request.messages.isEmpty()) {
+                return@withContext Result.failure(IllegalArgumentException("Empty AI request"))
             }
 
-            val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaType())
-            val url = proxyUrl.ifBlank { OPENROUTER_API_URL }
+            try {
+                val ai = Firebase.ai
+                val modelName = request.model.ifBlank { "gemini-2.5-flash-lite" }
+                val model = ai.generativeModel(modelName)
 
-            val maxRetries = 3
-            var attempt = 0
-            var delayMs = 500L
-
-            suspend fun executeWithRetry(): Result<AiChatResponse> {
-                while (true) {
-                    try {
-                        val requestBuilder = Request.Builder()
-                            .url(url)
-                            .addHeader("Accept", "application/json")
-                            .addHeader("Content-Type", "application/json")
-                            .addHeader("HTTP-Referer", "https://pethelp.app")
-                            .addHeader("X-OpenRouter-Title", "PetHelp Android")
-                            .post(requestBody)
-
-                        if (proxyUrl.isBlank()) {
-                            requestBuilder.addHeader("Authorization", "Bearer $apiKey")
-                        }
-
-                        val response = httpClient.newCall(requestBuilder.build()).execute()
-                        val bodyString = response.body?.string() ?: "{}"
-
-                        if (response.isSuccessful) {
-                            val parsedResponse = gson.fromJson(bodyString, AiChatResponse::class.java)
-                            return Result.success(parsedResponse)
-                        }
-
-                        val code = response.code
-                        val msg = parseOpenRouterError(code, bodyString)
-                        val shouldRetry = code == 429 || code in 500..599
-
-                        val providerHint = runCatching {
-                            val root = gson.fromJson(bodyString, Map::class.java)
-                            val error = root["error"] as? Map<*, *>
-                            val metadata = error?.get("metadata") as? Map<*, *>
-                            val raw = metadata?.get("raw") as? String
-                            val isByok = metadata?.get("is_byok") as? Boolean
-                            when {
-                                isByok == false && raw != null -> " Provider hint: $raw"
-                                raw != null -> " Provider hint: $raw"
-                                else -> ""
-                            }
-                        }.getOrDefault("")
-
-                        if (shouldRetry && attempt < maxRetries) {
-                            attempt++
-                            val jitter = Random.nextLong(0, 200)
-                            delay(delayMs + jitter)
-                            delayMs = (delayMs * 2).coerceAtMost(5000L)
-                            continue
-                        }
-
-                        return Result.failure(Exception("$msg$providerHint"))
-                    } catch (e: Exception) {
-                        if (attempt < maxRetries) {
-                            attempt++
-                            val jitter = Random.nextLong(0, 200)
-                            delay(delayMs + jitter)
-                            delayMs = (delayMs * 2).coerceAtMost(5000L)
-                            continue
-                        }
-                        return Result.failure(e)
-                    }
+                val normalized = request.messages.map { normalizeMessage(it) }
+                val last = normalized.last()
+                val history = normalized.dropLast(1).map { message ->
+                    content(normalizeRole(message.role)) { text(message.content) }
                 }
-            }
 
-            return@withContext executeWithRetry()
+                val response = if (history.isNotEmpty()) {
+                    val chat = model.startChat(history = history)
+                    chat.sendMessage(last.content)
+                } else {
+                    model.generateContent(last.content)
+                }
+
+                val text = response.text.orEmpty().trim()
+                if (text.isBlank()) {
+                    return@withContext Result.failure(IllegalStateException("Empty AI response"))
+                }
+
+                val assistantMessage = AiMessage(role = "assistant", content = text)
+                val wrapper = AiChatResponse(
+                    id = null,
+                    choices = listOf(
+                        Choice(index = 0, message = assistantMessage, finishReason = "stop")
+                    ),
+                    usage = null
+                )
+                Result.success(wrapper)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
 
@@ -117,14 +73,13 @@ class AiChatRepositoryImpl @Inject constructor(
                             content = "Eres un asesor de adopcion responsable para PetHelp. Responde en espanol claro, amable y accionable."
                         ),
                         AiMessage(role = "user", content = buildQuizPrompt(answers))
-                    ),
-                    reasoning = mapOf("enabled" to true)
+                    )
                 )
 
-                val result = callOpenRouter(request)
+                val result = callGemini(request)
                 if (result.isFailure) {
                     return@withContext Result.failure(
-                        result.exceptionOrNull() ?: Exception("Error en OpenRouter")
+                        result.exceptionOrNull() ?: Exception("Error en Gemini")
                     )
                 }
 
@@ -137,12 +92,12 @@ class AiChatRepositoryImpl @Inject constructor(
                     .trim()
 
                 if (assistantMessage.isBlank()) {
-                    return@withContext Result.failure(Exception("La IA no devolvio recomendaciones."))
+                    Result.failure(Exception("La IA no devolvio recomendaciones."))
                 } else {
-                    return@withContext Result.success(assistantMessage)
+                    Result.success(assistantMessage)
                 }
             } catch (e: Exception) {
-                return@withContext Result.failure(e)
+                Result.failure(e)
             }
         }
     }
@@ -162,15 +117,14 @@ class AiChatRepositoryImpl @Inject constructor(
                         ),
                         AiMessage(role = "user", content = buildCategoryPrompt(title, description, animalType))
                     ),
-                    reasoning = mapOf("enabled" to true),
                     temperature = 0.2,
                     maxTokens = 220
                 )
 
-                val result = callOpenRouter(request)
+                val result = callGemini(request)
                 if (result.isFailure) {
                     return@withContext Result.failure(
-                        result.exceptionOrNull() ?: Exception("Error en OpenRouter")
+                        result.exceptionOrNull() ?: Exception("Error en Gemini")
                     )
                 }
 
@@ -181,28 +135,124 @@ class AiChatRepositoryImpl @Inject constructor(
                     ?.content
                     .orEmpty()
 
-                return@withContext Result.success(parseCategorySuggestion(content))
+                Result.success(parseCategorySuggestion(content))
             } catch (e: Exception) {
-                return@withContext Result.failure(e)
+                Result.failure(e)
             }
+        }
+    }
+
+    override suspend fun analyzePostForModeration(post: Post): Result<ModerationAiAnalysis> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = AiChatRequest(
+                    messages = listOf(
+                        AiMessage(
+                            role = "system",
+                            content = "Eres un asistente de moderacion para PetHelp. Analiza publicaciones de mascotas con criterio responsable, claro y seguro. No apruebas ni rechazas por tu cuenta: ayudas al moderador humano."
+                        ),
+                        AiMessage(role = "user", content = buildModerationPrompt(post))
+                    ),
+                    temperature = 0.25,
+                    maxTokens = 700
+                )
+
+                val result = callGemini(request)
+                if (result.isFailure) {
+                    return@withContext Result.failure(
+                        result.exceptionOrNull() ?: Exception("Error en Gemini")
+                    )
+                }
+
+                val content = result.getOrNull()
+                    ?.choices
+                    ?.firstOrNull()
+                    ?.message
+                    ?.content
+                    .orEmpty()
+                    .trim()
+
+                if (content.isBlank()) {
+                    Result.failure(Exception("La IA no devolvio analisis de moderacion."))
+                } else {
+                    Result.success(parseModerationAnalysis(content))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    private fun normalizeMessage(message: AiMessage): AiMessage {
+        if (!message.role.equals("system", ignoreCase = true)) {
+            return message
+        }
+        return message.copy(
+            role = "user",
+            content = "INSTRUCCIONES DEL SISTEMA:\n${message.content}"
+        )
+    }
+
+    private fun normalizeRole(role: String): String {
+        return when (role.lowercase()) {
+            "assistant", "model" -> "model"
+            else -> "user"
         }
     }
 
     private fun buildQuizPrompt(answers: Map<String, String>): String {
         return """
-            Basado en las siguientes preferencias del usuario sobre mascotas, proporciona una lista de mascotas recomendadas con una breve explicacion:
+            Basado en las siguientes preferencias del usuario sobre mascotas, proporciona recomendaciones claras, utiles y accionables:
 
             Preferencias:
             ${answers.entries.joinToString("\n") { (key, value) -> "- $key: $value" }}
 
-            Recomienda 3-5 mascotas ideales para este usuario, considerando:
-            1. Compatibilidad con su estilo de vida y nivel de experiencia.
-            2. Requerimientos de espacio y tiempo disponible.
-            3. Caracteristicas de comportamiento y cuidados necesarios.
-            4. Riesgos o compromisos que debe conocer antes de adoptar.
+            Responde en espanol con este formato:
+            PERFIL_IDEAL=<1 frase sobre el perfil del adoptante>
+            RECOMENDACIONES=<3 recomendaciones separadas por |. Cada una debe incluir tipo de mascota y razon>
+            CUIDADOS=<3 compromisos importantes separados por |>
+            SIGUIENTE_PASO=<1 accion concreta dentro de PetHelp>
 
-            Formatea la respuesta como lista numerada con tipo de mascota y justificacion breve.
-            Cierra con una recomendacion practica para buscar publicaciones compatibles dentro de PetHelp.
+            Evita texto extra fuera de ese formato.
+        """.trimIndent()
+    }
+
+    private fun buildModerationPrompt(post: Post): String {
+        return """
+            Analiza esta publicacion pendiente de moderacion en PetHelp.
+
+            Datos:
+            - Titulo: ${post.title}
+            - Descripcion: ${post.description}
+            - Categoria: ${post.category}
+            - Estado: ${post.status}
+            - Autor: ${post.authorName.ifBlank { "Sin nombre" }} (${post.authorId})
+            - Tipo de animal: ${post.animalType}
+            - Raza: ${post.breed}
+            - Edad: ${post.age}
+            - Sexo: ${post.gender}
+            - Tamano: ${post.size}
+            - Vacunado: ${post.vaccinated}
+            - Desparasitado: ${post.dewormed}
+            - Esterilizado: ${post.sterilized}
+            - Cuidados especiales: ${post.specialCares}
+            - Comportamiento: ${post.behavior.joinToString(", ")}
+            - Fotos: ${post.imageUrls.size}
+            - Ciudad: ${post.city}
+            - Barrio: ${post.neighborhood}
+            - Ubicacion: ${post.locationName}
+            - Razon de rechazo previa: ${post.rejectionReason.orEmpty()}
+
+            Evalua claridad, completitud, coherencia, riesgos de seguridad, datos sensibles y si el moderador debe pedir correcciones.
+
+            Responde exactamente con este formato:
+            SUMMARY=<maximo 220 caracteres>
+            RISK_LEVEL=<LOW|MEDIUM|HIGH>
+            CONFIDENCE=<numero 0 a 100>
+            RECOMMENDATION=<aprobar, revisar o rechazar con una razon breve>
+            STRENGTHS=<fortalezas separadas por |>
+            CONCERNS=<alertas separadas por |>
+            MISSING_FIELDS=<campos faltantes o debiles separados por |>
         """.trimIndent()
     }
 
@@ -254,18 +304,49 @@ class AiChatRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun parseOpenRouterError(code: Int, body: String): String {
-        return runCatching {
-            val root = gson.fromJson(body, Map::class.java)
-            val error = root["error"] as? Map<*, *>
-            val message = error?.get("message") as? String
-            if (code == 429) {
-                "La IA esta temporalmente limitada por el proveedor. Intenta de nuevo en unos segundos."
-            } else {
-                "OpenRouter HTTP $code: ${message ?: body.take(240)}"
-            }
-        }.getOrElse {
-            "OpenRouter HTTP $code: ${body.take(240)}"
+    private fun parseModerationAnalysis(content: String): ModerationAiAnalysis {
+        val summary = extractLine(content, "SUMMARY").ifBlank {
+            content.lineSequence().firstOrNull()?.trim().orEmpty().take(220)
         }
+        val riskLevel = when (extractLine(content, "RISK_LEVEL").uppercase()) {
+            "HIGH" -> ModerationRiskLevel.HIGH
+            "MEDIUM" -> ModerationRiskLevel.MEDIUM
+            else -> ModerationRiskLevel.LOW
+        }
+        val confidence = extractLine(content, "CONFIDENCE")
+            .filter { it.isDigit() }
+            .toIntOrNull()
+            ?.coerceIn(0, 100)
+            ?: 70
+        val recommendation = extractLine(content, "RECOMMENDATION").ifBlank {
+            "Revisar manualmente antes de tomar una decision."
+        }
+
+        return ModerationAiAnalysis(
+            summary = summary,
+            riskLevel = riskLevel,
+            confidence = confidence,
+            recommendation = recommendation,
+            strengths = extractList(content, "STRENGTHS"),
+            concerns = extractList(content, "CONCERNS"),
+            missingFields = extractList(content, "MISSING_FIELDS")
+        )
+    }
+
+    private fun extractLine(content: String, key: String): String {
+        return Regex("""^$key\s*=\s*(.*)$""", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+            .find(content)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.trim()
+            .orEmpty()
+    }
+
+    private fun extractList(content: String, key: String): List<String> {
+        return extractLine(content, key)
+            .split("|")
+            .map { it.trim().trim('-', '•') }
+            .filter { it.isNotBlank() }
+            .take(5)
     }
 }

@@ -55,6 +55,12 @@ import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.features.gamification.domain.model.GamificationStats
+import com.pethelp.app.features.gamification.domain.model.GamificationStreak
+import com.pethelp.app.features.gamification.domain.model.Mission
+import com.pethelp.app.features.gamification.domain.model.MissionType
+import com.pethelp.app.features.gamification.presentation.BadgeDisplay
+import com.pethelp.app.features.gamification.presentation.GamificationViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,6 +75,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val gamificationViewModel: GamificationViewModel = hiltViewModel()
+    val gamificationState by gamificationViewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -96,6 +104,14 @@ fun ProfileScreen(
                     item { PointsCardSection(user.points) }
                     item { Spacer(Modifier.height(20.dp)) }
                     item { StatsGrid2x2Section(user) }
+                    item { Spacer(Modifier.height(24.dp)) }
+                    item { StreakSection(gamificationState.streak) }
+                    item { Spacer(Modifier.height(20.dp)) }
+                    item { MissionsSection(gamificationState.missions) }
+                    item { Spacer(Modifier.height(20.dp)) }
+                    item { BadgesSection(gamificationState.badges) }
+                    item { Spacer(Modifier.height(20.dp)) }
+                    item { ActivityStatsSection(gamificationState.stats) }
                     item { Spacer(Modifier.height(24.dp)) }
                     item { QuickAccessSection(navController, user.role) }
                     item { Spacer(Modifier.height(20.dp)) }
@@ -495,6 +511,351 @@ private fun StatCard2(
     }
 }
 
+// ─── Racha diaria ───────────────────────────────────────────────────────────
+@Composable
+private fun StreakSection(streak: GamificationStreak) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Text(
+            text = stringResource(R.string.profile_streak_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+        )
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StreakStatItem(
+                    icon = Icons.Filled.Whatshot,
+                    label = stringResource(R.string.profile_streak_current),
+                    value = streak.current
+                )
+                StreakStatItem(
+                    icon = Icons.Filled.EmojiEvents,
+                    label = stringResource(R.string.profile_streak_best),
+                    value = streak.best
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StreakStatItem(icon: ImageVector, label: String, value: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(
+            modifier = Modifier.size(36.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        }
+        Column {
+            Text(text = value.toString(), fontSize = 20.sp, fontWeight = FontWeight.Medium)
+            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+// ─── Misiones ───────────────────────────────────────────────────────────────
+@Composable
+private fun MissionsSection(missions: List<Mission>) {
+    val ordered = missions.sortedWith(
+        compareBy<Mission> { it.type != MissionType.DAILY }
+            .thenBy { it.title }
+    )
+
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Text(
+            text = stringResource(R.string.profile_missions_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+        )
+
+        if (ordered.isEmpty()) {
+            Text(
+                text = stringResource(R.string.profile_missions_empty),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            return
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ordered.forEach { mission ->
+                MissionCard(mission)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MissionCard(mission: Mission) {
+    val progress = if (mission.targetCount == 0) 0f
+    else (mission.currentCount.toFloat() / mission.targetCount).coerceIn(0f, 1f)
+
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = localizedMissionTitle(mission), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                    Text(
+                        text = localizedMissionDescription(mission),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.profile_mission_reward, mission.rewardPoints),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            LinearProgressIndicator(
+                progress = { progress },
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50))
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    text = stringResource(
+                        R.string.profile_mission_progress,
+                        mission.currentCount.coerceAtMost(mission.targetCount),
+                        mission.targetCount
+                    ),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (mission.isCompleted) {
+                    Text(
+                        text = stringResource(R.string.profile_mission_completed),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun localizedMissionTitle(mission: Mission): String {
+    return when (mission.id) {
+        "daily_post" -> stringResource(R.string.mission_daily_post_title)
+        "daily_comment" -> stringResource(R.string.mission_daily_comment_title)
+        "daily_adoption" -> stringResource(R.string.mission_daily_adoption_title)
+        "daily_like" -> stringResource(R.string.mission_daily_like_title)
+        "first_post" -> stringResource(R.string.mission_first_post_title)
+        "first_comment" -> stringResource(R.string.mission_first_comment_title)
+        "first_adoption" -> stringResource(R.string.mission_first_adoption_title)
+        else -> mission.title
+    }
+}
+
+@Composable
+private fun localizedMissionDescription(mission: Mission): String {
+    return when (mission.id) {
+        "daily_post" -> stringResource(R.string.mission_daily_post_desc)
+        "daily_comment" -> stringResource(R.string.mission_daily_comment_desc)
+        "daily_adoption" -> stringResource(R.string.mission_daily_adoption_desc)
+        "daily_like" -> stringResource(R.string.mission_daily_like_desc)
+        "first_post" -> stringResource(R.string.mission_first_post_desc)
+        "first_comment" -> stringResource(R.string.mission_first_comment_desc)
+        "first_adoption" -> stringResource(R.string.mission_first_adoption_desc)
+        else -> mission.description
+    }
+}
+
+// ─── Insignias ──────────────────────────────────────────────────────────────
+@Composable
+private fun BadgesSection(badges: List<BadgeDisplay>) {
+    if (badges.isEmpty()) return
+
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        Text(
+            text = stringResource(R.string.profile_badges_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+        )
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(badges) { badge ->
+                BadgeCard(badge)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BadgeCard(badge: BadgeDisplay) {
+    val alpha = if (badge.isUnlocked) 1f else 0.4f
+    val icon = when (badge.definition.iconName) {
+        "paw" -> Icons.Filled.Pets
+        "chat" -> Icons.Filled.ChatBubble
+        "message" -> Icons.Filled.ChatBubble
+        "heart" -> Icons.Filled.Favorite
+        "bolt" -> Icons.Filled.Whatshot
+        else -> Icons.Filled.EmojiEvents
+    }
+
+    Card(
+        modifier = Modifier.width(150.dp).height(130.dp).alpha(alpha),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(
+                modifier = Modifier.size(36.dp).background(
+                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                    CircleShape
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+            }
+            Text(
+                text = localizedBadgeName(badge),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = localizedBadgeDescription(badge),
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2
+            )
+        }
+    }
+}
+
+@Composable
+private fun localizedBadgeName(badge: BadgeDisplay): String {
+    return when (badge.definition.id) {
+        "badge_first_post" -> stringResource(R.string.badge_first_post_name)
+        "badge_first_comment" -> stringResource(R.string.badge_first_comment_name)
+        "badge_helper" -> stringResource(R.string.badge_helper_name)
+        "badge_adopter" -> stringResource(R.string.badge_adopter_name)
+        "badge_streak_7" -> stringResource(R.string.badge_streak_7_name)
+        else -> badge.definition.name
+    }
+}
+
+@Composable
+private fun localizedBadgeDescription(badge: BadgeDisplay): String {
+    return when (badge.definition.id) {
+        "badge_first_post" -> stringResource(R.string.badge_first_post_desc)
+        "badge_first_comment" -> stringResource(R.string.badge_first_comment_desc)
+        "badge_helper" -> stringResource(R.string.badge_helper_desc)
+        "badge_adopter" -> stringResource(R.string.badge_adopter_desc)
+        "badge_streak_7" -> stringResource(R.string.badge_streak_7_desc)
+        else -> badge.definition.description
+    }
+}
+
+// ─── Estadisticas de actividad ──────────────────────────────────────────────
+@Composable
+private fun ActivityStatsSection(stats: GamificationStats) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Text(
+            text = stringResource(R.string.profile_activity_title),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ActivityStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.Pets,
+                    value = stats.postsCreated,
+                    label = stringResource(R.string.profile_activity_posts)
+                )
+                ActivityStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.ChatBubble,
+                    value = stats.commentsAdded,
+                    label = stringResource(R.string.profile_activity_comments)
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ActivityStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.Mail,
+                    value = stats.adoptionRequests,
+                    label = stringResource(R.string.profile_activity_requests)
+                )
+                ActivityStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.Favorite,
+                    value = stats.votesGiven,
+                    label = stringResource(R.string.profile_activity_votes)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityStatCard(
+    modifier: Modifier,
+    icon: ImageVector,
+    value: Int,
+    label: String
+) {
+    Card(
+        modifier = modifier.height(120.dp),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Box(
+                modifier = Modifier.size(36.dp).background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    CircleShape
+                ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.weight(1f))
+            Text(text = value.toString(), fontSize = 22.sp, fontWeight = FontWeight.Medium)
+            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 // ─── Accesos Rápidos ──────────────────────────────────────────────────────────
 @Composable
 private fun QuickAccessSection(
@@ -707,7 +1068,7 @@ fun EditProfileScreen(
                          if (user.photoUrl.isNotBlank()) {
                              AsyncImage(
                                  model = user.photoUrl,
-                                 contentDescription = "Foto de perfil",
+                                 contentDescription = stringResource(R.string.profile_avatar_desc),
                                  modifier = Modifier.fillMaxSize(),
                                  contentScale = ContentScale.Crop
                              )

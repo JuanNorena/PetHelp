@@ -169,14 +169,13 @@ Completar con los valores reales:
 sdk.dir=C:\Users\TU_USUARIO\AppData\Local\Android\Sdk
 MAPS_API_KEY=AIzaSy...
 CLOUDINARY_CLOUD_NAME=...
-OPENAI_API_KEY=sk-...
 ```
 
 **3. Configurar Firebase**
 1. Crear proyecto en [Firebase Console](https://console.firebase.google.com).
 2. Agregar app Android con package `com.pethelp.app`.
 3. Descargar `google-services.json` → ubicar en `app/`.
-4. Habilitar: Authentication (Email/Password), Firestore, Cloud Messaging.
+4. Habilitar: Authentication (Email/Password), Firestore, Cloud Messaging, AI Logic (Gemini).
 
 **4. Configurar Google Maps**
 1. Ir a [Google Cloud Console](https://console.cloud.google.com).
@@ -286,7 +285,7 @@ chore(deps): actualizar Firebase BOM a 34.9.0
 | Firebase | Autenticación + base de datos + notificaciones | console.firebase.google.com |
 | Google Maps SDK | Mapas y geolocalización | console.cloud.google.com |
 | Cloudinary | Almacenamiento de imágenes | cloudinary.com |
-| OpenAI / Gemini / Claude | Funcionalidad de IA | platform.openai.com / ai.google.dev |
+| Firebase AI Logic (Gemini) | Funcionalidad de IA | console.firebase.google.com |
 
 > ⚠️ **Ninguna clave de API debe subirse al repositorio.** Usar siempre `local.properties` (ignorado por `.gitignore`).
 

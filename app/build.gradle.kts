@@ -50,7 +50,6 @@ android {
         // Para usarlas: crea local.properties en la raíz con:
         //   MAPS_API_KEY=tu_clave_aquí
         //   CLOUDINARY_CLOUD_NAME=tu_cloud_name
-        //   OPENAI_API_KEY=tu_openai_key (opcional)
         val mapsApiKey = localProperty("MAPS_API_KEY")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
@@ -62,12 +61,6 @@ android {
             "\"$cloudinaryCloudName\"")
         buildConfigField("String", "CLOUDINARY_UPLOAD_PRESET",
             "\"${localProperty("CLOUDINARY_UPLOAD_PRESET")}\"")
-        buildConfigField("String", "OPENAI_API_KEY",
-            "\"${localProperty("OPENAI_API_KEY")}\"")
-        buildConfigField("String", "OPEN_ROUTER_API_KEY",
-            "\"${localProperty("OPEN_ROUTER_API_KEY")}\"")
-        buildConfigField("String", "OPEN_ROUTER_PROXY_URL",
-            "\"${localProperty("OPEN_ROUTER_PROXY_URL")}\"")
     }
 
     buildTypes {
@@ -154,6 +147,9 @@ dependencies {
     val firebaseBom = platform(libs.firebase.bom)
     implementation(firebaseBom)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.appcheck)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)

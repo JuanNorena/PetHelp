@@ -3,7 +3,7 @@
     <!-- Tema base: sin ActionBar, Compose gestiona la UI.
          Se usa android:Theme.Material.Light.NoActionBar que no requiere
          la dependencia de Material Components (views). -->
-    <style name="Theme.PetHelp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.PetHelp" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
     <!-- Tema del SplashScreen (pantalla de carga inicial) -->
     <style name="Theme.PetHelp.SplashScreen" parent="Theme.SplashScreen">

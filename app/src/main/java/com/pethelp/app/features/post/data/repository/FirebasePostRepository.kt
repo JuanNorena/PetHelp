@@ -15,6 +15,9 @@ import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.UserLevel
+import com.pethelp.app.features.gamification.domain.GamificationEngine
+import com.pethelp.app.features.gamification.domain.model.GamificationAction
+import com.pethelp.app.features.gamification.domain.model.GamificationEvent
 import com.pethelp.app.features.post.domain.model.AdoptionRequest
 import com.pethelp.app.features.post.domain.model.AdoptionRequestStatus
 import com.pethelp.app.features.post.domain.repository.PostRepository
@@ -34,7 +37,8 @@ import javax.inject.Singleton
 @Singleton
 class FirebasePostRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val gamificationEngine: GamificationEngine
 ) : PostRepository {
 
     private val postsCollection get() = firestore.collection(Constants.COLLECTION_POSTS)
@@ -306,6 +310,11 @@ class FirebasePostRepository @Inject constructor(
             docRef.set(postMap).await()
 
             addUserPoints(currentUser.uid, Constants.POINTS_CREATE_POST)
+            runCatching {
+                gamificationEngine.trackEvent(
+                    GamificationEvent(action = GamificationAction.CREATE_POST)
+                )
+            }
 
             emit(Resource.Success(newPost))
         } catch (e: Exception) {
@@ -341,15 +350,21 @@ class FirebasePostRepository @Inject constructor(
             votesCollection.document(voteId).set(voteDoc).await()
 
             // Incrementar contador de votos en la publicación
-            firestore.runTransaction { transaction ->
+            val newVotes = firestore.runTransaction { transaction ->
                 val postRef = postsCollection.document(postId)
                 val snapshot = transaction.get(postRef)
                 val currentVotes = snapshot.getLong("votes")?.toInt() ?: 0
                 transaction.update(postRef, "votes", currentVotes + 1)
                 currentVotes + 1
-            }.await().let { newVotes ->
-                emit(Resource.Success(newVotes))
+            }.await()
+
+            runCatching {
+                gamificationEngine.trackEvent(
+                    GamificationEvent(action = GamificationAction.VOTE)
+                )
             }
+
+            emit(Resource.Success(newVotes))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al votar."))
         }
@@ -410,6 +425,14 @@ class FirebasePostRepository @Inject constructor(
             val currentVotes = snapshot.getLong("votes")?.toInt() ?: 0
             val updatedVotes = if (isFavorite) maxOf(0, currentVotes - 1) else currentVotes + 1
             postsCollection.document(postId).update("votes", updatedVotes).await()
+
+            if (!isFavorite) {
+                runCatching {
+                    gamificationEngine.trackEvent(
+                        GamificationEvent(action = GamificationAction.VOTE)
+                    )
+                }
+            }
             emit(Resource.Success(updatedVotes))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error al actualizar favoritos."))
@@ -497,6 +520,12 @@ class FirebasePostRepository @Inject constructor(
                 }
             } catch (_: Exception) {
                 // No bloquear el flujo si falla la notificacion
+            }
+
+            runCatching {
+                gamificationEngine.trackEvent(
+                    GamificationEvent(action = GamificationAction.COMMENT)
+                )
             }
 
             emit(Resource.Success(newComment))
@@ -601,6 +630,12 @@ class FirebasePostRepository @Inject constructor(
                     "updatedAt" to now
                 )
             ).await()
+
+            runCatching {
+                gamificationEngine.trackEvent(
+                    GamificationEvent(action = GamificationAction.REQUEST_ADOPTION)
+                )
+            }
 
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
@@ -771,6 +806,10 @@ class FirebasePostRepository @Inject constructor(
             }
 
             batch.commit().await()
+
+            runCatching {
+                clearFavoritesForPost(postId)
+            }
 
             if (requesterId.isNotBlank()) {
                 addUserPoints(requesterId, Constants.POINTS_ADOPTION_ACCEPTED)
@@ -954,6 +993,25 @@ class FirebasePostRepository @Inject constructor(
                 )
             )
         }.await()
+    }
+
+    private suspend fun clearFavoritesForPost(postId: String) {
+        if (postId.isBlank()) return
+        val votesSnapshot = votesCollection
+            .whereEqualTo("postId", postId)
+            .get()
+            .await()
+
+        val documents = votesSnapshot.documents
+        if (documents.isNotEmpty()) {
+            documents.chunked(400).forEach { chunk ->
+                val batch = firestore.batch()
+                chunk.forEach { batch.delete(it.reference) }
+                batch.commit().await()
+            }
+        }
+
+        postsCollection.document(postId).update("votes", 0).await()
     }
 
     private fun postToMap(post: Post): Map<String, Any?> = mapOf(

@@ -108,7 +108,7 @@ fun FeedScreen(
                         IconButton(onClick = { navController.navigate(Screen.AIQuiz) }) {
                             Icon(
                                 imageVector = Icons.Filled.AutoAwesome,
-                                contentDescription = "Descubre tu mascota con IA",
+                                contentDescription = stringResource(R.string.ai_quiz_title),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

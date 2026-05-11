@@ -1,6 +1,7 @@
 package com.pethelp.app.features.ai.domain.repository
 
 import com.google.gson.annotations.SerializedName
+import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 
 data class AiMessage(
@@ -22,7 +23,7 @@ data class ReasoningDetail(
 )
 
 data class AiChatRequest(
-    val model: String = "google/gemma-4-31b-it:free",
+    val model: String = "gemini-2.5-flash-lite",
     val messages: List<AiMessage>,
     val reasoning: Map<String, Boolean> = mapOf("enabled" to true),
     val temperature: Double = 0.35,
@@ -58,12 +59,29 @@ data class AiCategorySuggestion(
     val reason: String
 )
 
+enum class ModerationRiskLevel {
+    LOW,
+    MEDIUM,
+    HIGH
+}
+
+data class ModerationAiAnalysis(
+    val summary: String,
+    val riskLevel: ModerationRiskLevel,
+    val confidence: Int,
+    val recommendation: String,
+    val strengths: List<String> = emptyList(),
+    val concerns: List<String> = emptyList(),
+    val missingFields: List<String> = emptyList()
+)
+
 interface AiChatRepository {
-    suspend fun callOpenRouter(request: AiChatRequest): Result<AiChatResponse>
+    suspend fun callGemini(request: AiChatRequest): Result<AiChatResponse>
     suspend fun getRecommendedPetsBasedOnQuiz(answers: Map<String, String>): Result<String>
     suspend fun suggestPostCategory(
         title: String,
         description: String,
         animalType: String
     ): Result<AiCategorySuggestion>
+    suspend fun analyzePostForModeration(post: Post): Result<ModerationAiAnalysis>
 }
