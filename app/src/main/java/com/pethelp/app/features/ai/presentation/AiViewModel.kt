@@ -81,12 +81,12 @@ class AiViewModel @Inject constructor(
             val updatedHistory = _uiState.value.conversationHistory.toMutableList()
             updatedHistory.add(AiMessage(role = "user", content = userMessage))
 
-            // Llamar a OpenRouter
+            // Llamar a Gemini via Firebase AI Logic
             val request = AiChatRequest(
                 messages = updatedHistory
             )
 
-            val result = aiRepository.callOpenRouter(request)
+            val result = aiRepository.callGemini(request)
 
             result.onSuccess { response ->
                 val assistantMessage = response.choices?.firstOrNull()?.message
@@ -102,7 +102,7 @@ class AiViewModel @Inject constructor(
 
             result.onFailure { exception ->
                 _uiState.value = _uiState.value.copy(
-                    error = exception.message ?: "Error en la llamada a OpenRouter",
+                    error = exception.message ?: "Error en la llamada a Gemini",
                     isLoading = false
                 )
             }

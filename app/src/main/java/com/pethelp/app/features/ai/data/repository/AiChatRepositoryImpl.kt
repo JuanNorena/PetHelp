@@ -1,109 +1,62 @@
 package com.pethelp.app.features.ai.data.repository
 
-import com.google.gson.Gson
-import com.pethelp.app.BuildConfig
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.content
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.features.ai.domain.repository.AiCategorySuggestion
 import com.pethelp.app.features.ai.domain.repository.AiChatRepository
 import com.pethelp.app.features.ai.domain.repository.AiChatRequest
 import com.pethelp.app.features.ai.domain.repository.AiChatResponse
 import com.pethelp.app.features.ai.domain.repository.AiMessage
+import com.pethelp.app.features.ai.domain.repository.Choice
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
-class AiChatRepositoryImpl @Inject constructor(
-    private val httpClient: okhttp3.OkHttpClient,
-    private val gson: Gson
-) : AiChatRepository {
+class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
 
-    companion object {
-        private const val OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-    }
-
-    override suspend fun callOpenRouter(request: AiChatRequest): Result<AiChatResponse> {
+    override suspend fun callGemini(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
-            val apiKey = BuildConfig.OPEN_ROUTER_API_KEY
-            val proxyUrl = BuildConfig.OPEN_ROUTER_PROXY_URL
-            if (apiKey.isEmpty() && proxyUrl.isEmpty()) {
-                return@withContext Result.failure(Exception("OPEN_ROUTER_API_KEY not configured"))
+            if (request.messages.isEmpty()) {
+                return@withContext Result.failure(IllegalArgumentException("Empty AI request"))
             }
 
-            val requestBody = gson.toJson(request).toRequestBody("application/json".toMediaType())
-            val url = proxyUrl.ifBlank { OPENROUTER_API_URL }
+            try {
+                val ai = Firebase.ai
+                val modelName = request.model.ifBlank { "gemini-2.5-flash-lite" }
+                val model = ai.generativeModel(modelName)
 
-            val maxRetries = 3
-            var attempt = 0
-            var delayMs = 500L
-
-            suspend fun executeWithRetry(): Result<AiChatResponse> {
-                while (true) {
-                    try {
-                        val requestBuilder = Request.Builder()
-                            .url(url)
-                            .addHeader("Accept", "application/json")
-                            .addHeader("Content-Type", "application/json")
-                            .addHeader("HTTP-Referer", "https://pethelp.app")
-                            .addHeader("X-OpenRouter-Title", "PetHelp Android")
-                            .post(requestBody)
-
-                        if (proxyUrl.isBlank()) {
-                            requestBuilder.addHeader("Authorization", "Bearer $apiKey")
-                        }
-
-                        val response = httpClient.newCall(requestBuilder.build()).execute()
-                        val bodyString = response.body?.string() ?: "{}"
-
-                        if (response.isSuccessful) {
-                            val parsedResponse = gson.fromJson(bodyString, AiChatResponse::class.java)
-                            return Result.success(parsedResponse)
-                        }
-
-                        val code = response.code
-                        val msg = parseOpenRouterError(code, bodyString)
-                        val shouldRetry = code == 429 || code in 500..599
-
-                        val providerHint = runCatching {
-                            val root = gson.fromJson(bodyString, Map::class.java)
-                            val error = root["error"] as? Map<*, *>
-                            val metadata = error?.get("metadata") as? Map<*, *>
-                            val raw = metadata?.get("raw") as? String
-                            val isByok = metadata?.get("is_byok") as? Boolean
-                            when {
-                                isByok == false && raw != null -> " Provider hint: $raw"
-                                raw != null -> " Provider hint: $raw"
-                                else -> ""
-                            }
-                        }.getOrDefault("")
-
-                        if (shouldRetry && attempt < maxRetries) {
-                            attempt++
-                            val jitter = Random.nextLong(0, 200)
-                            delay(delayMs + jitter)
-                            delayMs = (delayMs * 2).coerceAtMost(5000L)
-                            continue
-                        }
-
-                        return Result.failure(Exception("$msg$providerHint"))
-                    } catch (e: Exception) {
-                        if (attempt < maxRetries) {
-                            attempt++
-                            val jitter = Random.nextLong(0, 200)
-                            delay(delayMs + jitter)
-                            delayMs = (delayMs * 2).coerceAtMost(5000L)
-                            continue
-                        }
-                        return Result.failure(e)
-                    }
+                val normalized = request.messages.map { normalizeMessage(it) }
+                val last = normalized.last()
+                val history = normalized.dropLast(1).map { message ->
+                    content(normalizeRole(message.role)) { text(message.content) }
                 }
-            }
 
-            return@withContext executeWithRetry()
+                val response = if (history.isNotEmpty()) {
+                    val chat = model.startChat(history = history)
+                    chat.sendMessage(last.content)
+                } else {
+                    model.generateContent(last.content)
+                }
+
+                val text = response.text.orEmpty().trim()
+                if (text.isBlank()) {
+                    return@withContext Result.failure(IllegalStateException("Empty AI response"))
+                }
+
+                val assistantMessage = AiMessage(role = "assistant", content = text)
+                val wrapper = AiChatResponse(
+                    id = null,
+                    choices = listOf(
+                        Choice(index = 0, message = assistantMessage, finishReason = "stop")
+                    ),
+                    usage = null
+                )
+                Result.success(wrapper)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
 
@@ -117,14 +70,13 @@ class AiChatRepositoryImpl @Inject constructor(
                             content = "Eres un asesor de adopcion responsable para PetHelp. Responde en espanol claro, amable y accionable."
                         ),
                         AiMessage(role = "user", content = buildQuizPrompt(answers))
-                    ),
-                    reasoning = mapOf("enabled" to true)
+                    )
                 )
 
-                val result = callOpenRouter(request)
+                val result = callGemini(request)
                 if (result.isFailure) {
                     return@withContext Result.failure(
-                        result.exceptionOrNull() ?: Exception("Error en OpenRouter")
+                        result.exceptionOrNull() ?: Exception("Error en Gemini")
                     )
                 }
 
@@ -137,12 +89,12 @@ class AiChatRepositoryImpl @Inject constructor(
                     .trim()
 
                 if (assistantMessage.isBlank()) {
-                    return@withContext Result.failure(Exception("La IA no devolvio recomendaciones."))
+                    Result.failure(Exception("La IA no devolvio recomendaciones."))
                 } else {
-                    return@withContext Result.success(assistantMessage)
+                    Result.success(assistantMessage)
                 }
             } catch (e: Exception) {
-                return@withContext Result.failure(e)
+                Result.failure(e)
             }
         }
     }
@@ -162,15 +114,14 @@ class AiChatRepositoryImpl @Inject constructor(
                         ),
                         AiMessage(role = "user", content = buildCategoryPrompt(title, description, animalType))
                     ),
-                    reasoning = mapOf("enabled" to true),
                     temperature = 0.2,
                     maxTokens = 220
                 )
 
-                val result = callOpenRouter(request)
+                val result = callGemini(request)
                 if (result.isFailure) {
                     return@withContext Result.failure(
-                        result.exceptionOrNull() ?: Exception("Error en OpenRouter")
+                        result.exceptionOrNull() ?: Exception("Error en Gemini")
                     )
                 }
 
@@ -181,10 +132,27 @@ class AiChatRepositoryImpl @Inject constructor(
                     ?.content
                     .orEmpty()
 
-                return@withContext Result.success(parseCategorySuggestion(content))
+                Result.success(parseCategorySuggestion(content))
             } catch (e: Exception) {
-                return@withContext Result.failure(e)
+                Result.failure(e)
             }
+        }
+    }
+
+    private fun normalizeMessage(message: AiMessage): AiMessage {
+        if (!message.role.equals("system", ignoreCase = true)) {
+            return message
+        }
+        return message.copy(
+            role = "user",
+            content = "INSTRUCCIONES DEL SISTEMA:\n${message.content}"
+        )
+    }
+
+    private fun normalizeRole(role: String): String {
+        return when (role.lowercase()) {
+            "assistant", "model" -> "model"
+            else -> "user"
         }
     }
 
@@ -252,20 +220,5 @@ class AiChatRepositoryImpl @Inject constructor(
             confidence = confidence,
             reason = reason
         )
-    }
-
-    private fun parseOpenRouterError(code: Int, body: String): String {
-        return runCatching {
-            val root = gson.fromJson(body, Map::class.java)
-            val error = root["error"] as? Map<*, *>
-            val message = error?.get("message") as? String
-            if (code == 429) {
-                "La IA esta temporalmente limitada por el proveedor. Intenta de nuevo en unos segundos."
-            } else {
-                "OpenRouter HTTP $code: ${message ?: body.take(240)}"
-            }
-        }.getOrElse {
-            "OpenRouter HTTP $code: ${body.take(240)}"
-        }
     }
 }

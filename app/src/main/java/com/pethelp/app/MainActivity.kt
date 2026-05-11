@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.MapsInitializer
 import com.pethelp.app.core.navigation.PetHelpNavGraph
 import com.pethelp.app.core.ui.theme.PetHelpTheme
+import com.pethelp.app.features.gamification.presentation.GamificationViewModel
 import com.pethelp.app.features.profile.presentation.ProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,8 +46,13 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             val profileViewModel: ProfileViewModel = hiltViewModel()
+            val gamificationViewModel: GamificationViewModel = hiltViewModel()
             val isDarkMode by profileViewModel.isDarkMode.collectAsState()
             val language by profileViewModel.language.collectAsState()
+
+            LaunchedEffect(Unit) {
+                gamificationViewModel.onAppOpen()
+            }
 
             // Update locale dynamically
             LaunchedEffect(language) {
