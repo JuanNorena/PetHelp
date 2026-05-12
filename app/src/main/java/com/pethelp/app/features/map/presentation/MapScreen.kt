@@ -54,6 +54,7 @@ import com.pethelp.app.core.common.Resource
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.common.UiText
+import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.tasks.await
@@ -104,6 +105,7 @@ fun MapScreen(
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var permissionRequested by rememberSaveable { mutableStateOf(false) }
+    var didCenterOnInitialLocation by rememberSaveable { mutableStateOf(false) }
     val locationPermissionMessage = stringResource(R.string.map_location_permission_required)
     val locationUnavailableMessage = stringResource(R.string.map_location_unavailable)
 
@@ -129,6 +131,7 @@ fun MapScreen(
         position = CameraPosition.fromLatLngZoom(armenia, 14f)
     }
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    var isMapLoaded by remember { mutableStateOf(false) }
 
     // PASO 3: Gestión de permisos de ubicación.
     val locationPermissionsState = rememberMultiplePermissionsState(
@@ -166,20 +169,29 @@ fun MapScreen(
         }
 
         userLocation = latLng
-        cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+        if (isMapLoaded) {
+            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+        } else {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+        }
     }
 
-    LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
+    LaunchedEffect(locationPermissionsState.allPermissionsGranted, isMapLoaded) {
         if (!locationPermissionsState.allPermissionsGranted && !permissionRequested) {
             permissionRequested = true
             locationPermissionsState.launchMultiplePermissionRequest()
         }
 
-        if (locationPermissionsState.allPermissionsGranted) {
+        if (locationPermissionsState.allPermissionsGranted && !didCenterOnInitialLocation) {
             val latLng = resolveUserLocation()
             if (latLng != null) {
                 userLocation = latLng
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                didCenterOnInitialLocation = true
+                if (isMapLoaded) {
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+                } else {
+                    cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+                }
             }
         }
     }
@@ -285,7 +297,8 @@ fun MapScreen(
                         myLocationButtonEnabled = false,
                         zoomControlsEnabled = false,
                         compassEnabled = false
-                    )
+                    ),
+                    onMapLoaded = { isMapLoaded = true }
                 ) {
                     if (postsResource is Resource.Success) {
                         postsResource.data?.forEach { post ->
@@ -771,7 +784,7 @@ fun NearbyPetsSheetContent(
                 }
 
                 Button(
-                    onClick = { navController.navigate("post_detail/${selectedPost.id}") },
+                    onClick = { navController.navigate(Screen.PostDetail(selectedPost.id)) },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(50),
                     contentPadding = PaddingValues(horizontal = 16.dp)

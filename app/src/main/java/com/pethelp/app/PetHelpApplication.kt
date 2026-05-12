@@ -8,7 +8,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.pethelp.app.core.preferences.AppLanguageManager
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Clase Application de PetHelp.
@@ -31,7 +33,7 @@ class PetHelpApplication : Application() {
         )
 
         // Aplica el idioma guardado antes de levantar pantallas.
-        runBlocking {
+        CoroutineScope(Dispatchers.Main.immediate).launch {
             appLanguageManager.applySavedLanguage()
         }
 
