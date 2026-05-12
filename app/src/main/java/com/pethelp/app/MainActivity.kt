@@ -12,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.android.gms.maps.MapsInitializer
 import com.pethelp.app.core.navigation.PetHelpNavGraph
 import com.pethelp.app.core.ui.theme.PetHelpTheme
 import com.pethelp.app.features.gamification.presentation.GamificationViewModel
@@ -34,9 +33,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Instalar Splash Screen antes de super.onCreate()
         installSplashScreen()
-
-        // Initialize Maps SDK to avoid CameraUpdateFactory NPE
-        MapsInitializer.initialize(applicationContext)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
