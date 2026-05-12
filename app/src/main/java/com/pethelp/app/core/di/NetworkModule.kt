@@ -19,7 +19,7 @@ import javax.inject.Singleton
  * definida en `BuildConfig.BASE_URL`.
  *
  * Aunque esta app tiene Firebase, este módulo se enfoca en llamadas HTTP
- * externas, típicamente a servicios como OpenAI o Gemini.
+ * externas.
  */
 @Module
 @InstallIn(SingletonComponent::class)

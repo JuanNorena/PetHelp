@@ -3,6 +3,8 @@ package com.pethelp.app.features.ai.data.repository
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.content
+import com.google.gson.Gson
+import com.pethelp.app.BuildConfig
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.features.ai.domain.repository.AiCategorySuggestion
@@ -15,9 +17,18 @@ import com.pethelp.app.features.ai.domain.repository.ModerationAiAnalysis
 import com.pethelp.app.features.ai.domain.repository.ModerationRiskLevel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
-class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
+class AiChatRepositoryImpl @Inject constructor(
+    private val okHttpClient: OkHttpClient
+) : AiChatRepository {
+
+    private val gson = Gson()
+    private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     override suspend fun callGemini(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
@@ -25,7 +36,7 @@ class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
                 return@withContext Result.failure(IllegalArgumentException("Empty AI request"))
             }
 
-            try {
+            val geminiResult = try {
                 val ai = Firebase.ai
                 val modelName = request.model.ifBlank { "gemini-2.5-flash-lite" }
                 val model = ai.generativeModel(modelName)
@@ -57,6 +68,73 @@ class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
                     usage = null
                 )
                 Result.success(wrapper)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+            if (geminiResult.isSuccess) {
+                geminiResult
+            } else {
+                callNvidia(request)
+            }
+        }
+    }
+
+    private suspend fun callNvidia(request: AiChatRequest): Result<AiChatResponse> {
+        return withContext(Dispatchers.IO) {
+            val apiKey = BuildConfig.NVIDIA_API_KEY.trim()
+            if (apiKey.isBlank()) {
+                return@withContext Result.failure(
+                    IllegalStateException("NVIDIA_API_KEY no esta configurada en local.properties.")
+                )
+            }
+
+            try {
+                val model = BuildConfig.NVIDIA_MODEL.ifBlank {
+                    "meta/llama-4-maverick-17b-128e-instruct"
+                }
+                val endpoint = BuildConfig.NVIDIA_BASE_URL.trimEnd('/') + "/chat/completions"
+                val payload = mapOf(
+                    "model" to model,
+                    "messages" to request.messages.map { message ->
+                        mapOf(
+                            "role" to normalizeOpenAiRole(message.role),
+                            "content" to message.content
+                        )
+                    },
+                    "temperature" to request.temperature,
+                    "max_tokens" to request.maxTokens
+                ).filterValues { it != null }
+
+                val httpRequest = Request.Builder()
+                    .url(endpoint)
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .addHeader("Content-Type", "application/json")
+                    .post(gson.toJson(payload).toRequestBody(jsonMediaType))
+                    .build()
+
+                okHttpClient.newCall(httpRequest).execute().use { response ->
+                    val responseBody = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) {
+                        return@withContext Result.failure(
+                            IllegalStateException("NVIDIA NIM error ${response.code}: ${responseBody.take(240)}")
+                        )
+                    }
+
+                    val parsed = gson.fromJson(responseBody, AiChatResponse::class.java)
+                    val content = parsed.choices
+                        ?.firstOrNull()
+                        ?.message
+                        ?.content
+                        .orEmpty()
+                        .trim()
+
+                    if (content.isBlank()) {
+                        Result.failure(IllegalStateException("NVIDIA NIM devolvio una respuesta vacia."))
+                    } else {
+                        Result.success(parsed)
+                    }
+                }
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -196,6 +274,14 @@ class AiChatRepositoryImpl @Inject constructor() : AiChatRepository {
     private fun normalizeRole(role: String): String {
         return when (role.lowercase()) {
             "assistant", "model" -> "model"
+            else -> "user"
+        }
+    }
+
+    private fun normalizeOpenAiRole(role: String): String {
+        return when (role.lowercase()) {
+            "assistant", "model" -> "assistant"
+            "system" -> "system"
             else -> "user"
         }
     }

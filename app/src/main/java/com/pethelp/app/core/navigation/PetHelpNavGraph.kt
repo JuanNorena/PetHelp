@@ -150,7 +150,8 @@ fun PetHelpNavGraph(
             AIResultsScreen(
                 recommendations = "",
                 navController = navController,
-                quizAnswers = emptyMap(),
+                matchedPosts = emptyList(),
+                isLoadingPosts = false,
                 onRestart = { navController.popBackStack(Screen.AIQuiz, false) }
             )
         }

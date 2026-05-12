@@ -169,6 +169,9 @@ Completar con los valores reales:
 sdk.dir=C:\Users\TU_USUARIO\AppData\Local\Android\Sdk
 MAPS_API_KEY=AIzaSy...
 CLOUDINARY_CLOUD_NAME=...
+NVIDIA_API_KEY=nvapi-...
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1/
+NVIDIA_MODEL=meta/llama-4-maverick-17b-128e-instruct
 ```
 
 **3. Configurar Firebase**
@@ -176,6 +179,12 @@ CLOUDINARY_CLOUD_NAME=...
 2. Agregar app Android con package `com.pethelp.app`.
 3. Descargar `google-services.json` → ubicar en `app/`.
 4. Habilitar: Authentication (Email/Password), Firestore, Cloud Messaging, AI Logic (Gemini).
+
+**IA y fallback NVIDIA**
+- La app usa Firebase AI Logic (Gemini) como proveedor principal.
+- Si Gemini falla, el repositorio de IA usa NVIDIA NIM como fallback directo desde Android.
+- El modelo recomendado es `meta/llama-4-maverick-17b-128e-instruct`, disponible como endpoint gratuito según disponibilidad de NVIDIA.
+- `NVIDIA_API_KEY` se lee desde `local.properties`, que está ignorado por Git.
 
 **4. Configurar Google Maps**
 1. Ir a [Google Cloud Console](https://console.cloud.google.com).

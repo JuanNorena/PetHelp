@@ -3,7 +3,6 @@ import {
   onDocumentCreated,
   onDocumentUpdated,
 } from "firebase-functions/v2/firestore";
-import { https } from "firebase-functions/v2";
 import { logger } from "firebase-functions";
 
 admin.initializeApp();
@@ -472,49 +471,3 @@ export const onNearbyPostCreated = onDocumentCreated(
   },
 );
 
-// HTTP proxy to call OpenRouter securely from the client.
-// Reads OPENROUTER_API_KEY from environment (do NOT commit your key).
-export const openRouterProxy = https.onRequest(async (req, res) => {
-  try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      res.status(500).json({ error: "OPENROUTER_API_KEY not configured" });
-      return;
-    }
-
-    const body = req.body ?? {};
-    const model = body.model ?? "google/gemma-4-31b-it:free";
-    const messages = body.messages ?? [];
-    const reasoning = body.reasoning ?? { enabled: true };
-
-    const payload: Record<string, unknown> = {
-      model,
-      messages,
-      reasoning,
-      temperature: body.temperature ?? 0.35,
-      max_tokens: body.max_tokens ?? body.maxTokens ?? 900,
-    };
-
-    if (body.response_format) payload.response_format = body.response_format;
-
-    const r = await (globalThis as any).fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://pethelp.app",
-          "X-OpenRouter-Title": "PetHelp Android",
-        },
-        body: JSON.stringify(payload),
-      },
-    );
-
-    const json = await r.json();
-    res.status(r.status).json(json);
-  } catch (err: any) {
-    logger.error("openRouterProxy error", err);
-    res.status(500).json({ error: err?.message ?? String(err) });
-  }
-});

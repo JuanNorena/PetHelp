@@ -2,6 +2,7 @@ package com.pethelp.app.features.ai.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -40,16 +42,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.google.firebase.firestore.FirebaseFirestore
+import com.pethelp.app.core.domain.model.AnimalGender
+import com.pethelp.app.core.domain.model.AnimalSize
 import com.pethelp.app.core.domain.model.Post
+import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
 import coil.compose.AsyncImage
 
@@ -58,41 +60,10 @@ import coil.compose.AsyncImage
 fun AIResultsScreen(
     recommendations: String,
     navController: NavController,
-    quizAnswers: Map<String, String>,
+    matchedPosts: List<Post>,
+    isLoadingPosts: Boolean,
     onRestart: () -> Unit
 ) {
-    var matchedPosts by remember { mutableStateOf<List<Post>>(emptyList()) }
-    var isLoadingPosts by remember { mutableStateOf(true) }
-    val db = FirebaseFirestore.getInstance()
-
-    androidx.compose.runtime.LaunchedEffect(quizAnswers) {
-        if (quizAnswers.isEmpty()) {
-            isLoadingPosts = false
-            return@LaunchedEffect
-        }
-
-        val petType = quizAnswers["pet_type"]
-        if (petType.isNullOrBlank()) {
-            isLoadingPosts = false
-            return@LaunchedEffect
-        }
-
-        db.collection("posts")
-            .whereEqualTo("animalType", petType)
-            .limit(6)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                matchedPosts = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Post::class.java)?.copy(id = doc.id)
-                }
-                isLoadingPosts = false
-            }
-            .addOnFailureListener {
-                matchedPosts = emptyList()
-                isLoadingPosts = false
-            }
-    }
-    
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -259,7 +230,7 @@ fun AIResultsScreen(
                     )
                 }
 
-                items(matchedPosts) { post ->
+                items(matchedPosts, key = { it.id }) { post ->
                     CompatiblePostCard(
                         post = post,
                         onClick = { navController.navigate(Screen.PostDetail(post.id)) }
@@ -358,39 +329,99 @@ private fun RecommendationBlock(title: String, items: List<String>) {
 
 @Composable
 private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
-        shadowElevation = 2.dp
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (post.imageUrls.isNotEmpty()) {
-                AsyncImage(
-                    model = post.imageUrls.first(),
-                    contentDescription = stringResource(R.string.moderation_photo_thumbnail_desc),
-                    modifier = Modifier.fillMaxWidth().height(150.dp),
-                    contentScale = ContentScale.Crop
-                )
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(168.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                if (post.imageUrls.isNotEmpty()) {
+                    AsyncImage(
+                        model = post.imageUrls.first(),
+                        contentDescription = stringResource(R.string.moderation_photo_thumbnail_desc),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Pets,
+                        contentDescription = null,
+                        modifier = Modifier.size(46.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.94f)
+                ) {
+                    Text(
+                        text = categoryToDisplayName(post.category),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
 
             Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = if (post.imageUrls.isEmpty()) 16.dp else 0.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = post.title.ifBlank { post.animalType },
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = post.description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ResultTagChip(label = genderToDisplayName(post.gender))
+                    ResultTagChip(label = sizeToDisplayName(post.size))
+                }
+                if (post.locationName.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = post.locationName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
                 Button(
                     onClick = onClick,
                     modifier = Modifier.fillMaxWidth(),
@@ -398,9 +429,53 @@ private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
                 ) {
                     Text(text = stringResource(R.string.ai_results_view_post))
                 }
-                Spacer(Modifier.height(4.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun ResultTagChip(label: String) {
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Composable
+private fun categoryToDisplayName(category: PostCategory): String {
+    return when (category) {
+        PostCategory.ADOPTION -> stringResource(R.string.category_adoption)
+        PostCategory.LOST -> stringResource(R.string.category_lost)
+        PostCategory.FOUND -> stringResource(R.string.category_found)
+        PostCategory.TEMP_HOME -> stringResource(R.string.category_temp_home)
+        PostCategory.VET_EVENT -> stringResource(R.string.category_vet_event)
+    }
+}
+
+@Composable
+private fun genderToDisplayName(gender: AnimalGender): String {
+    return when (gender) {
+        AnimalGender.MALE -> stringResource(R.string.post_gender_male)
+        AnimalGender.FEMALE -> stringResource(R.string.post_gender_female)
+        AnimalGender.UNKNOWN -> stringResource(R.string.post_gender_unknown)
+    }
+}
+
+@Composable
+private fun sizeToDisplayName(size: AnimalSize): String {
+    return when (size) {
+        AnimalSize.SMALL -> stringResource(R.string.tag_small)
+        AnimalSize.MEDIUM -> stringResource(R.string.tag_medium)
+        AnimalSize.LARGE -> stringResource(R.string.tag_large)
     }
 }
 

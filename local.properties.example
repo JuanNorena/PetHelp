@@ -19,3 +19,9 @@
 # ── Firebase AI Logic (Gemini) ───────────────────────────────────────────────
 # Se configura en Firebase Console > AI Logic.
 # No requiere API keys en local.properties.
+#
+# ── NVIDIA NIM fallback ──────────────────────────────────────────────────────
+# Obtener en: https://build.nvidia.com
+# NVIDIA_API_KEY=nvapi-...
+# NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1/
+# NVIDIA_MODEL=meta/llama-4-maverick-17b-128e-instruct

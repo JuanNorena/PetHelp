@@ -2,10 +2,15 @@ package com.pethelp.app.features.ai.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pethelp.app.core.common.Resource
+import com.pethelp.app.core.domain.model.Post
+import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.features.ai.domain.repository.AiChatRepository
 import com.pethelp.app.features.ai.domain.repository.AiMessage
 import com.pethelp.app.features.ai.domain.repository.AiChatRequest
+import com.pethelp.app.features.post.domain.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,16 +25,20 @@ data class AiUiState(
     val quizAnswers: Map<String, String> = emptyMap(),
     val currentQuestionIndex: Int = 0,
     val recommendations: String = "",
-    val showRecommendations: Boolean = false
+    val showRecommendations: Boolean = false,
+    val recommendedPosts: List<Post> = emptyList(),
+    val isLoadingRecommendedPosts: Boolean = false
 )
 
 @HiltViewModel
 class AiViewModel @Inject constructor(
-    private val aiRepository: AiChatRepository
+    private val aiRepository: AiChatRepository,
+    private val postRepository: PostRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiUiState())
     val uiState: StateFlow<AiUiState> = _uiState.asStateFlow()
+    private var recommendedPostsJob: Job? = null
 
     fun updateQuizAnswer(question: String, answer: String) {
         val currentAnswers = _uiState.value.quizAnswers.toMutableMap()
@@ -62,6 +71,7 @@ class AiViewModel @Inject constructor(
                     showRecommendations = true,
                     isLoading = false
                 )
+                observeRecommendedPosts(_uiState.value.quizAnswers)
             }
 
             result.onFailure { exception ->
@@ -114,6 +124,67 @@ class AiViewModel @Inject constructor(
     }
 
     fun resetQuiz() {
+        recommendedPostsJob?.cancel()
         _uiState.value = AiUiState()
+    }
+
+    private fun observeRecommendedPosts(answers: Map<String, String>) {
+        recommendedPostsJob?.cancel()
+        val selectedPetType = answers["pet_type"].orEmpty()
+        if (selectedPetType.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                recommendedPosts = emptyList(),
+                isLoadingRecommendedPosts = false
+            )
+            return
+        }
+
+        recommendedPostsJob = viewModelScope.launch {
+            postRepository.getPosts(category = null).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _uiState.value = _uiState.value.copy(isLoadingRecommendedPosts = true)
+                    }
+                    is Resource.Success -> {
+                        val compatiblePosts = (resource.data ?: emptyList())
+                            .filter { it.status == PostStatus.VERIFIED }
+                            .filter { matchesSelectedPetType(it, selectedPetType) }
+                            .sortedByDescending { it.createdAt }
+                            .take(6)
+
+                        _uiState.value = _uiState.value.copy(
+                            recommendedPosts = compatiblePosts,
+                            isLoadingRecommendedPosts = false
+                        )
+                    }
+                    is Resource.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            recommendedPosts = emptyList(),
+                            isLoadingRecommendedPosts = false
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun matchesSelectedPetType(post: Post, selectedPetType: String): Boolean {
+        val normalizedSelected = normalizePetType(selectedPetType)
+        val normalizedPost = normalizePetType(post.animalType)
+        return when (normalizedSelected) {
+            "other" -> normalizedPost == "other"
+            else -> normalizedPost == normalizedSelected
+        }
+    }
+
+    private fun normalizePetType(value: String): String {
+        val text = value.trim().lowercase()
+        return when {
+            text.contains("perro") || text.contains("dog") -> "dog"
+            text.contains("gato") || text.contains("cat") -> "cat"
+            text.contains("conejo") || text.contains("rabbit") -> "rabbit"
+            text.contains("ave") || text.contains("pajaro") || text.contains("pájaro") || text.contains("bird") -> "bird"
+            else -> "other"
+        }
     }
 }

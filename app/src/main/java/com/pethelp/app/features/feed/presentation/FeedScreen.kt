@@ -313,15 +313,16 @@ private fun FeedPostCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder()
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.48f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(196.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
@@ -341,23 +342,43 @@ private fun FeedPostCard(
                     )
                 }
 
-                IconButton(
-                    onClick = onFavoriteClick,
+                Surface(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
+                        .padding(10.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    shadowElevation = 2.dp
                 ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
-                        tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
+                            tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.94f)
+                ) {
+                    Text(
+                        text = categoryToDisplayName(post.category),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
 
             Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = post.title,
@@ -367,11 +388,15 @@ private fun FeedPostCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = categoryToDisplayName(post.category),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (post.description.isNotBlank()) {
+                    Text(
+                        text = post.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TagChip(label = genderToDisplayName(post.gender))
@@ -440,15 +465,15 @@ private fun FilterChipUI(
 
 @Composable
 private fun TagChip(label: String) {
-    Box(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-            .padding(horizontal = 10.dp, vertical = 5.dp)
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
     ) {
         Text(
             text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium
         )
     }

@@ -173,7 +173,8 @@ fun AIQuizScreen(
                 AIResultsScreen(
                     recommendations = uiState.recommendations,
                     navController = navController,
-                    quizAnswers = uiState.quizAnswers,
+                    matchedPosts = uiState.recommendedPosts,
+                    isLoadingPosts = uiState.isLoadingRecommendedPosts,
                     onRestart = { viewModel.resetQuiz() }
                 )
             }

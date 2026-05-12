@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module
@@ -14,7 +15,7 @@ object AiModule {
 
     @Provides
     @Singleton
-    fun provideAiChatRepository(): AiChatRepository {
-        return AiChatRepositoryImpl()
+    fun provideAiChatRepository(okHttpClient: OkHttpClient): AiChatRepository {
+        return AiChatRepositoryImpl(okHttpClient)
     }
 }

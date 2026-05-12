@@ -21,6 +21,9 @@ val localProperties = Properties().apply {
 fun localProperty(name: String): String =
     (localProperties.getProperty(name) ?: "").trim()
 
+fun buildConfigString(value: String): String =
+    "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
 fun cloudNameFromUrl(url: String): String {
     val trimmed = url.trim()
     if (trimmed.isBlank()) return ""
@@ -53,10 +56,20 @@ android {
         val mapsApiKey = localProperty("MAPS_API_KEY")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
+        val nvidiaBaseUrl = localProperty("NVIDIA_BASE_URL")
+            .ifBlank { "https://integrate.api.nvidia.com/v1/" }
+            .let { if (it.endsWith("/")) it else "$it/" }
+        val nvidiaModel = localProperty("NVIDIA_MODEL")
+            .ifBlank { "meta/llama-4-maverick-17b-128e-instruct" }
+
         val cloudinaryUrl = localProperty("CLOUDINARY_URL")
         val cloudinaryCloudName = localProperty("CLOUDINARY_CLOUD_NAME")
             .ifBlank { cloudNameFromUrl(cloudinaryUrl) }
 
+        buildConfigField("String", "BASE_URL", buildConfigString(nvidiaBaseUrl))
+        buildConfigField("String", "NVIDIA_BASE_URL", buildConfigString(nvidiaBaseUrl))
+        buildConfigField("String", "NVIDIA_API_KEY", buildConfigString(localProperty("NVIDIA_API_KEY")))
+        buildConfigField("String", "NVIDIA_MODEL", buildConfigString(nvidiaModel))
         buildConfigField("String", "CLOUDINARY_CLOUD_NAME",
             "\"$cloudinaryCloudName\"")
         buildConfigField("String", "CLOUDINARY_UPLOAD_PRESET",
@@ -67,7 +80,6 @@ android {
         debug {
             // Se quita el applicationIdSuffix para que coincida con google-services.json
             isDebuggable = true
-            buildConfigField("String", "BASE_URL", "\"https://api.openai.com/v1/\"")
         }
         release {
             isMinifyEnabled = true
@@ -76,7 +88,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://api.openai.com/v1/\"")
         }
     }
 
