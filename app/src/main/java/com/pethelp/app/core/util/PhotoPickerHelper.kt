@@ -1,3 +1,10 @@
+/**
+ * Composable auxiliar que integra el selector de imágenes nativo de Android.
+ *
+ * Usa ActivityResultContracts.PickVisualMedia para invocar el selector
+ * del sistema sin requerir permisos de almacenamiento amplio,
+ * cumpliendo las políticas de privacidad de Google Play.
+ */
 package com.pethelp.app.core.util
 
 import android.net.Uri

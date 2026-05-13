@@ -1,3 +1,9 @@
+/**
+ * Modelo de dominio que representa un usuario registrado en la aplicación.
+ *
+ * Contiene datos de perfil, permisos por rol, puntos de gamificación,
+ * nivel, insignias y preferencias de notificación del usuario.
+ */
 package com.pethelp.app.core.domain.model
 
 /**

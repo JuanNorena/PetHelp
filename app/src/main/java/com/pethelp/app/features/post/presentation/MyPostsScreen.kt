@@ -1,3 +1,12 @@
+/**
+ * Pantalla de gestión de publicaciones creadas por el usuario actual.
+ *
+ * Presenta pestañas por estado (Activas, En revisión, Finalizadas),
+ * acciones de edición, eliminación, pausa o resolución sobre cada publicación.
+ *
+ * Usa [MyPostsViewModel] para cargar los posts del usuario autenticado
+ * y filtrarlos dinámicamente según la pestaña seleccionada.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.foundation.background
@@ -157,6 +166,12 @@ fun MyPostsScreen(
     }
 }
 
+/**
+ * Barra superior con título, botón de regreso y acción de crear post.
+ *
+ * @param onBackClick Acción al pulsar el botón de regreso.
+ * @param onAddClick Acción al pulsar el botón de crear publicación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
@@ -201,6 +216,12 @@ private fun MyPostsTopBar(onBackClick: () -> Unit, onAddClick: () -> Unit) {
     )
 }
 
+/**
+ * Fila de pestañas para filtrar publicaciones por estado (Activas, En revisión, Finalizadas).
+ *
+ * @param selectedTab Pestaña actualmente seleccionada.
+ * @param onTabSelected Callback al cambiar de pestaña.
+ */
 @Composable
 private fun MyPostsTabRow(
     selectedTab: MyPostsTab,
@@ -240,6 +261,16 @@ private fun MyPostsTabRow(
     }
 }
 
+/**
+ * Lista vertical de publicaciones del usuario con acciones de edición, eliminación, pausa y resolución.
+ *
+ * @param posts Lista de publicaciones a mostrar.
+ * @param isDeleting Indica si una eliminación está en curso.
+ * @param onEditClick Acción al editar una publicación.
+ * @param onDeleteClick Acción al eliminar una publicación.
+ * @param onPauseClick Acción al pausar una publicación.
+ * @param onResolvedClick Acción al marcar una publicación como resuelta.
+ */
 @Composable
 private fun MyPostsList(
     posts: List<Post>,
@@ -266,6 +297,17 @@ private fun MyPostsList(
     }
 }
 
+/**
+ * Tarjeta individual de publicación del usuario con imagen, estado y acciones.
+ *
+ * @param post Datos de la publicación.
+ * @param isDeleting Indica si una eliminación está en curso.
+ * @param onEditClick Acción al editar.
+ * @param onDeleteClick Acción al eliminar.
+ * @param onPauseClick Acción al pausar.
+ * @param onResolvedClick Acción al marcar como resuelta.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun MyPostCard(
     post: Post,
@@ -404,6 +446,11 @@ private fun MyPostCard(
     }
 }
 
+/**
+ * Badge semántico que muestra el estado de una publicación del usuario.
+ *
+ * @param status Estado actual del post.
+ */
 @Composable
 private fun PostStatusBadge(status: PostStatus) {
     val (petStatus, label) = when (status) {
@@ -415,6 +462,11 @@ private fun PostStatusBadge(status: PostStatus) {
     PetHelpStatusBadge(label = label, status = petStatus)
 }
 
+/**
+ * Caja informativa con la razón de rechazo de una publicación.
+ *
+ * @param reason Texto explicativo del rechazo.
+ */
 @Composable
 private fun RejectionReasonBox(reason: String) {
     Row(
@@ -450,6 +502,16 @@ private fun RejectionReasonBox(reason: String) {
     }
 }
 
+/**
+ * Fila de acciones disponibles para una publicación del usuario.
+ *
+ * @param post Datos de la publicación.
+ * @param isDeleting Indica si una eliminación está en curso.
+ * @param onEditClick Acción al editar.
+ * @param onDeleteClick Acción al eliminar.
+ * @param onPauseClick Acción al pausar.
+ * @param onResolvedClick Acción al marcar como resuelta.
+ */
 @Composable
 private fun PostActionRow(
     post: Post,
@@ -526,6 +588,15 @@ private fun PostActionRow(
     }
 }
 
+/**
+ * Botón de acción con icono reutilizable para la fila de acciones del post.
+ *
+ * @param icon Icono vectorial.
+ * @param contentDescription Descripción de accesibilidad.
+ * @param onClick Acción al pulsar.
+ * @param tint Color del icono.
+ * @param enabled Indica si el botón está habilitado.
+ */
 @Composable
 private fun ActionIconButton(
     icon: ImageVector,
@@ -544,6 +615,13 @@ private fun ActionIconButton(
     }
 }
 
+/**
+ * Diálogo de confirmación antes de eliminar una publicación.
+ *
+ * @param petName Nombre de la mascota a eliminar.
+ * @param onConfirm Acción al confirmar la eliminación.
+ * @param onDismiss Acción al cancelar.
+ */
 @Composable
 private fun DeleteConfirmationDialog(
     petName: String,
@@ -584,6 +662,9 @@ private fun DeleteConfirmationDialog(
     )
 }
 
+/**
+ * Placeholder shimmer para las tarjetas de publicaciones mientras se cargan.
+ */
 @Composable
 private fun MyPostShimmerCard() {
     PetHelpCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
@@ -599,6 +680,12 @@ private fun MyPostShimmerCard() {
     }
 }
 
+/**
+ * Formatea un timestamp a fecha legible "dd MMM, yyyy".
+ *
+ * @param timestampMillis Timestamp en milisegundos.
+ * @return Fecha formateada.
+ */
 private fun formatPostDate(timestampMillis: Long): String =
     SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
         .format(Date(timestampMillis))

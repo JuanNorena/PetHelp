@@ -1,3 +1,11 @@
+/**
+ * Implementación de [NotificationRepository] que usa Firebase Firestore
+ * para leer, actualizar y observar notificaciones del usuario.
+ *
+ * Observa en tiempo real la colección `notifications` filtrada por `userId`,
+ * mapea documentos a [PetNotification] y provee operaciones para marcar
+ * notificaciones como leídas (individual o masivamente).
+ */
 package com.pethelp.app.features.notifications.data.repository
 
 import com.google.firebase.Timestamp
@@ -16,12 +24,36 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementación de [NotificationRepository] que usa Firebase Firestore
+ * para leer, actualizar y observar notificaciones del usuario.
+ *
+ * **Responsabilidad Principal:**
+ * - Observar en tiempo real la colección `notifications` filtrada por `userId`.
+ * - Mapear documentos de Firestore a objetos [PetNotification] con conversión de tipos.
+ * - Proveer operaciones para marcar notificaciones como leídas (individual o masivamente).
+ *
+ * **Conversión de Tipos:**
+ * El campo `createdAt` puede ser un [Timestamp] de Firestore o un [Long] en milisegundos.
+ * Este repositorio normaliza ambos a [Long] para mantener consistencia en la capa de dominio.
+ *
+ * @param auth Instancia de Firebase Auth para obtener el UID del usuario actual.
+ * @param firestore Instancia de Firestore para acceder a la colección de notificaciones.
+ */
 @Singleton
 class FirebaseNotificationRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) : NotificationRepository {
 
+    /**
+     * Escucha en tiempo real las notificaciones del usuario autenticado.
+     *
+     * Normaliza el campo `createdAt` (puede ser Timestamp o Long) y ordena
+     * por fecha descendente para mostrar las más recientes primero.
+     *
+     * @return Flujo reactivo con lista de notificaciones.
+     */
     override fun observeNotifications(): Flow<Resource<List<PetNotification>>> = callbackFlow {
         trySend(Resource.Loading())
 
@@ -71,6 +103,12 @@ class FirebaseNotificationRepository @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    /**
+     * Marca una notificación individual como leída.
+     *
+     * @param notificationId Identificador de la notificación.
+     * @return Flujo con éxito o error de la operación.
+     */
     override fun markAsRead(notificationId: String): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         val uid = auth.currentUser?.uid
@@ -95,6 +133,13 @@ class FirebaseNotificationRepository @Inject constructor(
         }
     }
 
+    /**
+     * Marca todas las notificaciones no leídas del usuario como leídas.
+     *
+     * Procesa en lotes de 500 documentos por batch (límite de Firestore).
+     *
+     * @return Flujo con éxito o error de la operación.
+     */
     override fun markAllAsRead(): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         val uid = auth.currentUser?.uid

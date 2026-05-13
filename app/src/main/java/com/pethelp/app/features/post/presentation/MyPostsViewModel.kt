@@ -1,3 +1,10 @@
+/**
+ * ViewModel de la pantalla de publicaciones del usuario actual.
+ *
+ * Carga los posts del usuario autenticado, filtra por pestañas de estado
+ * (Activas, En revisión, Finalizadas) y gestiona acciones de edición,
+ * eliminación, pausa y resolución.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.lifecycle.ViewModel
@@ -83,6 +90,12 @@ class MyPostsViewModel @Inject constructor(
         loadMyPosts()
     }
 
+    /**
+     * Carga las publicaciones del usuario autenticado desde Firestore.
+     *
+     * Filtra por [authorId] y actualiza [MyPostsUiState.allPosts] para
+     * que [filteredPosts] pueda segmentarlas por pestaña.
+     */
     private fun loadMyPosts() {
         val userId = firebaseAuth.currentUser?.uid ?: return
         viewModelScope.launch {

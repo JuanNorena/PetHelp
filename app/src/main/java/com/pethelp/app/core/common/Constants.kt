@@ -1,3 +1,10 @@
+/**
+ * Constantes globales de la aplicación PetHelp.
+ *
+ * Agrupa nombres de colecciones de Firestore, estados de publicaciones,
+ * categorías, roles y configuración de notificaciones para evitar
+ * "magic strings" dispersos en el código.
+ */
 package com.pethelp.app.core.common
 
 /**

@@ -1,3 +1,8 @@
+/**
+ * Modelo de dominio que representa un comentario en una publicación.
+ *
+ * Contiene texto, autor, timestamp y referencia al post comentado.
+ */
 package com.pethelp.app.core.domain.model
 
 /**

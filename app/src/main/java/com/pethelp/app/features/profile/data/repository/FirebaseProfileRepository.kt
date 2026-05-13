@@ -1,3 +1,11 @@
+/**
+ * Implementación de [ProfileRepository] que utiliza Firebase Auth y Firestore
+ * para gestionar el perfil del usuario autenticado.
+ *
+ * Lee el perfil con snapshot listener, actualiza campos en Firestore,
+ * sube fotos a Cloudinary y gestiona operaciones sensibles
+ * (cambio de contraseña, reautenticación, eliminación de cuenta).
+ */
 package com.pethelp.app.features.profile.data.repository
 
 import com.google.firebase.auth.EmailAuthProvider
@@ -19,6 +27,27 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Implementación de [ProfileRepository] que utiliza Firebase Auth y Firestore
+ * para gestionar el perfil del usuario autenticado.
+ *
+ * **Responsabilidad Principal:**
+ * - Leer el perfil del usuario actual desde Firestore usando un snapshot listener.
+ * - Actualizar campos del perfil (nombre, bio, ciudad, preferencias, etc.).
+ * - Subir fotos de perfil a Cloudinary mediante [ImageUploader].
+ * - Propagar cambios del nombre del autor a todas sus publicaciones para mantener
+ *   consistencia en la UI sin joins complejos.
+ * - Gestionar operaciones sensibles: cambio de contraseña, reautenticación
+ *   y eliminación de cuenta.
+ *
+ * **Nota de Arquitectura:**
+ * Las actualizaciones de perfil solo escriben en Firestore, no en Firebase Auth,
+ * porque el cambio de email requiere reautenticación y flujos adicionales de verificación.
+ *
+ * @param firebaseAuth Instancia de Firebase Auth para obtener el usuario actual.
+ * @param firestore Instancia de Firestore para leer/escribir el documento del usuario.
+ * @param imageUploader Utilidad para subir imágenes de perfil a la nube.
+ */
 @Singleton
 class FirebaseProfileRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
@@ -30,6 +59,14 @@ class FirebaseProfileRepository @Inject constructor(
         private const val USERS_COLLECTION = "users"
     }
 
+    /**
+     * Escucha en tiempo real el perfil del usuario autenticado.
+     *
+     * Usa un snapshot listener sobre el documento del usuario en Firestore
+     * para mantener la UI sincronizada con cambios remotos.
+     *
+     * @return Flujo reactivo con estados [Resource] del perfil.
+     */
     override fun getCurrentUser(): Flow<Resource<User>> = callbackFlow {
         trySend(Resource.Loading())
 
@@ -62,6 +99,15 @@ class FirebaseProfileRepository @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    /**
+     * Actualiza campos editables del perfil en Firestore.
+     *
+     * También propaga cambios de nombre/foto a publicaciones y comentarios
+     * existentes para mantener consistencia denormalizada.
+     *
+     * @param user Objeto [User] con los campos a actualizar.
+     * @return Flujo con el usuario actualizado.
+     */
     override fun updateProfile(user: User): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
 
@@ -107,6 +153,13 @@ class FirebaseProfileRepository @Inject constructor(
         }
     }
 
+    /**
+     * Actualiza las preferencias de notificación del usuario.
+     *
+     * @param pushEnabled true para activar notificaciones push.
+     * @param emailEnabled true para activar alertas por correo.
+     * @return Flujo con éxito o error de la operación.
+     */
     override fun updateNotificationPreferences(
         pushEnabled: Boolean,
         emailEnabled: Boolean
@@ -136,6 +189,14 @@ class FirebaseProfileRepository @Inject constructor(
         }
     }
 
+    /**
+     * Sube una foto de perfil a Cloudinary y actualiza la URL en Firestore.
+     *
+     * Propaga la nueva foto a publicaciones y comentarios del autor.
+     *
+     * @param imageUri URI local de la imagen seleccionada.
+     * @return Flujo con la URL pública de la imagen subida.
+     */
     override fun updateProfilePhoto(imageUri: String): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
@@ -171,6 +232,15 @@ class FirebaseProfileRepository @Inject constructor(
         }
     }
 
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     *
+     * Requiere reautenticación con la contraseña actual por seguridad de Firebase.
+     *
+     * @param currentPassword Contraseña actual del usuario.
+     * @param newPassword Nueva contraseña deseada.
+     * @return Flujo con éxito o error de la operación.
+     */
     override fun changePassword(currentPassword: String, newPassword: String): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         val firebaseUser = firebaseAuth.currentUser
@@ -194,6 +264,14 @@ class FirebaseProfileRepository @Inject constructor(
         }
     }
 
+    /**
+     * Elimina la cuenta del usuario autenticado.
+     *
+     * Borra el documento de Firestore y la cuenta de Firebase Auth.
+     * Requiere reautenticación reciente.
+     *
+     * @return Flujo con éxito o error de la operación.
+     */
     override fun deleteAccount(): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         val firebaseUser = firebaseAuth.currentUser

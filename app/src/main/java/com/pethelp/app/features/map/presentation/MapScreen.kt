@@ -1,3 +1,13 @@
+/**
+ * Pantalla de mapa interactivo para visualizar publicaciones de mascotas.
+ *
+ * Muestra publicaciones como marcadores en un mapa de Google Maps,
+ * permite filtrar por categoría, buscar por texto y navegar al detalle
+ * de cada publicación. También soporta centrar el mapa en la ubicación
+ * actual del usuario usando [FusedLocationProviderClient].
+ *
+ * Usa [MapViewModel] para gestionar el estado de filtros y publicaciones.
+ */
 package com.pethelp.app.features.map.presentation
 
 import androidx.compose.ui.res.stringResource
@@ -507,6 +517,11 @@ fun MapScreen(
     }
 }
 
+/**
+ * Banner informativo que solicita permisos de ubicación al usuario.
+ *
+ * @param onRequest Acción al pulsar el botón de solicitar permisos.
+ */
 @Composable
 private fun LocationPermissionBanner(onRequest: () -> Unit) {
     Surface(

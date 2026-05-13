@@ -1,3 +1,12 @@
+/**
+ * Implementación de [AiChatRepository] que comunica con modelos de lenguaje.
+ *
+ * **Proveedores Soportados:**
+ * 1. **Gemini (Firebase AI Logic):** Proveedor principal.
+ * 2. **NVIDIA NIM (Fallback directo):** Si Gemini falla, realiza llamada HTTP directa.
+ *
+ * Las claves y URLs de NVIDIA se leen de `local.properties` via [BuildConfig].
+ */
 package com.pethelp.app.features.ai.data.repository
 
 import com.google.firebase.Firebase
@@ -23,13 +32,43 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
+/**
+ * Implementación de [AiChatRepository] que comunica con modelos de lenguaje.
+ *
+ * **Proveedores Soportados:**
+ * 1. **Gemini (Firebase AI Logic):** Proveedor principal. Usa el SDK de Firebase AI
+ *    para enviar mensajes al modelo generativo configurado en la consola de Firebase.
+ * 2. **NVIDIA NIM (Fallback directo):** Si Gemini falla, se realiza una llamada HTTP
+ *    directa a la API de NVIDIA usando [OkHttpClient]. Esto garantiza que el chat
+ *    y las recomendaciones funcionen incluso si hay problemas con Firebase.
+ *
+ * **Configuración:**
+ * Las claves y URLs de NVIDIA se leen de `local.properties` y se inyectan en
+ * [BuildConfig] durante la compilación. No se incluyen claves reales en el código fuente.
+ *
+ * @param okHttpClient Cliente HTTP inyectado desde [NetworkModule] para las llamadas a NVIDIA.
+ */
 class AiChatRepositoryImpl @Inject constructor(
     private val okHttpClient: OkHttpClient
 ) : AiChatRepository {
 
+    /** Instancia de Gson para serializar/deserializar JSON en las llamadas a NVIDIA. */
     private val gson = Gson()
+
+    /** Media type para peticiones JSON a la API de NVIDIA. */
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
+    /**
+     * Envía una petición de chat al modelo de lenguaje.
+     *
+     * **Flujo:**
+     * 1. Intenta llamar a Gemini (Firebase AI Logic).
+     * 2. Si Gemini falla, automáticamente hace fallback a NVIDIA NIM.
+     * 3. Normaliza los mensajes para que sean compatibles con ambos proveedores.
+     *
+     * @param request Petición con historial de mensajes y configuración del modelo.
+     * @return Resultado con la respuesta del modelo o un error descriptivo.
+     */
     override suspend fun callGemini(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
             if (request.messages.isEmpty()) {
@@ -80,6 +119,16 @@ class AiChatRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Fallback directo a NVIDIA NIM usando OkHttp.
+     *
+     * Se ejecuta cuando Gemini falla. Lee la API key, modelo y URL base
+     * desde [BuildConfig] y realiza una petición HTTP POST al endpoint
+     * `/chat/completions` de NVIDIA.
+     *
+     * @param request Petición original que se reenvía a NVIDIA.
+     * @return Resultado con la respuesta del modelo NVIDIA o error de configuración.
+     */
     private suspend fun callNvidia(request: AiChatRequest): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
             val apiKey = BuildConfig.NVIDIA_API_KEY.trim()

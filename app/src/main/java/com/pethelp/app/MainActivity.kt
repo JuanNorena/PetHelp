@@ -1,3 +1,13 @@
+/**
+ * Actividad principal de la aplicación PetHelp.
+ *
+ * Punto de entrada de la UI que inicializa el SplashScreen, configura
+ * el tema [PetHelpTheme] y monta el grafo de navegación [PetHelpNavGraph]
+ * usando Jetpack Compose.
+ *
+ * También coordina la inicialización del idioma preferido del usuario
+ * y el motor de gamificación al arrancar la aplicación.
+ */
 package com.pethelp.app
 
 import android.os.Bundle

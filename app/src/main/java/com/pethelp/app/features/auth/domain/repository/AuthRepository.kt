@@ -1,3 +1,12 @@
+/**
+ * Contrato del repositorio de autenticación.
+ *
+ * Define operaciones de login, registro, recuperación de contraseña,
+ * cierre de sesión y observación del estado de autenticación del usuario.
+ *
+ * Todas las operaciones exponen `Flow<Resource<T>>` para permitir
+ * que la UI reaccione a estados de carga, éxito y error.
+ */
 package com.pethelp.app.features.auth.domain.repository
 
 import com.pethelp.app.core.common.Resource
@@ -5,7 +14,7 @@ import com.pethelp.app.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Contrato del repositorio de autenticación.
+ * Interfaz concreta del repositorio de autenticación.
  *
  * Capa de dominio: define las operaciones disponibles sin depender
  * de la implementación concreta (Firebase, Room, etc.).

@@ -1,3 +1,9 @@
+/**
+ * ViewModel de la bandeja de solicitudes de adopción recibidas.
+ *
+ * Carga las solicitudes recibidas por el autor de publicaciones
+ * y coordina acciones de aprobación y rechazo.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.runtime.getValue

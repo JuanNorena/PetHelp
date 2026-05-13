@@ -1,3 +1,9 @@
+/**
+ * Contrato de subida de imágenes en la capa de dominio.
+ *
+ * Define la operación mínima necesaria para subir una imagen,
+ * desacoplada del proveedor concreto (Cloudinary, S3, etc.).
+ */
 package com.pethelp.app.core.domain.upload
 
 /**

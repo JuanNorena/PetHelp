@@ -1,3 +1,12 @@
+/**
+ * Pantalla de centro de ayuda con preguntas frecuentes (FAQ).
+ *
+ * Presenta una lista de categorías de ayuda que se pueden expandir
+ * para ver respuestas detalladas. Incluye secciones sobre adopción,
+ * publicaciones, seguridad de la cuenta y contacto con soporte.
+ *
+ * Usa [ProfileViewModel] para acceder al estado del usuario si es necesario.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.animation.AnimatedVisibility
@@ -194,6 +203,15 @@ fun HelpCenterScreen(navController: NavController) {
     }
 }
 
+/**
+ * Tarjeta de categoría de ayuda con icono y título.
+ *
+ * @param icon Icono vectorial.
+ * @param iconColor Color del icono.
+ * @param title Título de la categoría.
+ * @param modifier Modificador para ajustar layout.
+ * @param onClick Acción al pulsar la tarjeta.
+ */
 @Composable
 fun HelpCategoryCard(
     icon: ImageVector,
@@ -233,6 +251,14 @@ fun HelpCategoryCard(
     }
 }
 
+/**
+ * Item expandible de pregunta frecuente con respuesta colapsable.
+ *
+ * @param question Texto de la pregunta.
+ * @param answer Texto de la respuesta.
+ * @param isExpanded Indica si la respuesta está visible.
+ * @param onExpandChange Acción al expandir/colapsar.
+ */
 @Composable
 fun FAQItem(
     question: String, 

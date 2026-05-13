@@ -1,3 +1,9 @@
+/**
+ * Módulo Hilt que provee componentes de red (OkHttp y Retrofit).
+ *
+ * Configura interceptores de logging, timeouts y la base URL
+ * para llamadas HTTP externas, como el fallback a NVIDIA NIM.
+ */
 package com.pethelp.app.core.di
 
 import com.pethelp.app.BuildConfig

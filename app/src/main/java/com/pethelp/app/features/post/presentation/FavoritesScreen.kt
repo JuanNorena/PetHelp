@@ -1,3 +1,12 @@
+/**
+ * Pantalla de publicaciones favoritas del usuario.
+ *
+ * Muestra el listado en modo grilla o lista, permite filtrar por categoría
+ * y navegar al detalle de cada publicación marcada como favorita.
+ *
+ * Usa [FavoritesViewModel] para cargar favoritos y alternar entre
+ * vistas de grilla y lista.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -159,6 +168,12 @@ fun FavoritesScreen(
     }
 }
 
+/**
+ * Botón toggle para alternar entre vista de grilla y lista en favoritos.
+ *
+ * @param isGridView true si la vista actual es grilla.
+ * @param onToggle Acción al cambiar de modo.
+ */
 @Composable
 private fun ViewModeToggle(isGridView: Boolean, onToggle: () -> Unit) {
     Surface(
@@ -201,6 +216,12 @@ private fun ViewModeToggle(isGridView: Boolean, onToggle: () -> Unit) {
     }
 }
 
+/**
+ * Fila horizontal de chips para filtrar favoritos por categoría.
+ *
+ * @param selectedCategory Categoría seleccionada (null para "Todas").
+ * @param onCategorySelected Callback al seleccionar una categoría.
+ */
 @Composable
 private fun FavoritesFilterRow(
     selectedCategory: PostCategory?,
@@ -230,6 +251,13 @@ private fun FavoritesFilterRow(
     }
 }
 
+/**
+ * Chip individual de filtro por categoría en favoritos.
+ *
+ * @param label Texto del chip.
+ * @param selected Indica si está seleccionado.
+ * @param onClick Acción al pulsar el chip.
+ */
 @Composable
 private fun FilterChipUI(
     label: String,
@@ -259,6 +287,13 @@ private fun FilterChipUI(
     }
 }
 
+/**
+ * Grid de publicaciones favoritas en modo grilla.
+ *
+ * @param posts Lista de posts favoritos.
+ * @param onPostClick Acción al abrir el detalle de un post.
+ * @param onFavoriteClick Acción al quitar un post de favoritos.
+ */
 @Composable
 private fun FavoritesGrid(
     posts: List<Post>,
@@ -293,6 +328,13 @@ private fun FavoritesGrid(
     }
 }
 
+/**
+ * Tarjeta individual de publicación favorita en modo grilla.
+ *
+ * @param post Datos de la publicación.
+ * @param onPostClick Acción al abrir el detalle.
+ * @param onFavoriteClick Acción al quitar de favoritos.
+ */
 @Composable
 private fun FavoriteGridCard(
     post: Post,
@@ -387,6 +429,13 @@ private fun FavoriteGridCard(
     }
 }
 
+/**
+ * Lista vertical de publicaciones favoritas en modo lista.
+ *
+ * @param posts Lista de posts favoritos.
+ * @param onPostClick Acción al abrir el detalle de un post.
+ * @param onFavoriteClick Acción al quitar un post de favoritos.
+ */
 @Composable
 private fun FavoritesList(
     posts: List<Post>,
@@ -404,6 +453,13 @@ private fun FavoritesList(
     }
 }
 
+/**
+ * Tarjeta individual de publicación favorita en modo lista.
+ *
+ * @param post Datos de la publicación.
+ * @param onPostClick Acción al abrir el detalle.
+ * @param onFavoriteClick Acción al quitar de favoritos.
+ */
 @Composable
 private fun FavoriteListCard(
     post: Post,
@@ -484,6 +540,11 @@ private fun FavoriteListCard(
     }
 }
 
+/**
+ * Banner de invitación a explorar más publicaciones cuando no hay favoritos.
+ *
+ * @param onExploreClick Acción al pulsar el banner.
+ */
 @Composable
 private fun ExploreBanner(onExploreClick: () -> Unit) {
     Card(
@@ -532,6 +593,9 @@ private fun ExploreBanner(onExploreClick: () -> Unit) {
     }
 }
 
+/**
+ * Placeholder shimmer para las tarjetas de favoritos mientras se cargan.
+ */
 @Composable
 private fun FavoriteShimmerCard() {
     PetHelpCard(modifier = Modifier.fillMaxWidth()) {

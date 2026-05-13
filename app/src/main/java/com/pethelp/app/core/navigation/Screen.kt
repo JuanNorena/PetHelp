@@ -1,4 +1,10 @@
-﻿package com.pethelp.app.core.navigation
+﻿/**
+ * Definición tipada de todas las rutas de navegación de PetHelp.
+ *
+ * Usa Kotlin Serialization para permitir navegación segura con argumentos
+ * tipados en Jetpack Compose Navigation, evitando cadenas mágicas.
+ */
+package com.pethelp.app.core.navigation
 
 import kotlinx.serialization.Serializable
 

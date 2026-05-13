@@ -1,5 +1,18 @@
 package com.pethelp.app.features.gamification.domain.model
 
+/**
+ * Plantilla para generar misiones diarias o de una sola vez.
+ *
+ * Define la acción requerida, la cantidad objetivo y los puntos de recompensa.
+ *
+ * @param id Identificador único de la misión.
+ * @param title Título legible para mostrar en la UI.
+ * @param description Descripción de qué debe hacer el usuario.
+ * @param action Tipo de acción de gamificación que cuenta para esta misión.
+ * @param targetCount Cantidad de veces que debe realizar la acción.
+ * @param rewardPoints Puntos otorgados al completar la misión.
+ * @param type Tipo de misión: diaria o de una sola vez.
+ */
 data class MissionTemplate(
     val id: String,
     val title: String,
@@ -10,6 +23,16 @@ data class MissionTemplate(
     val type: MissionType
 )
 
+/**
+ * Definición de una insignia desbloqueable en el sistema de gamificación.
+ *
+ * @param id Identificador único de la insignia.
+ * @param name Nombre legible de la insignia.
+ * @param description Descripción de cómo se obtiene.
+ * @param rewardPoints Puntos otorgados al desbloquear la insignia.
+ * @param iconName Nombre del recurso de icono asociado.
+ * @param requirement Requisito que debe cumplirse para obtener la insignia.
+ */
 data class GamificationBadgeDefinition(
     val id: String,
     val name: String,
@@ -19,11 +42,24 @@ data class GamificationBadgeDefinition(
     val requirement: BadgeRequirement
 )
 
+/**
+ * Requisitos posibles para desbloquear una insignia.
+ */
 sealed class BadgeRequirement {
+    /** Requiere realizar una acción específica un número de veces. */
     data class ActionCount(val action: GamificationAction, val count: Int) : BadgeRequirement()
+
+    /** Requiere mantener una racha de días consecutivos. */
     data class StreakDays(val days: Int) : BadgeRequirement()
 }
 
+/**
+ * Catálogo central de misiones e insignias disponibles en PetHelp.
+ *
+ * Contiene las listas estáticas de [MissionTemplate] y [GamificationBadgeDefinition]
+ * que el [GamificationEngine] usa para generar misiones diarias y evaluar
+ * el progreso hacia insignias.
+ */
 object GamificationCatalog {
     val dailyMissionTemplates = listOf(
         MissionTemplate(

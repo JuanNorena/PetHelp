@@ -1,4 +1,20 @@
-﻿package com.pethelp.app.core.data.upload
+﻿/**
+ * Implementación de [ImageUploader] que sube imágenes a Cloudinary.
+ *
+ * **Responsabilidad Principal:**
+ * - Inicializar el SDK de Cloudinary (MediaManager) con la configuración de BuildConfig.
+ * - Preparar el archivo local a partir de un [Uri] de contenido de Android.
+ * - Ejecutar la subida de forma asíncrona usando [suspendCancellableCoroutine].
+ * - Retornar la URL segura (secure_url) de la imagen subida.
+ *
+ * **Notas de Implementación:**
+ * - Usa `Dispatchers.IO` para no bloquear el hilo principal durante la subida.
+ * - La subida se realiza mediante el callback de Cloudinary, que se adapta
+ *   a una corrutina suspendida de Kotlin.
+ *
+ * @param context Contexto de la aplicación requerido por MediaManager.
+ */
+package com.pethelp.app.core.data.upload
 
 import android.content.Context
 import android.net.Uri

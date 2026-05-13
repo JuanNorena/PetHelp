@@ -1,3 +1,16 @@
+/**
+ * Pantallas del perfil de usuario y configuración de PetHelp.
+ *
+ * Contiene:
+ * - [ProfileScreen]: Perfil principal con datos, estadísticas, gamificación,
+ *   misiones, insignias y acceso a submenús.
+ * - [EditProfileScreen]: Formulario para editar información personal y foto.
+ * - [SettingsScreen], [LanguageScreen], [SecurityScreen], [PrivacyScreen]:
+ *   Subpantallas de configuración de la aplicación.
+ *
+ * Integra [ProfileViewModel] para gestionar estado reactivo y acciones
+ * como cambio de idioma, modo oscuro y cierre de sesión.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -127,7 +140,12 @@ fun ProfileScreen(
     }
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+/**
+ * Encabezado decorativo del perfil con círculos de fondo, nivel, avatar y nombre.
+ *
+ * @param user Datos del usuario a mostrar.
+ * @param navController Controlador para navegar a configuración.
+ */
 @Composable
 private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, navController: NavController) {
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -262,6 +280,12 @@ private fun ProfileHeaderSection(user: com.pethelp.app.core.domain.model.User, n
 }
 
 // ─── Calcula el progreso de nivel (0.0–1.0) basado en puntos reales ────────────
+/**
+ * Calcula el progreso de nivel del usuario (0.0–1.0) basado en sus puntos actuales.
+ *
+ * @param user Usuario con puntos y nivel actuales.
+ * @return Progreso normalizado entre 0.0 y 1.0.
+ */
 private fun levelProgress(user: User): Float {
     return when (user.level) {
         UserLevel.FRIEND    -> (user.points.toFloat() / 50f).coerceIn(0f, 1f)
@@ -271,7 +295,11 @@ private fun levelProgress(user: User): Float {
     }
 }
 
-// ─── Avatar con anillo de progreso ────────────────────────────────────────────
+/**
+ * Avatar del usuario con anillo de progreso de nivel dibujado con Canvas.
+ *
+ * @param user Usuario cuyo progreso de nivel se visualiza.
+ */
 @Composable
 private fun ProfileAvatarWithRing(user: User) {
     val progress = levelProgress(user)
@@ -355,7 +383,11 @@ private fun ProfileAvatarWithRing(user: User) {
     }
 }
 
-// ─── Tarjeta de Puntos ────────────────────────────────────────────────────────
+/**
+ * Tarjeta que muestra los puntos acumulados del usuario en el sistema de gamificación.
+ *
+ * @param points Cantidad total de puntos del usuario.
+ */
 @Composable
 private fun PointsCardSection(points: Int) {
     Box(
@@ -425,7 +457,11 @@ private fun PointsCardSection(points: Int) {
     }
 }
 
-// ─── Grid de estadísticas 2×2 ─────────────────────────────────────────────────
+/**
+ * Grid 2×2 con estadísticas clave del usuario (publicaciones, adopciones, etc.).
+ *
+ * @param user Datos del usuario para calcular las estadísticas.
+ */
 @Composable
 private fun StatsGrid2x2Section(user: User) {
     // Datos reales únicamente — sin valores quemados
@@ -476,6 +512,16 @@ private fun StatsGrid2x2Section(user: User) {
     }
 }
 
+/**
+ * Tarjeta individual de estadística con icono, valor y etiqueta.
+ *
+ * @param modifier Modificador para ajustar layout.
+ * @param iconTint Color del icono.
+ * @param iconBg Color de fondo del contenedor del icono.
+ * @param icon Vector de imagen del icono.
+ * @param value Valor numérico a mostrar.
+ * @param label Etiqueta descriptiva de la estadística.
+ */
 @Composable
 private fun StatCard2(
     modifier: Modifier = Modifier,
@@ -519,7 +565,11 @@ private fun StatCard2(
     }
 }
 
-// ─── Racha diaria ───────────────────────────────────────────────────────────
+/**
+ * Sección que muestra la racha diaria de uso de la aplicación.
+ *
+ * @param streak Datos de racha actual y máxima.
+ */
 @Composable
 private fun StreakSection(streak: GamificationStreak) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -557,6 +607,13 @@ private fun StreakSection(streak: GamificationStreak) {
     }
 }
 
+/**
+ * Item individual de racha con icono, etiqueta y valor numérico.
+ *
+ * @param icon Icono vectorial que representa el tipo de racha.
+ * @param label Texto descriptivo (ej. "Días consecutivos").
+ * @param value Valor numérico a mostrar.
+ */
 @Composable
 private fun StreakStatItem(icon: ImageVector, label: String, value: Int) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -573,7 +630,11 @@ private fun StreakStatItem(icon: ImageVector, label: String, value: Int) {
     }
 }
 
-// ─── Misiones ───────────────────────────────────────────────────────────────
+/**
+ * Lista horizontal de misiones activas del usuario.
+ *
+ * @param missions Lista de misiones diarias y de una sola vez.
+ */
 @Composable
 private fun MissionsSection(missions: List<Mission>) {
     val ordered = missions.sortedWith(
@@ -609,6 +670,11 @@ private fun MissionsSection(missions: List<Mission>) {
     }
 }
 
+/**
+ * Tarjeta individual que muestra el progreso de una misión.
+ *
+ * @parammission Datos de la misión a visualizar.
+ */
 @Composable
 private fun MissionCard(mission: Mission) {
     val progress = if (mission.targetCount == 0) 0f
@@ -670,6 +736,12 @@ private fun MissionCard(mission: Mission) {
     }
 }
 
+/**
+ * Resuelve el título localizado de una misión según su identificador.
+ *
+ * @parammission Instancia de la misión.
+ * @return Cadena traducida del título.
+ */
 @Composable
 private fun localizedMissionTitle(mission: Mission): String {
     return when (mission.id) {
@@ -684,6 +756,12 @@ private fun localizedMissionTitle(mission: Mission): String {
     }
 }
 
+/**
+ * Resuelve la descripción localizada de una misión según su identificador.
+ *
+ * @parammission Instancia de la misión.
+ * @return Cadena traducida de la descripción.
+ */
 @Composable
 private fun localizedMissionDescription(mission: Mission): String {
     return when (mission.id) {
@@ -698,7 +776,11 @@ private fun localizedMissionDescription(mission: Mission): String {
     }
 }
 
-// ─── Insignias ──────────────────────────────────────────────────────────────
+/**
+ * Sección horizontal con las insignias desbloqueadas del usuario.
+ *
+ * @param badges Lista de insignias con su estado de desbloqueo.
+ */
 @Composable
 private fun BadgesSection(badges: List<BadgeDisplay>) {
     if (badges.isEmpty()) return
@@ -723,6 +805,11 @@ private fun BadgesSection(badges: List<BadgeDisplay>) {
     }
 }
 
+/**
+ * Tarjeta compacta de una insignia con icono y nombre localizado.
+ *
+ * @param badge Datos de la insignia a visualizar.
+ */
 @Composable
 private fun BadgeCard(badge: BadgeDisplay) {
     val alpha = if (badge.isUnlocked) 1f else 0.4f
@@ -768,6 +855,12 @@ private fun BadgeCard(badge: BadgeDisplay) {
     }
 }
 
+/**
+ * Resuelve el nombre localizado de una insignia según su identificador.
+ *
+ * @param badge Datos de la insignia.
+ * @return Cadena traducida del nombre.
+ */
 @Composable
 private fun localizedBadgeName(badge: BadgeDisplay): String {
     return when (badge.definition.id) {
@@ -780,6 +873,12 @@ private fun localizedBadgeName(badge: BadgeDisplay): String {
     }
 }
 
+/**
+ * Resuelve la descripción localizada de una insignia según su identificador.
+ *
+ * @param badge Datos de la insignia.
+ * @return Cadena traducida de la descripción.
+ */
 @Composable
 private fun localizedBadgeDescription(badge: BadgeDisplay): String {
     return when (badge.definition.id) {
@@ -792,7 +891,11 @@ private fun localizedBadgeDescription(badge: BadgeDisplay): String {
     }
 }
 
-// ─── Estadisticas de actividad ──────────────────────────────────────────────
+/**
+ * Sección que resume las acciones realizadas por el usuario (posts, comentarios, etc.).
+ *
+ * @param stats Estadísticas acumuladas de actividad.
+ */
 @Composable
 private fun ActivityStatsSection(stats: GamificationStats) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -840,6 +943,14 @@ private fun ActivityStatsSection(stats: GamificationStats) {
     }
 }
 
+/**
+ * Tarjeta individual de actividad con icono y contador.
+ *
+ * @param modifier Modificador para ajustar layout.
+ * @param icon Icono vectorial representativo.
+ * @param value Contador de la acción.
+ * @param label Etiqueta descriptiva.
+ */
 @Composable
 private fun ActivityStatCard(
     modifier: Modifier,
@@ -869,7 +980,12 @@ private fun ActivityStatCard(
     }
 }
 
-// ─── Accesos Rápidos ──────────────────────────────────────────────────────────
+/**
+ * Sección de accesos rápidos del perfil (favoritos, mis publicaciones, etc.).
+ *
+ * @param navController Controlador de navegación.
+ * @param userRole Rol del usuario para ocultar/mostrar opciones de moderador.
+ */
 @Composable
 private fun QuickAccessSection(
     navController: NavController,
@@ -931,6 +1047,16 @@ private fun QuickAccessSection(
     }
 }
 
+/**
+ * Fila individual de acceso rápido con icono, etiqueta y flecha.
+ *
+ * @param icon Icono vectorial.
+ * @param iconBg Color de fondo del icono.
+ * @param iconTint Color del icono.
+ * @param label Texto descriptivo.
+ * @param onClick Acción al pulsar la fila.
+ * @param showDivider Indica si se dibuja un divisor inferior.
+ */
 @Composable
 private fun QuickAccessRow(
     icon: ImageVector, iconBg: Color, iconTint: Color,
@@ -957,7 +1083,12 @@ private fun QuickAccessRow(
     }
 }
 
-// ─── Cerrar Sesión ────────────────────────────────────────────────────────────
+/**
+ * Botón de cierre de sesión que delega la operación al ViewModel.
+ *
+ * @param navController Controlador para navegar al login tras cerrar sesión.
+ * @param viewModel ViewModel que ejecuta el logout.
+ */
 @Composable
 private fun LogoutSection(navController: NavController, viewModel: ProfileViewModel) {
     OutlinedButton(
@@ -1214,6 +1345,12 @@ fun EditProfileScreen(
     }
 }
 
+/**
+ * Chip seleccionable para preferencias de mascotas en la edición de perfil.
+ *
+ * @param label Texto de la preferencia.
+ * @param preferences Lista mutable de preferencias seleccionadas.
+ */
 @Composable
 fun PreferenceChip(label: String, preferences: MutableList<String>) {
     val selected = preferences.contains(label)

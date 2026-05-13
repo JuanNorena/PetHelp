@@ -1,4 +1,10 @@
-﻿package com.pethelp.app.core.domain.model
+﻿/**
+ * Modelos de dominio central de PetHelp.
+ *
+ * Contiene [Post], la entidad principal de publicación de mascotas,
+ * junto con enums de categoría, estado, edad, sexo, tamaño y comportamiento.
+ */
+package com.pethelp.app.core.domain.model
 
 /**
  * Modelo de dominio central que representa una publicación de mascota.

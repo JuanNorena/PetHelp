@@ -1,3 +1,17 @@
+/**
+ * Pantallas del panel de moderación de PetHelp.
+ *
+ * Incluye:
+ * - [ModeratorPanelScreen]: Dashboard con métricas, publicaciones pendientes
+ *   y publicaciones gestionadas en el día.
+ * - [ModeratorDetailScreen]: Vista detallada de una publicación para revisión,
+ *   con análisis asistido por IA y acciones de aprobar/rechazar.
+ * - [ModeratorAccessGate]: Composable de seguridad que restringe el acceso
+ *   exclusivamente a usuarios con rol de MODERADOR.
+ *
+ * La moderación usa [ModerationViewModel] para gestionar el estado reactivo
+ * y [PostRepository] para aplicar decisiones sobre publicaciones.
+ */
 package com.pethelp.app.features.moderation.presentation
 
 import androidx.compose.foundation.background
@@ -456,6 +470,20 @@ fun ModeratorDetailScreen(
     }
 }
 
+/**
+ * Contenido detallado de un post en la vista de moderación.
+ *
+ * Muestra las tarjetas de información del post, análisis de IA y botones de acción.
+ *
+ * @param post Publicación a revisar.
+ * @param aiAnalysis Resultado del análisis de IA (puede ser null).
+ * @param isAiAnalysisLoading Indica si se está cargando el análisis.
+ * @param aiAnalysisError Error del análisis de IA.
+ * @param isActionLoading Indica si se está ejecutando una acción de aprobar/rechazar.
+ * @param padding Padding del Scaffold para respetar las barras del sistema.
+ * @param onApprove Acción al aprobar la publicación.
+ * @param onReject Acción al rechazar la publicación.
+ */
 @Composable
 private fun ModeratorPostDetailContent(
     post: Post,
@@ -504,6 +532,11 @@ private fun ModeratorPostDetailContent(
     }
 }
 
+/**
+ * Sección superior de la pantalla de detalle con imagen, título y estado del post.
+ *
+ * @param post Publicación cuya información se muestra.
+ */
 @Composable
 private fun ModerationHeroSection(post: Post) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -600,6 +633,13 @@ private fun ModerationHeroSection(post: Post) {
     }
 }
 
+/**
+ * Tarjeta que muestra el análisis de IA para moderación.
+ *
+ * @param analysis Datos del análisis (nivel de riesgo, fortalezas, alertas).
+ * @param isLoading Indica si el análisis está en curso.
+ * @param error Error ocurrido durante el análisis.
+ */
 @Composable
 private fun ModerationAiAnalysisCard(
     analysis: ModerationAiAnalysis?,
@@ -685,6 +725,13 @@ private fun ModerationAiAnalysisCard(
     }
 }
 
+/**
+ * Lista de items de análisis con título y color semántico.
+ *
+ * @param title Título de la lista (fortalezas, alertas, etc.).
+ * @param items Elementos a mostrar.
+ * @param color Color semántico del título.
+ */
 @Composable
 private fun ModerationAnalysisList(title: String, items: List<String>, color: Color) {
     if (items.isEmpty()) return
@@ -700,6 +747,11 @@ private fun ModerationAnalysisList(title: String, items: List<String>, color: Co
     }
 }
 
+/**
+ * Tarjeta con la información del autor de la publicación.
+ *
+ * @param post Publicación del cual se extrae la información del autor.
+ */
 @Composable
 private fun ModerationAuthorCard(post: Post) {
     SectionCard {
@@ -743,6 +795,11 @@ private fun ModerationAuthorCard(post: Post) {
     }
 }
 
+/**
+ * Tarjeta con la descripción textual de la publicación.
+ *
+ * @param post Publicación cuya descripción se muestra.
+ */
 @Composable
 private fun ModerationDescriptionCard(post: Post) {
     SectionCard {
@@ -756,6 +813,11 @@ private fun ModerationDescriptionCard(post: Post) {
     }
 }
 
+/**
+ * Tarjeta con información básica de la mascota (raza, edad, comportamiento).
+ *
+ * @param post Publicación que contiene los datos de la mascota.
+ */
 @Composable
 private fun ModerationPetInfoCard(post: Post) {
     val context = LocalContext.current
@@ -778,6 +840,11 @@ private fun ModerationPetInfoCard(post: Post) {
     }
 }
 
+/**
+ * Tarjeta con el estado de salud de la mascota (vacunas, desparasitación, esterilización).
+ *
+ * @param post Publicación con los datos de salud.
+ */
 @Composable
 private fun ModerationHealthCard(post: Post) {
     SectionCard {
@@ -793,6 +860,11 @@ private fun ModerationHealthCard(post: Post) {
     }
 }
 
+/**
+ * Tarjeta con la ubicación de la publicación (ciudad, barrio, dirección).
+ *
+ * @param post Publicación de la cual se extrae la ubicación.
+ */
 @Composable
 private fun ModerationLocationCard(post: Post) {
     SectionCard {
@@ -808,6 +880,11 @@ private fun ModerationLocationCard(post: Post) {
     }
 }
 
+/**
+ * Tarjeta que muestra la razón de un rechazo anterior, si existe.
+ *
+ * @param post Publicación que puede contener una razón de rechazo previo.
+ */
 @Composable
 private fun ModerationPreviousRejectionCard(post: Post) {
     if (post.rejectionReason.isNullOrBlank()) return
@@ -827,6 +904,13 @@ private fun ModerationPreviousRejectionCard(post: Post) {
     }
 }
 
+/**
+ * Botones de acción para aprobar o rechazar una publicación.
+ *
+ * @param isActionLoading Indica si una acción está en curso.
+ * @param onApprove Callback al pulsar aprobar.
+ * @param onReject Callback al pulsar rechazar.
+ */
 @Composable
 private fun ModerationDecisionActions(
     isActionLoading: Boolean,
@@ -876,6 +960,11 @@ private fun ModerationDecisionActions(
     }
 }
 
+/**
+ * Contenedor de tarjeta reutilizable para secciones de información en moderación.
+ *
+ * @param content Contenido composable a renderizar dentro de la tarjeta.
+ */
 @Composable
 private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
@@ -889,6 +978,13 @@ private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
+/**
+ * Título de sección con icono y color semántico para uso dentro de tarjetas de moderación.
+ *
+ * @param icon Icono vectorial del título.
+ * @param title Texto del título.
+ * @param Color del icono y texto.
+ */
 @Composable
 private fun SectionTitle(icon: ImageVector, title: String, color: Color = MaterialTheme.colorScheme.primary) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -897,6 +993,11 @@ private fun SectionTitle(icon: ImageVector, title: String, color: Color = Materi
     }
 }
 
+/**
+ * Grid de información que organiza pares icono-label-valor en filas de dos columnas.
+ *
+ * @param items Lista de triples con icono, etiqueta y valor.
+ */
 @Composable
 private fun InfoGrid(items: List<Triple<ImageVector, String, String>>) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -911,6 +1012,14 @@ private fun InfoGrid(items: List<Triple<ImageVector, String, String>>) {
     }
 }
 
+/**
+ * Tile individual de información con icono, etiqueta y valor.
+ *
+ * @param icon Icono vectorial.
+ * @param label Etiqueta descriptiva.
+ * @param value Valor a mostrar.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun InfoTile(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
     Surface(
@@ -932,6 +1041,12 @@ private fun InfoTile(icon: ImageVector, label: String, value: String, modifier: 
     }
 }
 
+/**
+ * Chip que indica un estado booleano (sí/no) con colores semánticos.
+ *
+ * @param label Texto descriptivo del estado.
+ * @param enabled true para verde/activo, false para gris/inactivo.
+ */
 @Composable
 private fun BooleanChip(label: String, enabled: Boolean) {
     val color = if (enabled) StatusSuccess else StatusNeutral
@@ -949,6 +1064,11 @@ private fun BooleanChip(label: String, enabled: Boolean) {
     }
 }
 
+/**
+ * Grid de chips booleanos organizados en filas de dos columnas.
+ *
+ * @param items Pares de texto y estado booleano.
+ */
 @Composable
 private fun ChipGrid(items: List<Pair<String, Boolean>>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -965,6 +1085,12 @@ private fun ChipGrid(items: List<Pair<String, Boolean>>) {
     }
 }
 
+/**
+ * Chip informativo con icono y etiqueta para datos de mascota.
+ *
+ * @param icon Icono vectorial.
+ * @param label Texto descriptivo.
+ */
 @Composable
 private fun InfoChip(icon: ImageVector, label: String) {
     Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
@@ -1085,6 +1211,14 @@ private fun GlobalMetricsRow(stats: ModerationStats) {
     }
 }
 
+/**
+ * Tarjeta de métrica individual con icono, valor y etiqueta.
+ *
+ * @param label Texto descriptivo de la métrica.
+ * @param value Valor numérico formateado.
+ * @param icon Icono vectorial.
+ * @param color Color semántico del fondo.
+ */
 @Composable
 private fun MetricCard(
     label: String,

@@ -1,3 +1,14 @@
+/**
+ * Pantallas de chat y mensajería de PetHelp.
+ *
+ * Contiene:
+ * - [ChatScreen]: Lista de conversaciones activas con contadores de no leídos.
+ * - [ChatThreadScreen]: Vista de hilo de mensajes para una conversación específica.
+ * - Funciones de extensión para mapear documentos de Firestore a modelos de UI.
+ *
+ * La mensajería usa Firebase Firestore en tiempo real (snapshot listeners)
+ * para sincronizar mensajes y estados de lectura entre dispositivos.
+ */
 package com.pethelp.app.features.chat.presentation
 
 import android.text.format.DateUtils
@@ -92,6 +103,14 @@ private data class ChatMessage(
     val timeLabel: String
 )
 
+/**
+ * Pantalla de lista de conversaciones de chat.
+ *
+ * Muestra las conversaciones activas del usuario autenticado con contadores
+ * de mensajes no leídos y permite navegar a cada hilo de conversación.
+ *
+ * @param navController Controlador de navegación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavController) {
@@ -246,6 +265,9 @@ fun ChatScreen(navController: NavController) {
     }
 }
 
+/**
+ * Tarjeta introductoria explicativa del chat de adopción.
+ */
 @Composable
 private fun ChatIntroCard() {
     Surface(
@@ -288,6 +310,12 @@ private fun ChatIntroCard() {
     }
 }
 
+/**
+ * Tarjeta de previsualización de una conversación de chat.
+ *
+ * @param conversation Datos de la conversación (nombre, último mensaje, no leídos).
+ * @param onClick Acción al pulsar la tarjeta.
+ */
 @Composable
 private fun ConversationCard(
     conversation: ConversationPreview,
@@ -393,6 +421,15 @@ private fun ConversationCard(
     }
 }
 
+/**
+ * Pantalla de hilo de mensajes para una conversación específica.
+ *
+ * Muestra los mensajes intercambiados en tiempo real y permite enviar
+ * nuevos mensajes mediante Firestore.
+ *
+ * @param navController Controlador de navegación.
+ * @param threadId Identificador único de la conversación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatThreadScreen(
@@ -613,6 +650,12 @@ fun ChatThreadScreen(
     }
 }
 
+/**
+ * Burbuja individual de mensaje en el hilo de chat.
+ *
+ * @param message Datos del mensaje (texto, autor, hora).
+ * @param index Índice del mensaje para animación escalonada.
+ */
 @Composable
 private fun MessageBubble(message: ChatMessage, index: Int = 0) {
     val bubbleEnter = if (message.isMine) {
@@ -650,6 +693,9 @@ private fun MessageBubble(message: ChatMessage, index: Int = 0) {
     }
 }
 
+/**
+ * Indicador animado de "escribiendo..." en el chat.
+ */
 @Composable
 private fun TypingIndicator() {
     Row(
@@ -676,6 +722,16 @@ private fun TypingIndicator() {
     }
 }
 
+/**
+ * Envía un mensaje de chat a Firestore en una conversación existente.
+ *
+ * @param db Instancia de FirebaseFirestore.
+ * @param threadId ID del hilo de conversación.
+ * @param senderId UID del remitente.
+ * @param text Contenido del mensaje.
+ * @param onSuccess Callback si el envío es exitoso.
+ * @param onFailure Callback si ocurre un error.
+ */
 private fun sendChatMessage(
     db: FirebaseFirestore,
     threadId: String,
@@ -723,6 +779,14 @@ private fun sendChatMessage(
         .addOnFailureListener { onFailure(it) }
 }
 
+/**
+ * Convierte un [DocumentSnapshot] de Firestore en [ConversationPreview].
+ *
+ * @param context Contexto para resolver strings.
+ * @param currentUserId UID del usuario actual.
+ * @param fallbackTitle Título por defecto si no hay título en el documento.
+ * @return Instancia de [ConversationPreview].
+ */
 private fun DocumentSnapshot.toConversationPreview(context: android.content.Context, currentUserId: String, fallbackTitle: String): ConversationPreview {
     val updatedAt = get("updatedAt").toMillis()
     val lastMessage = getString("lastMessage")
@@ -751,6 +815,12 @@ private fun DocumentSnapshot.toConversationPreview(context: android.content.Cont
     )
 }
 
+/**
+ * Obtiene el número de mensajes no leídos para un usuario específico.
+ *
+ * @param uid UID del usuario.
+ * @return Cantidad de mensajes no leídos.
+ */
 private fun DocumentSnapshot.unreadFor(uid: String): Int {
     val unreadByUser = get("unreadByUser") as? Map<*, *>
     val ownUnread = unreadByUser?.get(uid)
@@ -762,12 +832,23 @@ private fun DocumentSnapshot.unreadFor(uid: String): Int {
     }
 }
 
+/**
+ * Lee un campo de tipo lista de strings de forma segura.
+ *
+ * @param field Nombre del campo.
+ * @return Lista de strings o lista vacía si el campo no existe o no es una lista.
+ */
 private fun DocumentSnapshot.getStringListSafe(field: String): List<String> {
     return (get(field) as? List<*>)
         ?.mapNotNull { it as? String }
         .orEmpty()
 }
 
+/**
+ * Convierte un valor de timestamp de Firestore a milisegundos.
+ *
+ * @return Timestamp en milisegundos o 0L si no es convertible.
+ */
 private fun Any?.toMillis(): Long {
     return when (this) {
         is Timestamp -> toDate().time
@@ -778,6 +859,12 @@ private fun Any?.toMillis(): Long {
     }
 }
 
+/**
+ * Formatea un timestamp en tiempo relativo legible (ej. "hace 2 min").
+ *
+ * @param timeMillis Timestamp en milisegundos.
+ * @return Texto relativo formateado.
+ */
 private fun formatRelative(timeMillis: Long): String {
     return DateUtils.getRelativeTimeSpanString(
         timeMillis,

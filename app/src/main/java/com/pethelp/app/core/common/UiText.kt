@@ -1,3 +1,9 @@
+/**
+ * Abstracción para textos de la UI que soporta localización.
+ *
+ * Permite usar textos dinámicos o recursos de strings de Android
+ * de forma uniforme en ViewModels sin depender directamente del Context.
+ */
 package com.pethelp.app.core.common
 
 import android.content.Context

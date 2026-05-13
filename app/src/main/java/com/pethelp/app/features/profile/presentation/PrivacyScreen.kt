@@ -1,3 +1,10 @@
+/**
+ * Pantalla informativa de política de privacidad y manejo de datos.
+ *
+ * Explica al usuario cómo se recopilan, usan y protegen sus datos personales
+ * dentro de la aplicación. Incluye información sobre permisos de ubicación,
+ * notificaciones y compartir información con terceros.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.background
@@ -146,6 +153,12 @@ fun PrivacyScreen(navController: NavController) {
     }
 }
 
+/**
+ * Sección de texto informativo sobre política de privacidad.
+ *
+ * @param title Título de la sección.
+ * @param body Cuerpo descriptivo.
+ */
 @Composable
 fun PrivacySection(title: String, body: String) {
     Column(modifier = Modifier.padding(bottom = 24.dp)) {
@@ -165,6 +178,11 @@ fun PrivacySection(title: String, body: String) {
     }
 }
 
+/**
+ * Item de lista con viñeta para contenido de política de privacidad.
+ *
+ * @param text Texto del bullet.
+ */
 @Composable
 fun BulletPoint(text: String) {
     Row(

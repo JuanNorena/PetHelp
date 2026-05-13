@@ -1,3 +1,11 @@
+/**
+ * Paso de detalles de mascota en el flujo de creación de publicación.
+ *
+ * Recibe datos previos (básicos y ubicación), permite completar edad, sexo,
+ * estado de salud y comportamiento, y luego navega al paso de revisión.
+ *
+ * Usa [PostDetails] de [Screen] para recibir datos del flujo de navegación.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -412,8 +420,15 @@ fun PostDetailsScreen(
     }
 }
 
+/**
+ * Item reutilizable para seleccionar indicadores de salud en estilo tarjeta.
+ *
+ * @param title Título del indicador de salud.
+ * @param description Descripción del indicador.
+ * @param selected Indica si está seleccionado.
+ * @param onToggle Callback al cambiar la selección.
+ */
 @Composable
-/** Item reutilizable para seleccionar indicadores de salud en estilo tarjeta. */
 fun HealthStatusItem(
     title: String,
     description: String,

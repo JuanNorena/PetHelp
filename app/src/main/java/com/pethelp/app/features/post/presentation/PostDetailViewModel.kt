@@ -1,3 +1,10 @@
+/**
+ * ViewModel del detalle de una publicación.
+ *
+ * Sincroniza datos del post, comentarios, votos, favoritos y estado de
+ * solicitud de adopción. Expone acciones de interacción como votar,
+ * comentar y solicitar adopción.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.lifecycle.SavedStateHandle
@@ -78,6 +85,13 @@ class PostDetailViewModel @Inject constructor(
         checkAdoptionRequestStatus()
     }
 
+    // ── Carga de Datos del Post ─────────────────────────────────────────────
+    /**
+     * Escucha en tiempo real los cambios del post desde Firestore.
+     *
+     * Usa [PostRepository.getPostById] con snapshot listener para mantener
+     * la UI sincronizada si otro usuario modifica la publicación.
+     */
     private fun loadPost() {
         viewModelScope.launch {
             postRepository.getPostById(postId).collect { resource ->
@@ -97,14 +111,27 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Escucha comentarios en tiempo real y fusiona con comentarios temporales locales.
+     *
+     * **Lógica de merge:**
+     * 1. Filtra comentarios locales temporales (prefijo "temp_").
+     * 2. Identifica temporales que ya llegaron a Firestore comparando autor, texto y timestamp cercano.
+     * 3. Elimina duplicados por clave compuesta y ordena cronológicamente.
+     *
+     * Esto permite mostrar inmediatamente un comentario enviado (optimista)
+     * mientras se sincroniza con Firestore.
+     */
     private fun loadComments() {
         viewModelScope.launch {
             postRepository.getComments(postId).collect { resource ->
                 if (resource is Resource.Success) {
                     val incoming = resource.data ?: emptyList()
                     val current = _uiState.value.comments
+                    // Comentarios locales enviados pero aún no confirmados por Firestore.
                     val temp = current.filter { it.id.startsWith("temp_") }
 
+                    // Identifica temporales que ya existen en Firestore (mismo autor, texto y tiempo cercano).
                     val replacedTempIds = temp.filter { tempComment ->
                         incoming.any { real ->
                             real.authorId == tempComment.authorId &&
@@ -113,6 +140,7 @@ class PostDetailViewModel @Inject constructor(
                         }
                     }.map { it.id }
 
+                    // Conserva temporales no confirmados aún y añade los reales de Firestore.
                     val merged = incoming + temp.filter { it.id !in replacedTempIds }
                     val deduped = merged
                         .distinctBy { "${it.authorId}_${it.createdAt}_${it.text}" }
@@ -124,6 +152,9 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Consulta si el usuario autenticado ya votó (like) esta publicación.
+     */
     private fun checkVoteStatus() {
         val userId = currentUserId
         if (userId.isBlank()) return
@@ -136,6 +167,11 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Consulta si el usuario autenticado tiene esta publicación como favorita.
+     *
+     * En esta implementación, favorito se almacena en la misma colección de votos.
+     */
     private fun checkFavoriteStatus() {
         val userId = currentUserId
         if (userId.isBlank()) return
@@ -148,6 +184,12 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Verifica si el usuario ya envió una solicitud de adopción para este post.
+     *
+     * Actualiza [PostDetailUiState.existingAdoptionRequest] para que la UI
+     * pueda mostrar el estado adecuado (ej. botón deshabilitado).
+     */
     private fun checkAdoptionRequestStatus() {
         val userId = currentUserId
         if (userId.isBlank()) return
@@ -261,6 +303,12 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Recupera el documento del usuario autenticado desde Firestore.
+     *
+     * @param userId UID del usuario.
+     * @return DocumentSnapshot del usuario o null si falla la lectura.
+     */
     private suspend fun getCurrentUserDoc(userId: String): DocumentSnapshot? {
         return try {
             firestore.collection(Constants.COLLECTION_USERS)

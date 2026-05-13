@@ -1,3 +1,13 @@
+/**
+ * Dashboard de estadísticas personales del usuario con diseño visual moderno.
+ *
+ * Muestra métricas como publicaciones activas, finalizadas, en revisión
+ * y solicitudes de adopción enviadas/recibidas. Incluye gráficos animados
+ * y tarjetas con indicadores visuales de progreso.
+ *
+ * Actualmente usa datos de ejemplo; en futuras fases se conectará
+ * con repositorios de publicaciones y adopciones en tiempo real.
+ */
 package com.pethelp.app.features.stats.presentation
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -197,6 +207,12 @@ fun StatisticsScreen(navController: NavController) {
     }
 }
 
+/**
+ * Encabezado del dashboard de estadísticas con totales de publicaciones y adopciones.
+ *
+ * @param totalPosts Número total de publicaciones del usuario.
+ * @param totalAdoptions Número total de adopciones completadas.
+ */
 @Composable
 private fun StatsHeader(totalPosts: Int, totalAdoptions: Int) {
     Box(
@@ -242,6 +258,16 @@ private fun StatsHeader(totalPosts: Int, totalAdoptions: Int) {
     }
 }
 
+/**
+ * Tarjeta de estadística individual con animación de contador.
+ *
+ * @param label Etiqueta descriptiva.
+ * @param value Valor numérico a mostrar.
+ * @param icon Icono vectorial.
+ * @param iconBg Color de fondo del icono.
+ * @param iconTint Color del icono.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun AnimatedStatCard(
     label: String,
@@ -289,6 +315,13 @@ private fun AnimatedStatCard(
     }
 }
 
+/**
+ * Indicador circular de progreso con animación suave.
+ *
+ * @param progress Progreso normalizado entre 0.0 y 1.0.
+ * @param size Tamaño del indicador.
+ * @param strokeWidth Grosor del trazo.
+ */
 @Composable
 private fun CircularProgressIndicatorAnimated(
     progress: Float,
@@ -332,6 +365,15 @@ private fun CircularProgressIndicatorAnimated(
     }
 }
 
+/**
+ * Item individual de actividad reciente en el dashboard de estadísticas.
+ *
+ * @param icon Icono vectorial.
+ * @param iconTint Color del icono.
+ * @param title Título de la actividad.
+ * @param subtitle Descripción corta.
+ * @param time Fecha/hora de la actividad.
+ */
 @Composable
 private fun ActivityItem(
     icon: ImageVector,

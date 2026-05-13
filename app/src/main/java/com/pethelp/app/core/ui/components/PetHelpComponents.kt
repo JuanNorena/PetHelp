@@ -1,3 +1,15 @@
+/**
+ * Componentes visuales reutilizables de PetHelp.
+ *
+ * Incluye tarjetas personalizadas ([PetHelpCard]), indicadores de estado
+ * ([PetHelpStatusBadge]), estados vacíos ([PetHelpEmptyState]), efectos
+ * de carga ([PetHelpShimmerLoading]) y otros elementos de UI compartidos
+ * entre múltiples pantallas de la aplicación.
+ *
+ * Estos componentes mantienen una estética consistente siguiendo el
+ * design system de PetHelp con bordes redondeados, sombras suaves
+ * y paleta de colores definida en [Color.kt].
+ */
 package com.pethelp.app.core.ui.components
 
 import androidx.compose.animation.animateContentSize
@@ -53,10 +65,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 1. PETHELPCARD — Card redondeada con borde sutil y elevación consistente
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Tarjeta redondeada con borde sutil y elevación consistente.
+ *
+ * Usa [Card] de Material3 con colores del tema y un borde semitransparente.
+ * Ideal para contener información estructurada en cualquier pantalla.
+ *
+ * @param modifier Modificador para ajustar layout externo.
+ * @param shape Forma de la tarjeta; por defecto esquinas redondeadas de 24 dp.
+ * @param elevation Elevación en dp para la sombra proyectada.
+ * @param borderAlpha Opacidad del borde; 0.48f por defecto para sutileza.
+ * @param contentPadding Padding interno aplicado al contenido.
+ * @param content Contenido composable que se renderiza dentro de la tarjeta.
+ */
 @Composable
 fun PetHelpCard(
     modifier: Modifier = Modifier,
@@ -85,10 +106,17 @@ fun PetHelpCard(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 2. PETHELPTAGCHIP — Chip reutilizable con secondaryContainer
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Chip reutilizable para mostrar etiquetas cortas (tags).
+ *
+ * Renderiza un [Surface] con fondo [secondaryContainer] y texto en
+ * [onSecondaryContainer], con esquinas redondeadas de 10 dp.
+ *
+ * @param label Texto que se muestra dentro del chip.
+ * @param modifier Modificador para ajustar layout.
+ * @param containerColor Color de fondo del chip.
+ * @param contentColor Color del texto del chip.
+ */
 @Composable
 fun PetHelpTagChip(
     label: String,
@@ -111,10 +139,20 @@ fun PetHelpTagChip(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 3. PETHELPEMPTYSTATE — Estado vacío con icono grande, título, subtítulo y CTA
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Estado vacío con icono grande, título, subtítulo y botón de acción opcional.
+ *
+ * Se usa cuando una lista o pantalla no tiene datos para mostrar,
+ * ofreciendo al usuario un mensaje amigable y una acción para continuar.
+ *
+ * @param title Título principal del estado vacío.
+ * @param subtitle Descripción explicativa.
+ * @param modifier Modificador para ajustar layout.
+ * @param icon Icono vectorial que se muestra encima del título.
+ * @param iconSize Tamaño del icono en dp.
+ * @param actionLabel Texto del botón de acción; null si no se muestra.
+ * @param onClick Acción a ejecutar al pulsar el botón.
+ */
 @Composable
 fun PetHelpEmptyState(
     title: String,
@@ -184,10 +222,19 @@ fun PetHelpEmptyState(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 4. PETHELPBUTTON — Botón primario con shadow y elevación
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Botón primario con sombra y elevación consistente con el design system.
+ *
+ * Usa esquinas redondeadas completas (50 dp) y un degradado de sombra
+ * que reduce al presionar para dar feedback táctil.
+ *
+ * @param label Texto que se muestra en el botón.
+ * @param onClick Acción a ejecutar al pulsar.
+ * @param modifier Modificador para ajustar layout.
+ * @param enabled Indica si el botón responde a interacciones.
+ * @param containerColor Color de fondo del botón.
+ * @param contentColor Color del texto del botón.
+ */
 @Composable
 fun PetHelpButton(
     label: String,
@@ -226,10 +273,21 @@ fun PetHelpButton(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 5. PETHELPTEXTFIELD — OutlinedTextField estilizado con shadow suave
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Campo de texto con borde estilizado y colores adaptados al tema.
+ *
+ * Envuelve [OutlinedTextField] para mantener consistencia en la app,
+ * usando fondo [surface] y borde semitransparente.
+ *
+ * @param value Texto actual del campo.
+ * @param onValueChange Callback cuando el texto cambia.
+ * @param modifier Modificador para ajustar layout.
+ * @param placeholder Texto de sugerencia cuando el campo está vacío.
+ * @param leadingIcon Icono opcional al inicio del campo.
+ * @param trailingIcon Icono opcional al final del campo.
+ * @param singleLine Indica si el campo debe ser de una sola línea.
+ * @param shape Forma del borde del campo.
+ */
 @Composable
 fun PetHelpTextField(
     value: String,
@@ -260,10 +318,15 @@ fun PetHelpTextField(
     )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 6. PETHELPCATEGORYBADGE — Badge pill sobre imágenes
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Badge tipo pill que se superpone sobre imágenes de publicaciones.
+ *
+ * Muestra la categoría (adopción, perdido, etc.) con fondo
+ * [primaryContainer] semitransparente para legibilidad sobre fotos.
+ *
+ * @param label Texto de la categoría.
+ * @param modifier Modificador para ajustar posición y tamaño.
+ */
 @Composable
 fun PetHelpCategoryBadge(
     label: String,
@@ -284,10 +347,16 @@ fun PetHelpCategoryBadge(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 7. PETHELPSTEPINDICATOR — Indicador visual de pasos con animación de progreso
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Indicador visual de pasos con barras de progreso horizontales.
+ *
+ * Cada paso se representa como una barra coloreada según su estado:
+ * completado, actual o pendiente.
+ *
+ * @param currentStep Índice del paso actual (0-based).
+ * @param totalSteps Número total de pasos.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 fun PetHelpStepIndicator(
     currentStep: Int,
@@ -320,10 +389,16 @@ fun PetHelpStepIndicator(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 8. PETHELPSTATUSBADGE — Badge semántico según estado (éxito, warning, error, info)
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Badge semántico que cambia de color según el estado indicado.
+ *
+ * Útil para mostrar etiquetas de éxito, advertencia, error o información
+ * en listas de publicaciones o notificaciones.
+ *
+ * @param label Texto que se muestra en el badge.
+ * @param status Estado semántico que determina los colores.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 fun PetHelpStatusBadge(
     label: String,
@@ -358,14 +433,20 @@ fun PetHelpStatusBadge(
     }
 }
 
+/** Estados semánticos para [PetHelpStatusBadge]. */
 enum class PetHelpStatus {
     SUCCESS, WARNING, ERROR, INFO, NEUTRAL
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 9. PETHELPSHIMMERLOADING — Efecto shimmer para placeholders de carga
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Efecto shimmer para placeholders de carga.
+ *
+ * Muestra un degradado animado horizontal que simula el efecto de
+ * brillo mientras los datos reales se están cargando.
+ *
+ * @param modifier Modificador para ajustar tamaño y posición.
+ * @param shape Forma del placeholder; por defecto esquinas redondeadas de 8 dp.
+ */
 @Composable
 fun PetHelpShimmerLoading(
     modifier: Modifier = Modifier,
@@ -402,10 +483,15 @@ fun PetHelpShimmerLoading(
     )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 10. PETHELPBOTTOMSHEETCARD — Card para bottom sheets con handle indicator
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Contenedor para bottom sheets con indicador de arrastre (handle).
+ *
+ * Renderiza una columna con esquinas superiores redondeadas y una
+ * barra gris centrada que indica al usuario que puede arrastrar.
+ *
+ * @param modifier Modificador para ajustar layout.
+ * @param content Contenido composable que se renderiza debajo del handle.
+ */
 @Composable
 fun PetHelpBottomSheetCard(
     modifier: Modifier = Modifier,
@@ -436,10 +522,17 @@ fun PetHelpBottomSheetCard(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// 11. PETHELPSECTIONHEADER — Título de sección con estilo consistente
-// ═══════════════════════════════════════════════════════════════════════════════
-
+/**
+ * Título de sección con estilo consistente y acción opcional.
+ *
+ * Muestra un texto en negrita alineado a la izquierda y, si se proporciona,
+ * un texto clickeable alineado a la derecha para acciones como "Ver más".
+ *
+ * @param title Texto del título de la sección.
+ * @param modifier Modificador para ajustar layout.
+ * @param actionLabel Texto de la acción; null si no se muestra.
+ * @param onAction Acción a ejecutar al pulsar el texto de acción.
+ */
 @Composable
 fun PetHelpSectionHeader(
     title: String,

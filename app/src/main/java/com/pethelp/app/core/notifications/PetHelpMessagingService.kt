@@ -1,3 +1,10 @@
+/**
+ * Servicio de Firebase Cloud Messaging (FCM) de PetHelp.
+ *
+ * Procesa mensajes push en primer y segundo plano, crea canales de notificación
+ * en Android 8+ y muestra notificaciones locales cuando llegan mensajes nuevos.
+ * También renueva y guarda el token FCM cuando cambia.
+ */
 package com.pethelp.app.core.notifications
 
 import android.Manifest

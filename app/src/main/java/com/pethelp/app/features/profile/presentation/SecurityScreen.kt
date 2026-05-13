@@ -1,3 +1,12 @@
+/**
+ * Pantalla de seguridad de la cuenta.
+ *
+ * Permite al usuario cambiar su contraseña, activar autenticación biométrica
+ * ([BiometricAuthGate]), gestionar sesiones activas y eliminar su cuenta.
+ *
+ * Opera con [ProfileViewModel] para ejecutar operaciones sensibles
+ * que requieren reautenticación previa con Firebase Auth.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.background
@@ -59,6 +68,14 @@ fun SecurityScreen(
     val activity = context as? FragmentActivity
     val promptExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
 
+    /**
+     * Solicita autenticación biométrica o de credencial del dispositivo antes de ejecutar
+     * una acción sensible (cambio de contraseña, eliminación de cuenta).
+     *
+     * Si el dispositivo no soporta biometría, muestra un snackbar informativo.
+     *
+     * @param onAuthorized Callback ejecutado tras autenticación exitosa.
+     */
     fun requireSensitiveAuth(onAuthorized: () -> Unit) {
         if (activity == null) {
             scope.launch {
@@ -393,6 +410,13 @@ fun SecurityScreen(
     }
 }
 
+/**
+ * Encabezado de sección en la pantalla de seguridad con icono y color.
+ *
+ * @param icon Icono vectorial.
+ * @param title Título de la sección.
+ * @param color Color del icono.
+ */
 @Composable
 fun SecuritySectionHeader(icon: ImageVector, title: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
@@ -408,6 +432,12 @@ fun SecuritySectionHeader(icon: ImageVector, title: String, color: Color) {
     }
 }
 
+/**
+ * Tarjeta contenedora para agrupar opciones de seguridad.
+ *
+ * @param containerColor Color de fondo de la tarjeta.
+ * @param content Contenido composable.
+ */
 @Composable
 fun SecurityCard(
     containerColor: Color = MaterialTheme.colorScheme.surface,
@@ -434,6 +464,13 @@ fun SecurityCard(
     }
 }
 
+/**
+ * Item que representa un dispositivo conectado en la pantalla de seguridad.
+ *
+ * @param deviceName Nombre del dispositivo.
+ * @param deviceInfo Información adicional del dispositivo.
+ * @param icon Icono vectorial representativo.
+ */
 @Composable
 fun DeviceItem(
     deviceName: String,

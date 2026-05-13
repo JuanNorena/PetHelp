@@ -1,3 +1,10 @@
+/**
+ * Contrato del repositorio de perfil de usuario.
+ *
+ * Define operaciones de lectura, actualización, cambio de foto,
+ * preferencias de notificación y operaciones sensibles de cuenta,
+ * todas retornando `Flow<Resource<T>>`.
+ */
 package com.pethelp.app.features.profile.domain.repository
 
 import com.pethelp.app.core.common.Resource
@@ -5,7 +12,7 @@ import com.pethelp.app.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Contrato de operaciones de perfil de usuario.
+ * Interfaz concreta del repositorio de perfil.
  *
  * Todas las acciones exponen `Flow<Resource<T>>` para soportar estados
  * de carga, exito y error consumidos por la capa de presentacion.

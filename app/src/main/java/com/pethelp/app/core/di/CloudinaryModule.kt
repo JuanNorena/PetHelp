@@ -1,3 +1,9 @@
+/**
+ * Módulo Hilt que vincula [ImageUploader] con [CloudinaryImageUploader].
+ *
+ * Permite que los ViewModels dependan de la abstracción de subida de imágenes
+ * mientras Hilt inyecta la implementación concreta de Cloudinary.
+ */
 package com.pethelp.app.core.di
 
 import com.pethelp.app.core.data.upload.CloudinaryImageUploader

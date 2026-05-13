@@ -1,3 +1,10 @@
+/**
+ * Administrador de idioma de la aplicación.
+ *
+ * Centraliza la lectura, almacenamiento y aplicación del idioma preferido.
+ * Usa DataStore para persistir la preferencia y AppCompatDelegate para
+ * actualizar la configuración de localización de la app en tiempo real.
+ */
 package com.pethelp.app.core.preferences
 
 import android.content.Context

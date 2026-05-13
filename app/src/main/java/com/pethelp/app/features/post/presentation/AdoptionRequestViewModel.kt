@@ -1,3 +1,9 @@
+/**
+ * ViewModel del formulario de solicitud de adopción.
+ *
+ * Administra los campos del formulario, valida la entrada del usuario
+ * y ejecuta el envío de la solicitud de adopción a Firestore.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.runtime.getValue

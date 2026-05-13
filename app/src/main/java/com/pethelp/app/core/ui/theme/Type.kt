@@ -1,3 +1,9 @@
+/**
+ * Sistema tipográfico de PetHelp.
+ *
+ * Define la jerarquía visual de textos (display, headline, title, body, label)
+ * siguiendo la escala tipográfica de Material Design 3.
+ */
 package com.pethelp.app.core.ui.theme
 
 import androidx.compose.material3.Typography

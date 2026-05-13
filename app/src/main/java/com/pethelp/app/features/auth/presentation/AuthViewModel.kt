@@ -1,3 +1,10 @@
+/**
+ * ViewModel compartido que centraliza la lógica de autenticación.
+ *
+ * Gestiona el ciclo de vida del estado de sesión, valida entradas
+ * del usuario y traduce respuestas de Firebase en estados visuales
+ * ([AuthUiState]) para Splash, Login, Register y ForgotPassword.
+ */
 package com.pethelp.app.features.auth.presentation
 
 import android.util.Patterns

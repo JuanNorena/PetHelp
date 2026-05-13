@@ -1,3 +1,9 @@
+/**
+ * Sistema de formas (Shapes) de PetHelp.
+ *
+ * Define el redondeo de esquinas para tarjetas, botones, diálogos
+ * y contenedores siguiendo el design system de bordes suaves.
+ */
 package com.pethelp.app.core.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape

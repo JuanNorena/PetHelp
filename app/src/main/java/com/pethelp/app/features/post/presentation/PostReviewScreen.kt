@@ -1,3 +1,13 @@
+/**
+ * Paso final de revisión antes de publicar una mascota.
+ *
+ * Muestra un resumen completo de la publicación, permite volver a secciones
+ * anteriores para editar y ejecuta la publicación mediante [CreatePostViewModel].
+ *
+ * @param navController Navegador para volver, editar secciones y abrir el resultado.
+ * @param postData Datos consolidados del flujo de creación.
+ * @param viewModel ViewModel encargado de persistir la publicación.
+ */
 package com.pethelp.app.features.post.presentation
 
 import android.net.Uri
@@ -579,10 +589,16 @@ fun PostReviewScreen(
     }
 }
 
-@Composable
 /**
- * Encabezado de seccion con icono y accion "Editar".
+ * Encabezado de sección con icono y acción "Editar".
+ *
+ * @param title Título de la sección.
+ * @param icon Icono vectorial.
+ * @param iconColor Color del icono.
+ * @param textColor Color del texto.
+ * @param onEdit Acción al pulsar editar.
  */
+@Composable
 fun SectionHeader(
         title: String,
         icon: ImageVector,
@@ -605,10 +621,14 @@ fun SectionHeader(
     }
 }
 
-@Composable
 /**
- * Chip visual para mostrar etiquetas de categoria/atributos.
+ * Chip visual para mostrar etiquetas de categoría o atributos.
+ *
+ * @param text Texto del chip.
+ * @param color Color de fondo del chip.
+ * @param textColor Color del texto.
  */
+@Composable
 fun Tag(text: String, color: Color, textColor: Color) {
     Surface(color = color, shape = RoundedCornerShape(8.dp)) {
         Text(
@@ -621,10 +641,12 @@ fun Tag(text: String, color: Color, textColor: Color) {
     }
 }
 
-@Composable
 /**
- * Etiqueta auxiliar para nombrar campos en bloques de informacion.
+ * Etiqueta auxiliar para nombrar campos en bloques de información.
+ *
+ * @param label Texto descriptivo del campo.
  */
+@Composable
 fun InfoLabel(label: String) {
     Text(
             label,

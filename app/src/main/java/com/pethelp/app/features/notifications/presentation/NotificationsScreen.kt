@@ -1,3 +1,13 @@
+/**
+ * Pantalla de notificaciones del usuario.
+ *
+ * Muestra la lista de notificaciones recibidas ordenadas por fecha,
+ * con indicadores de no leído. Soporta acciones para marcar una
+ * notificación como leída o marcar todas como leídas.
+ *
+ * Observa el estado de [NotificationsViewModel] para reaccionar
+ * a cambios en tiempo real desde Firestore.
+ */
 package com.pethelp.app.features.notifications.presentation
 
 import androidx.compose.foundation.background
@@ -190,6 +200,12 @@ fun NotificationsScreen(
     }
 }
 
+/**
+ * Fila individual de notificación con avatar, título y fecha.
+ *
+ * @param notification Datos de la notificación.
+ * @param onClick Acción al pulsar la notificación.
+ */
 @Composable
 private fun NotificationRow(
     notification: PetNotification,
@@ -246,6 +262,9 @@ private fun NotificationRow(
     }
 }
 
+/**
+ * Placeholder shimmer para una fila de notificación mientras se cargan los datos.
+ */
 @Composable
 private fun LoadingNotificationItem() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

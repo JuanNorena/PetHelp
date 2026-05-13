@@ -1,3 +1,9 @@
+/**
+ * ViewModel para la creación de publicaciones de mascotas.
+ *
+ * Mantiene el estado del formulario multi-paso, sube imágenes a Cloudinary,
+ * sugiere categoría con IA y persiste la publicación en Firestore.
+ */
 package com.pethelp.app.features.post.presentation
 
 import android.net.Uri
@@ -31,6 +37,30 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+/**
+ * Estado inmutable del formulario de creación de publicaciones.
+ *
+ * Agrupa todos los campos editables por el usuario en el flujo multi-paso
+ * de creación de un post, junto con el estado de carga y sugerencias de IA.
+ *
+ * @param title Título de la publicación.
+ * @param description Descripción detallada de la mascota.
+ * @param category Categoría de la publicación (adopción, perdido, etc.).
+ * @param animalType Tipo de animal (Perro, Gato, etc.).
+ * @param breed Raza del animal.
+ * @param age Rango de edad del animal.
+ * @param gender Sexo del animal.
+ * @param size Tamaño del animal.
+ * @param vaccinated Indica si está vacunado.
+ * @param dewormed Indica si está desparasitado.
+ * @param sterilized Indica si está esterilizado.
+ * @param behavior Lista de comportamientos seleccionados.
+ * @param imageUris URIs locales de imágenes seleccionadas.
+ * @param imageUrls URLs de imágenes ya subidas a Cloudinary.
+ * @param isLoading Indica si hay una operación en curso.
+ * @param error Mensaje de error si ocurre un fallo.
+ * @param aiSuggestedCategory Categoría sugerida por IA.
+ */
 data class CreatePostUiState(
     val title: String = "",
     val description: String = "",
@@ -95,55 +125,107 @@ class CreatePostViewModel @Inject constructor(
     private val _snackbarMessage = MutableSharedFlow<UiText>()
     val snackbarMessage: SharedFlow<UiText> = _snackbarMessage.asSharedFlow()
 
+    /** Job activo para debounce de sugerencia de categoría por IA. */
     private var categorySuggestionJob: Job? = null
 
+    // ── Actualizadores de Campos del Formulario ─────────────────────────────
+    /**
+     * Actualiza el título de la publicación y agenda sugerencia de categoría.
+     *
+     * @param title Nuevo título ingresado por el usuario.
+     */
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
         scheduleCategorySuggestion()
     }
 
+    /**
+     * Actualiza la descripción de la publicación y agenda sugerencia de categoría.
+     *
+     * @param description Nueva descripción ingresada por el usuario.
+     */
     fun updateDescription(description: String) {
         _uiState.value = _uiState.value.copy(description = description)
         scheduleCategorySuggestion()
     }
 
+    /**
+     * Actualiza la categoría seleccionada manualmente.
+     *
+     * @param category Categoría elegida por el usuario.
+     */
     fun updateCategory(category: PostCategory) {
         _uiState.value = _uiState.value.copy(category = category)
     }
 
+    /**
+     * Actualiza el tipo de animal y agenda sugerencia de categoría.
+     *
+     * @param animalType Tipo de mascota (ej. "Perro", "Gato").
+     */
     fun updateAnimalType(animalType: String) {
         _uiState.value = _uiState.value.copy(animalType = animalType)
         scheduleCategorySuggestion()
     }
 
+    /**
+     * Actualiza la raza del animal.
+     *
+     * @param breed Raza de la mascota.
+     */
     fun updateBreed(breed: String) {
         _uiState.value = _uiState.value.copy(breed = breed)
     }
 
+    /**
+     * Actualiza el tamaño del animal.
+     *
+     * @param size Tamaño de la mascota.
+     */
     fun updateSize(size: AnimalSize) {
         _uiState.value = _uiState.value.copy(size = size)
     }
 
+    /** @param vaccinated true si la mascota está vacunada. */
     fun updateVaccinated(vaccinated: Boolean) {
         _uiState.value = _uiState.value.copy(vaccinated = vaccinated)
     }
 
+    /** @param dewormed true si la mascota está desparasitada. */
     fun updateDewormed(dewormed: Boolean) {
         _uiState.value = _uiState.value.copy(dewormed = dewormed)
     }
 
+    /** @param sterilized true si la mascota está esterilizada. */
     fun updateSterilized(sterilized: Boolean) {
         _uiState.value = _uiState.value.copy(sterilized = sterilized)
     }
 
+    /**
+     * Actualiza el rango de edad del animal.
+     *
+     * @param age Edad seleccionada.
+     */
     fun updateAge(age: AnimalAge) {
         _uiState.value = _uiState.value.copy(age = age)
     }
 
+    /**
+     * Actualiza el sexo del animal.
+     *
+     * @param gender Sexo seleccionado.
+     */
     fun updateGender(gender: AnimalGender) {
         _uiState.value = _uiState.value.copy(gender = gender)
     }
 
+    /**
+     * Alterna un comportamiento en la lista de comportamientos del animal.
+     *
+     * Si el comportamiento ya existe, lo elimina; si no, lo agrega.
+     *
+     * @param behavior Comportamiento a alternar.
+     */
     fun toggleBehavior(behavior: PetBehavior) {
         val currentBehaviors = _uiState.value.behavior.toMutableList()
         if (currentBehaviors.contains(behavior)) {
@@ -154,6 +236,13 @@ class CreatePostViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(behavior = currentBehaviors)
     }
 
+    /**
+     * Actualiza los datos de dirección textual de la publicación.
+     *
+     * @param street Calle de la ubicación.
+     * @param neighborhood Barrio o sector.
+     * @param city Ciudad.
+     */
     fun updateAddress(street: String, neighborhood: String, city: String) {
         _uiState.value = _uiState.value.copy(
             street = street,
@@ -162,6 +251,14 @@ class CreatePostViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Agrega una imagen al carrusel de fotos de la publicación.
+     *
+     * Si se alcanza [Constants.MAX_IMAGES_PER_POST], emite un snackbar
+     * de advertencia y no agrega la imagen.
+     *
+     * @param uri URI local de la imagen seleccionada.
+     */
     fun addImage(uri: Uri) {
         val current = _uiState.value.imageUris
         if (current.size >= Constants.MAX_IMAGES_PER_POST) {
@@ -173,6 +270,11 @@ class CreatePostViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(imageUris = current + uri)
     }
 
+    /**
+     * Elimina una imagen del carrusel por su índice.
+     *
+     * @param index Posición de la imagen a eliminar en la lista.
+     */
     fun removeImage(index: Int) {
         val current = _uiState.value.imageUris.toMutableList()
         if (index in current.indices) {
@@ -181,6 +283,13 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Actualiza las coordenadas geográficas y nombre del lugar seleccionado.
+     *
+     * @param lat Latitud.
+     * @param lng Longitud.
+     * @param name Nombre descriptivo del lugar.
+     */
     fun updateLocation(lat: Double, lng: Double, name: String) {
         _uiState.value = _uiState.value.copy(
             latitude = lat,
@@ -189,6 +298,21 @@ class CreatePostViewModel @Inject constructor(
         )
     }
 
+    // ── Creación de Publicación ─────────────────────────────────────────────
+    /**
+     * Valida el formulario, sube las imágenes a Cloudinary y persiste la publicación en Firestore.
+     *
+     * **Validaciones:**
+     * - Título y descripción no vacíos.
+     * - Al menos una imagen seleccionada.
+     * - Ubicación seleccionada (latitud/longitud distinta de 0).
+     *
+     * **Flujo:**
+     * 1. Sube cada imagen a Cloudinary reportando progreso por snackbar.
+     * 2. Construye el objeto [Post] con las URLs obtenidas.
+     * 3. Persiste en Firestore vía [PostRepository.createPost].
+     * 4. Emite [CreatePostUiState.isSuccess] para que la UI navegue al resultado.
+     */
     fun createPost() {
         val state = _uiState.value
         val currentUser = firebaseAuth.currentUser
@@ -285,11 +409,26 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Solicita inmediatamente una sugerencia de categoría al servicio de IA.
+     *
+     * Cancela cualquier job de debounce pendiente y ejecuta la sugerencia.
+     *
+     * @param showErrors Si es true, muestra snackbar cuando no hay suficiente texto.
+     */
     fun suggestCategoryWithAi(showErrors: Boolean = true) {
         categorySuggestionJob?.cancel()
         requestCategorySuggestion(showErrors = showErrors)
     }
 
+    /**
+     * Envía título y descripción al modelo de IA para sugerir la categoría óptima.
+     *
+     * Requiere al menos 4 caracteres de título y 12 de descripción para evitar
+     * llamadas innecesarias con texto incompleto.
+     *
+     * @param showErrors Si es true, notifica al usuario cuando falta texto.
+     */
     private fun requestCategorySuggestion(showErrors: Boolean) {
         val state = _uiState.value
         if (state.title.trim().length < 4 || state.description.trim().length < 12) {
@@ -336,6 +475,12 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Agenda una sugerencia de categoría con debounce de 900 ms.
+     *
+     * Solo agenda si hay suficiente texto (título >= 4 chars, descripción >= 24 chars).
+     * Cancela el job anterior para evitar múltiples llamadas simultáneas.
+     */
     private fun scheduleCategorySuggestion() {
         val state = _uiState.value
         if (state.title.trim().length < 4 || state.description.trim().length < 24) return
@@ -347,6 +492,18 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Recupera el nombre visible del autor desde Firestore.
+     *
+     * **Orden de preferencia:**
+     * 1. Campo "name" del documento en Firestore.
+     * 2. displayName de Firebase Auth.
+     * 3. "Usuario" como fallback genérico.
+     *
+     * @param userId UID del usuario autenticado.
+     * @param fallback displayName del usuario desde Firebase Auth.
+     * @return Nombre a mostrar como autor de la publicación.
+     */
     private suspend fun getCurrentAuthorName(userId: String, fallback: String?): String {
         val fromFirestore = firestore.collection(Constants.COLLECTION_USERS)
             .document(userId)
@@ -363,6 +520,12 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Recupera la URL de foto de perfil del autor desde Firestore.
+     *
+     * @param userId UID del usuario autenticado.
+     * @return URL de la foto de perfil o cadena vacía si no existe.
+     */
     private suspend fun getCurrentAuthorPhotoUrl(userId: String): String {
         return firestore.collection(Constants.COLLECTION_USERS)
             .document(userId)

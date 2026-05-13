@@ -1,3 +1,7 @@
+/**
+ * Módulo Hilt que vincula la interfaz [PostRepository]
+ * con su implementación concreta [FirebasePostRepository].
+ */
 package com.pethelp.app.features.post.di
 
 import com.pethelp.app.features.post.data.repository.FirebasePostRepository
@@ -16,6 +20,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class PostModule {
 
+    /**
+     * Vincula la interfaz [PostRepository] con su implementación [FirebasePostRepository].
+     *
+     * @param firebasePostRepository Implementación concreta que usa Firestore.
+     * @return Interfaz [PostRepository] lista para inyección.
+     */
     @Binds
     @Singleton
     abstract fun bindPostRepository(

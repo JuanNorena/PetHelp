@@ -1,3 +1,9 @@
+/**
+ * ViewModel de la pantalla principal de Feed (muro de publicaciones).
+ *
+ * Carga publicaciones verificadas desde [PostRepository], filtra por categoría,
+ * busca por texto y gestiona acciones de favorito y voto.
+ */
 package com.pethelp.app.features.feed.presentation
 
 import androidx.lifecycle.ViewModel
@@ -104,6 +110,14 @@ class FeedViewModel @Inject constructor(
         observeUserFavorites()
     }
 
+    /**
+     * Observa los favoritos del usuario autenticado y sincroniza [FeedUiState.favoritesSet].
+     *
+     * Se suscribe al perfil del usuario vía [AuthRepository.getCurrentUser] y,
+     * una vez obtenido el UID, escucha [PostRepository.getFavoritePosts] para
+     * mantener actualizado el set de IDs favoritos sin necesidad de recargar
+     * el feed completo.
+     */
     private fun observeUserFavorites() {
         viewModelScope.launch {
             authRepository.getCurrentUser().collect { resource ->

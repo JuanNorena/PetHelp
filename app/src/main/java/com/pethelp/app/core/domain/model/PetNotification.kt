@@ -1,3 +1,9 @@
+/**
+ * Modelo de dominio que representa una notificación recibida por el usuario.
+ *
+ * Puede provenir de Firebase Cloud Messaging o generarse localmente
+ * dentro de la aplicación.
+ */
 package com.pethelp.app.core.domain.model
 
 /**

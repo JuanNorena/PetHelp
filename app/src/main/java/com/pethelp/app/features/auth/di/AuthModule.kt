@@ -1,3 +1,10 @@
+/**
+ * Módulo Hilt que vincula la interfaz [AuthRepository]
+ * con su implementación concreta [FirebaseAuthRepository].
+ *
+ * Permite que los ViewModels dependan de la abstracción
+ * mientras Hilt inyecta automáticamente la implementación de Firebase.
+ */
 package com.pethelp.app.features.auth.di
 
 import com.pethelp.app.features.auth.data.repository.FirebaseAuthRepository

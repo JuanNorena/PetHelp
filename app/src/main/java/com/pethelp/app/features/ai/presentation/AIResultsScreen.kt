@@ -1,3 +1,14 @@
+/**
+ * Pantalla de resultados del quiz de recomendación de mascotas.
+ *
+ * Muestra el análisis generado por la IA y una lista de publicaciones
+ * reales de Firestore que coinciden con el tipo de mascota recomendado.
+ * Permite al usuario navegar al detalle de cada publicación para
+ * iniciar el proceso de adopción.
+ *
+ * Observa [recommendedPosts] de [AiViewModel] para mantener la lista
+ * actualizada en tiempo real con los posts verificados de Firestore.
+ */
 package com.pethelp.app.features.ai.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -64,6 +75,16 @@ import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
 import coil.compose.AsyncImage
 
+/**
+ * Pantalla de resultados del quiz de recomendación.
+ *
+ * Muestra el análisis generado por IA y una lista de publicaciones
+ * reales de Firestore que coinciden con el tipo de mascota recomendado.
+ *
+ * @param recommendations Texto de recomendación generado por IA.
+ * @param navController Controlador de navegación.
+ * @param matchedPosts Lista de posts filtrados según el quiz.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AIResultsScreen(
@@ -261,6 +282,11 @@ fun AIResultsScreen(
     }
 }
 
+/**
+ * Contenido principal de recomendaciones parseado en secciones legibles.
+ *
+ * @param recommendations Texto crudo generado por IA con secciones delimitadas.
+ */
 @Composable
 private fun RecommendationContent(recommendations: String) {
     val sections = remember(recommendations) { parseRecommendationSections(recommendations) }
@@ -297,6 +323,12 @@ private fun RecommendationContent(recommendations: String) {
     }
 }
 
+/**
+ * Bloque de recomendación con título y lista de items.
+ *
+ * @param title Título de la sección (ej. "Perfil ideal").
+ * @param items Lista de bullets a mostrar.
+ */
 @Composable
 private fun RecommendationBlock(title: String, items: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -323,6 +355,12 @@ private fun RecommendationBlock(title: String, items: List<String>) {
     }
 }
 
+/**
+ * Tarjeta de publicación compatible mostrada en los resultados del quiz.
+ *
+ * @param post Datos de la publicación.
+ * @param onClick Acción al pulsar la tarjeta.
+ */
 @Composable
 private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
     PetHelpCard(
@@ -417,6 +455,9 @@ private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Placeholder shimmer para las tarjetas de resultados de IA mientras cargan.
+ */
 @Composable
 private fun AIResultShimmerCard() {
     PetHelpCard(modifier = Modifier.fillMaxWidth()) {
@@ -438,6 +479,12 @@ private fun AIResultShimmerCard() {
     }
 }
 
+/**
+ * Convierte una categoría de dominio a su nombre legible localizado.
+ *
+ * @param category Categoría del post.
+ * @return Nombre traducido de la categoría.
+ */
 @Composable
 private fun categoryToDisplayName(category: PostCategory): String {
     return when (category) {
@@ -449,6 +496,12 @@ private fun categoryToDisplayName(category: PostCategory): String {
     }
 }
 
+/**
+ * Convierte un género animal a su nombre legible localizado.
+ *
+ * @param gender Género del animal.
+ * @return Nombre traducido del género.
+ */
 @Composable
 private fun genderToDisplayName(gender: AnimalGender): String {
     return when (gender) {
@@ -458,6 +511,12 @@ private fun genderToDisplayName(gender: AnimalGender): String {
     }
 }
 
+/**
+ * Convierte un tamaño animal a su nombre legible localizado.
+ *
+ * @param size Tamaño del animal.
+ * @return Nombre traducido del tamaño.
+ */
 @Composable
 private fun sizeToDisplayName(size: AnimalSize): String {
     return when (size) {
@@ -467,6 +526,12 @@ private fun sizeToDisplayName(size: AnimalSize): String {
     }
 }
 
+/**
+ * Parsea el texto de recomendación de IA en un mapa de secciones clave-valor.
+ *
+ * @param content Texto crudo con secciones delimitadas por claves mayúsculas.
+ * @return Mapa con las secciones encontradas.
+ */
 private fun parseRecommendationSections(content: String): Map<String, String> {
     val keys = setOf("PERFIL_IDEAL", "RECOMENDACIONES", "CUIDADOS", "SIGUIENTE_PASO")
     return content.lineSequence()
@@ -480,6 +545,12 @@ private fun parseRecommendationSections(content: String): Map<String, String> {
         .toMap()
 }
 
+/**
+ * Divide una lista delimitada por pipes en items limpios.
+ *
+ * @param value Cadena con items separados por "|".
+ * @return Lista de items limpios y no vacíos.
+ */
 private fun splitAiList(value: String): List<String> {
     return value.split("|").map { it.trim().trim('-', '•') }.filter { it.isNotBlank() }
 }

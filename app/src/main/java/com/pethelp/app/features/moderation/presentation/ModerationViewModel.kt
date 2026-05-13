@@ -1,3 +1,9 @@
+/**
+ * ViewModel del panel de moderación.
+ *
+ * Gestiona métricas de moderación, publicaciones pendientes de revisión
+ * y acciones de aprobar/rechazar posts con análisis asistido por IA.
+ */
 package com.pethelp.app.features.moderation.presentation
 
 import androidx.lifecycle.ViewModel

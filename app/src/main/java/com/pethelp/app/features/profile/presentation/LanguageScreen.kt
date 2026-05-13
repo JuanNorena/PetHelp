@@ -1,3 +1,13 @@
+/**
+ * Pantalla de selección de idioma de la aplicación.
+ *
+ * Permite al usuario elegir entre los idiomas soportados (español e inglés)
+ * y aplica el cambio inmediatamente usando [AppLanguageManager].
+ *
+ * El idioma seleccionado se persiste en DataStore y se sincroniza
+ * con Firebase Auth para que los mensajes de autenticación aparezcan
+ * en el idioma correcto.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -139,6 +149,14 @@ fun LanguageScreen(
     }
 }
 
+/**
+ * Item de idioma seleccionable en la pantalla de configuración de idioma.
+ *
+ * @param title Nombre del idioma.
+ * @param subtitle Tag o descripción adicional.
+ * @param isSelected Indica si está seleccionado.
+ * @param onClick Acción al pulsar el item.
+ */
 @Composable
 fun LanguageItem(
     title: String,
@@ -186,5 +204,12 @@ fun LanguageItem(
     }
 }
 
+/**
+ * Crea un [BorderStroke] reutilizable para bordes de selección.
+ *
+ * @param width Ancho del borde.
+ * @param color Color del borde.
+ * @return Instancia de [BorderStroke].
+ */
 private fun border(width: androidx.compose.ui.unit.Dp, color: Color) = 
     androidx.compose.foundation.BorderStroke(width, color)

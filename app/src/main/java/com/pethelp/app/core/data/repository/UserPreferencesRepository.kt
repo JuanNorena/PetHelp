@@ -1,3 +1,9 @@
+/**
+ * Repositorio para leer y escribir preferencias de usuario locales.
+ *
+ * Usa DataStore para almacenar configuraciones simples como modo
+ * oscuro e idioma seleccionado de forma segura y reactiva.
+ */
 package com.pethelp.app.core.data.repository
 
 import android.content.Context

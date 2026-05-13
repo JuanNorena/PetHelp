@@ -1,3 +1,10 @@
+/**
+ * ViewModel del mapa interactivo de publicaciones.
+ *
+ * Gestiona filtros por categoría y búsqueda por texto, exponiendo
+ * un estado reactivo de publicaciones para mostrar como marcadores
+ * en el mapa de Google Maps.
+ */
 package com.pethelp.app.features.map.presentation
 
 import androidx.lifecycle.ViewModel

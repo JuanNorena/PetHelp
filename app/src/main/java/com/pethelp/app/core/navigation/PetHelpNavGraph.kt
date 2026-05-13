@@ -1,3 +1,13 @@
+/**
+ * Grafo de navegación principal de PetHelp.
+ *
+ * Define todas las rutas y destinos de la aplicación usando [NavHost]
+ * de Jetpack Compose Navigation. Cada pantalla se registra con su Composable
+ * correspondiente y los argumentos tipados se extraen mediante [toRoute].
+ *
+ * Usa [Screen] como contrato tipado de rutas para evitar cadenas mágicas
+ * y obtener autocompletado en tiempo de compilación.
+ */
 package com.pethelp.app.core.navigation
 
 import androidx.compose.runtime.Composable

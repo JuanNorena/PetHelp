@@ -1,3 +1,11 @@
+/**
+ * Pantalla de configuración de visibilidad del perfil.
+ *
+ * Permite al usuario controlar qué información es pública
+ * (nombre, ciudad, correo electrónico) y quién puede ver su perfil.
+ *
+ * Los cambios se persisten en Firestore a través de [ProfileViewModel].
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.background
@@ -193,6 +201,15 @@ fun ProfileVisibilityScreen(
     }
 }
 
+/**
+ * Opción de visibilidad del perfil seleccionable.
+ *
+ * @param icon Icono vectorial.
+ * @param title Título de la opción.
+ * @param description Descripción de la opción.
+ * @param selected Indica si está seleccionada.
+ * @param onClick Acción al pulsar la opción.
+ */
 @Composable
 fun VisibilityOptionItem(
     icon: ImageVector,
@@ -251,6 +268,14 @@ fun VisibilityOptionItem(
     }
 }
 
+/**
+ * Interruptor de detalle para activar/desactivar una opción de visibilidad.
+ *
+ * @param title Título del toggle.
+ * @param description Descripción del toggle.
+ * @param checked Estado actual.
+ * @param onCheckedChange Callback al cambiar el estado.
+ */
 @Composable
 fun VisibilityDetailToggle(
     title: String,

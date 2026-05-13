@@ -1,3 +1,10 @@
+/**
+ * Pantalla de guía de uso para nuevos usuarios.
+ *
+ * Explica paso a paso cómo usar las funciones principales de PetHelp:
+ * crear publicaciones, solicitar adopciones, usar el mapa, chatear
+ * y gestionar el perfil. Incluye ilustraciones y consejos prácticos.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.compose.foundation.background
@@ -133,6 +140,12 @@ fun UserGuideScreen(navController: NavController) {
     }
 }
 
+/**
+ * Tarjeta de bienvenida con título y descripción en la guía de uso.
+ *
+ * @param title Título de bienvenida.
+ * @param body Texto descriptivo.
+ */
 @Composable
 fun GuideWelcomeCard(title: String, body: String) {
     PetHelpCard(
@@ -158,6 +171,14 @@ fun GuideWelcomeCard(title: String, body: String) {
     }
 }
 
+/**
+ * Tarjeta de paso individual en la guía de uso con icono y descripción.
+ *
+ * @param icon Icono vectorial.
+ * @param iconColor Color del icono.
+ * @param title Título del paso.
+ * @param body Descripción del paso.
+ */
 @Composable
 fun GuideStepCard(
     icon: ImageVector,

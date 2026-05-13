@@ -1,3 +1,9 @@
+/**
+ * ViewModel de la pantalla de publicaciones favoritas.
+ *
+ * Carga los posts marcados como favoritos por el usuario autenticado,
+ * filtra por categoría y alterna entre vista de grilla y lista.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.lifecycle.ViewModel

@@ -2,9 +2,13 @@
  * Pantallas relacionadas con las publicaciones (Posts) de PetHelp.
  *
  * Este archivo contiene:
- * - `PostDetailScreen`: muestra la informaciÃ³n completa de una publicaciÃ³n, comentarios, votos y solicitud de adopciÃ³n.
- * - `CreatePostScreen`: permite crear una publicaciÃ³n nueva con fotos, texto y categorÃ­a.
- * - `EditPostScreen`: permite editar una publicaciÃ³n existente con un diseÃ±o renovado.
+ * - [PostDetailScreen]: muestra la información completa de una publicación,
+ *   comentarios, votos y solicitud de adopción.
+ * - [CreatePostScreen]: permite crear una publicación nueva con fotos, texto y categoría.
+ * - [EditPostScreen]: permite editar una publicación existente con un diseño renovado.
+ *
+ * Cada pantalla usa su respectivo ViewModel inyectado por Hilt para gestionar
+ * el estado reactivo y las operaciones de Firestore.
  */
 package com.pethelp.app.features.post.presentation
 
@@ -104,7 +108,15 @@ import kotlin.random.Random
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Crea o obtiene un thread de chat para una publicaciÃ³n
+ * Crea o obtiene un thread de chat para una publicación dada.
+ *
+ * Si ya existe un thread entre el usuario actual y el autor del post, lo reutiliza.
+ * Si no existe, crea uno nuevo en Firestore con ambos participantes.
+ *
+ * @param postId ID de la publicación.
+ * @param postTitle Título de la publicación.
+ * @param authorId UID del autor del post.
+ * @param onThreadCreated Callback con el ID del thread creado/obtenido.
  */
 fun createOrGetChatThread(
     postId: String,
@@ -167,7 +179,15 @@ fun createOrGetChatThread(
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Pantalla de detalle de una publicaciÃ³n.
+ * Pantalla de detalle completo de una publicación.
+ *
+ * Muestra la información de la mascota, imágenes, datos de salud,
+ * comportamiento, ubicación y permite interactuar (votar, comentar,
+ * solicitar adopción, agregar a favoritos).
+ *
+ * @param postId Identificador de la publicación a mostrar.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que gestiona el estado del detalle.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -329,6 +349,14 @@ fun PostDetailScreen(
     }
 }
 
+/**
+ * Chip informativo compacto con icono y etiqueta para datos del post.
+ *
+ * @param icon Icono vectorial.
+ * @param label Texto descriptivo.
+ * @param color Color del icono y del contenedor.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun InfoChipCard(
     icon: ImageVector,
@@ -372,6 +400,16 @@ private fun InfoChipCard(
     }
 }
 
+/**
+ * Contenido principal del detalle de publicación con imagen, datos y comentarios.
+ *
+ * @param post Publicación a mostrar.
+ * @param comments Lista de comentarios existentes.
+ * @param isFavorite Indica si el post está en favoritos.
+ * @param onFavoriteClick Acción al alternar favorito.
+ * @param onBackClick Acción al pulsar volver.
+ * @param onCommentSubmit Acción al enviar un nuevo comentario.
+ */
 @Composable
 private fun PostDetailContent(
     post: Post,
@@ -700,6 +738,17 @@ private fun PostDetailContent(
     }
 }
 
+/**
+ * Pantalla de solicitud de adopción para una mascota.
+ *
+ * Presenta un formulario donde el usuario puede describir su motivación
+ * y experiencia para adoptar, y envía la solicitud al autor de la publicación.
+ *
+ * @param postId Identificador de la publicación relacionada.
+ * @param petName Nombre de la mascota a adoptar.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que gestiona el envío de la solicitud.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdoptionRequestScreen(
@@ -950,6 +999,14 @@ fun AdoptionRequestScreen(
     }
 }
 
+/**
+ * Chip seleccionable con icono para opciones mutuamente excluyentes.
+ *
+ * @param label Texto del chip.
+ * @param icon Icono vectorial.
+ * @param selected Indica si está seleccionado.
+ * @param onClick Acción al pulsar el chip.
+ */
 @Composable
 private fun SelectableChip(
     label: String,
@@ -987,6 +1044,13 @@ private fun SelectableChip(
     }
 }
 
+/**
+ * Opción de preferencia de contacto seleccionable para el formulario de adopción.
+ *
+ * @param label Texto de la opción.
+ * @param selected Indica si está seleccionada.
+ * @param onClick Acción al pulsar la opción.
+ */
 @Composable
 private fun ContactPreferenceOption(
     label: String,
@@ -1014,6 +1078,15 @@ private fun ContactPreferenceOption(
     }
 }
 
+/**
+ * Pantalla de solicitudes de adopción recibidas y enviadas.
+ *
+ * Muestra pestañas para filtrar entre pendientes, enviadas e historial,
+ * con acciones de aceptar/rechazar para el autor del post.
+ *
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que gestiona el estado de solicitudes.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdoptionRequestsScreen(
@@ -1133,6 +1206,15 @@ fun AdoptionRequestsScreen(
     }
 }
 
+/**
+ * Barra de pestañas para filtrar solicitudes de adopción por estado.
+ *
+ * @param pendingCount Número de solicitudes pendientes recibidas.
+ * @param sentCount Número de solicitudes enviadas.
+ * @param historyCount Número de solicitudes históricas.
+ * @param selectedTab Índice de la pestaña seleccionada.
+ * @param onTabSelected Callback al cambiar de pestaña.
+ */
 @Composable
 private fun AdoptionRequestsTabs(
     pendingCount: Int,
@@ -1168,12 +1250,18 @@ private fun AdoptionRequestsTabs(
     }
 }
 
+/**
+ * Píldora individual de pestaña para la barra de solicitudes de adopción.
+ *
+ * @param text Texto de la pestaña.
+ * @param selected Indica si está activa.
+ * @param onClick Acción al pulsar la pestaña.
+ */
 @Composable
 private fun AdoptionTabPill(
     text: String,
     selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit,    modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier.height(42.dp),
@@ -1193,6 +1281,11 @@ private fun AdoptionTabPill(
     }
 }
 
+/**
+ * Estado vacío para la lista de solicitudes de adopción.
+ *
+ * @param title ID del recurso de string del título a mostrar.
+ */
 @Composable
 private fun AdoptionRequestsEmptyState(
     title: Int
@@ -1221,6 +1314,17 @@ private fun AdoptionRequestsEmptyState(
     }
 }
 
+/**
+ * Tarjeta individual de solicitud de adopción con acciones de aceptar/rechazar.
+ *
+ * @param request Datos de la solicitud.
+ * @param onAccept Acción al aceptar la solicitud.
+ * @param onReject Acción al rechazar la solicitud.
+ * @param isLoading Indica si hay una acción en curso.
+ * @param showOwnerActions Si true, muestra botones de aceptar/rechazar.
+ * @param title Título opcional.
+ * @param subtitle Subtítulo opcional.
+ */
 @Composable
 fun AdoptionRequestItem(
     request: AdoptionRequest,
@@ -1358,6 +1462,11 @@ fun AdoptionRequestItem(
     }
 }
 
+/**
+ * Chip semántico que indica el estado de una solicitud de adopción.
+ *
+ * @param status Estado actual de la solicitud.
+ */
 @Composable
 private fun AdoptionRequestStatusChip(status: AdoptionRequestStatus) {
     val (containerColor, contentColor, labelRes) = when (status) {
@@ -1392,6 +1501,12 @@ private fun AdoptionRequestStatusChip(status: AdoptionRequestStatus) {
     }
 }
 
+/**
+ * Chip informativo con icono y texto para mostrar datos clave.
+ *
+ * @param text Texto del chip.
+ * @param icon Icono vectorial.
+ */
 @Composable
 fun InfoChip(text: String, icon: ImageVector) {
     Surface(
@@ -1419,6 +1534,12 @@ fun InfoChip(text: String, icon: ImageVector) {
     }
 }
 
+/**
+ * Formatea un timestamp en tiempo relativo legible (ej. "hace 2 días").
+ *
+ * @param createdAt Timestamp en milisegundos.
+ * @return Texto relativo o "-" si el valor es inválido.
+ */
 @Composable
 private fun formatRelativeTime(createdAt: Long): String {
     if (createdAt <= 0L) return stringResource(R.string.common_none)
@@ -1428,6 +1549,11 @@ private fun formatRelativeTime(createdAt: Long): String {
         DateUtils.MINUTE_IN_MILLIS
     ).toString()
 }
+/**
+ * Pantalla de éxito mostrada tras completar una solicitud de adopción.
+ *
+ * @param navController Controlador de navegación para volver al feed.
+ */
 @Composable
 fun AdoptionSuccessScreen(navController: NavController) {
     val infiniteTransition = rememberInfiniteTransition()
@@ -1520,6 +1646,11 @@ fun AdoptionSuccessScreen(navController: NavController) {
     }
 }
 
+/**
+ * Efecto visual de confeti animado para celebrar eventos de adopción.
+ *
+ * @param progress Progreso de la animación (0.0 a 1.0).
+ */
 @Composable
 fun ConfettiEffect(progress: Float) {
     val primary = MaterialTheme.colorScheme.primary
@@ -1553,6 +1684,15 @@ fun ConfettiEffect(progress: Float) {
     }
 }
 
+/**
+ * Partícula individual del efecto de confeti animado.
+ *
+ * @param x Posición horizontal relativa (0.0–1.0).
+ * @param y Posición vertical relativa (0.0–1.0).
+ * @param color Color de la partícula.
+ * @param size Tamaño de la partícula en píxeles.
+ * @param speed Velocidad de caída de la partícula.
+ */
 data class ConfettiParticle(
     val x: Float,
     val y: Float,
@@ -1561,6 +1701,12 @@ data class ConfettiParticle(
     val speed: Float
 )
 
+/**
+ * Item individual de comentario con autor, texto y fecha.
+ *
+ * @param comment Datos del comentario.
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
     val dateFormat = remember { SimpleDateFormat("dd MMM, HH:mm", Locale("es", "CO")) }
@@ -1642,6 +1788,15 @@ private fun CommentItem(comment: Comment, modifier: Modifier = Modifier) {
 // â”€â”€â”€ CREAR PUBLICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+/**
+ * Pantalla multi-paso para crear una nueva publicación de mascota.
+ *
+ * Guía al usuario a través de pasos (básicos, ubicación, detalles,
+ * imágenes y revisión) antes de persistir la publicación en Firestore.
+ *
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que mantiene el estado del formulario de creación.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
@@ -2159,6 +2314,12 @@ fun CreatePostScreen(
 }
 }
 
+/**
+ * Tile seleccionable del grid de salud en la creación/edición de posts.
+ *
+ * @param item Datos del item de salud (título, selección).
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun HealthGridItem(item: HealthItemData, modifier: Modifier) {
     val isSelected = item.isSelected
@@ -2184,6 +2345,13 @@ private data class HealthItemData(
     val onToggle: (Boolean) -> Unit
 )
 
+/**
+ * Campo de texto editable con etiqueta para la pantalla de edición de post.
+ *
+ * @param label Etiqueta del campo.
+ * @param value Valor actual del campo.
+ * @param onValueChange Callback cuando el texto cambia.
+ */
 @Composable
 private fun EditField(label: String, value: String, onValueChange: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2198,6 +2366,13 @@ private fun EditField(label: String, value: String, onValueChange: (String) -> U
     }
 }
 
+/**
+ * Selector desplegable reutilizable para campos de formulario.
+ *
+ * @param currentValue Valor actual mostrado.
+ * @param options Lista de pares (texto, valor) disponibles.
+ * @param onSelect Callback al seleccionar una opción.
+ */
 @Composable
 private fun <T> DropdownSelector(currentValue: String, options: List<Pair<String, T>>, onSelect: (T) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
@@ -2225,6 +2400,15 @@ private fun <T> DropdownSelector(currentValue: String, options: List<Pair<String
     }
 }
 
+/**
+ * Chip seleccionable para opciones de formulario (tamaño, categoría, etc.).
+ *
+ * @param label Texto del chip.
+ * @param selected Indica si está seleccionado.
+ * @param onClick Acción al pulsar.
+ * @param modifier Modificador para ajustar layout.
+ * @param icon Icono opcional.
+ */
 @Composable
 private fun SelectableChip(
     label: String,
@@ -2269,10 +2453,16 @@ private fun SelectableChip(
     }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€â”€ EDITAR PUBLICACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
+/**
+ * Pantalla para editar una publicación existente del usuario.
+ *
+ * Carga el post desde Firestore, permite modificar campos del formulario
+ * y persistir los cambios al confirmar.
+ *
+ * @param postId ID de la publicación a editar.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que gestiona el estado de edición.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostScreen(

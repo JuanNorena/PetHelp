@@ -1,3 +1,9 @@
+/**
+ * Módulo Hilt que provee las instancias de Firebase (Auth, Firestore, Storage, Messaging).
+ *
+ * Centraliza la creación de servicios de Firebase para que puedan ser
+ * inyectados en repositorios y ViewModels sin dependencias directas.
+ */
 package com.pethelp.app.core.di
 
 import com.google.firebase.auth.FirebaseAuth

@@ -1,3 +1,14 @@
+/**
+ * Pantalla del quiz de recomendación de mascotas asistido por IA.
+ *
+ * Presenta una serie de preguntas interactivas (tipo de vivienda,
+ * experiencia previa, espacio disponible, etc.) para determinar
+ * qué tipo de mascota se adapta mejor al usuario.
+ *
+ * Al completar el quiz, envía las respuestas a [AiViewModel] que
+ * consulta el modelo de lenguaje (Gemini/NVIDIA) y luego carga
+ * publicaciones reales de Firestore que coincidan con la recomendación.
+ */
 package com.pethelp.app.features.ai.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -50,6 +61,14 @@ import com.pethelp.app.core.ui.components.PetHelpCard
 import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
 import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
 import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
+/**
+ * Pregunta individual del quiz de recomendación de mascotas.
+ *
+ * @param id Identificador único de la pregunta.
+ * @param question Texto de la pregunta mostrada al usuario.
+ * @param options Lista de opciones de respuesta disponibles.
+ * @param description Texto descriptivo adicional de contexto.
+ */
 data class QuizQuestion(
     val id: String,
     val question: String,
@@ -57,6 +76,11 @@ data class QuizQuestion(
     val description: String = ""
 )
 
+/**
+ * Lista de preguntas del quiz de recomendación de mascotas.
+ *
+ * @return Lista de [QuizQuestion] con opciones predefinidas.
+ */
 @Composable
 private fun quizQuestions() = listOf(
     QuizQuestion(
@@ -128,6 +152,16 @@ private fun quizQuestions() = listOf(
     )
 )
 
+/**
+ * Pantalla del quiz interactivo para recomendar mascotas.
+ *
+ * Presenta preguntas sobre vivienda, experiencia y preferencias,
+ * recolecta respuestas y envía el cuestionario a [AiViewModel]
+ * para generar recomendaciones y cargar publicaciones coincidentes.
+ *
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel que gestiona el estado del quiz y la IA.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AIQuizScreen(
@@ -261,6 +295,11 @@ fun AIQuizScreen(
     }
 }
 
+/**
+ * Indicador de carga mientras se procesan las recomendaciones del quiz.
+ *
+ * @param modifier Modificador para ajustar layout.
+ */
 @Composable
 private fun LoadingQuizContent(modifier: Modifier = Modifier) {
     Box(
@@ -274,6 +313,12 @@ private fun LoadingQuizContent(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Encabezado del quiz con indicador de progreso de preguntas.
+ *
+ * @param currentQuestion Índice de la pregunta actual.
+ * @param totalQuestions Número total de preguntas.
+ */
 @Composable
 private fun QuizIntroHeader(currentQuestion: Int, totalQuestions: Int) {
     Surface(
@@ -323,6 +368,11 @@ private fun QuizIntroHeader(currentQuestion: Int, totalQuestions: Int) {
     }
 }
 
+/**
+ * Barra de progreso visual del cuestionario.
+ *
+ * @param progress Progreso normalizado entre 0.0 y 1.0.
+ */
 @Composable
 private fun QuizProgressBar(progress: Float) {
     Surface(
@@ -344,6 +394,15 @@ private fun QuizProgressBar(progress: Float) {
     }
 }
 
+/**
+ * Botones de navegación del quiz (atrás/continuar/finalizar).
+ *
+ * @param canGoBack Indica si se puede retroceder.
+ * @param canContinue Indica si se puede avanzar.
+ * @param isLastQuestion Indica si es la última pregunta.
+ * @param onBack Acción al pulsar atrás.
+ * @param onContinue Acción al pulsar continuar o finalizar.
+ */
 @Composable
 private fun QuizActions(
     canGoBack: Boolean,
@@ -405,6 +464,13 @@ private fun QuizActions(
     }
 }
 
+/**
+ * Tarjeta que presenta una pregunta del quiz y sus opciones.
+ *
+ * @param question Datos de la pregunta.
+ * @param selectedAnswer Respuesta seleccionada (puede ser null).
+ * @param onAnswerSelected Callback al seleccionar una opción.
+ */
 @Composable
 private fun QuestionCard(
     question: QuizQuestion,
@@ -476,6 +542,12 @@ private fun QuestionCard(
     }
 }
 
+/**
+ * Resumen de respuesta individual mostrado antes de enviar el quiz.
+ *
+ * @param question Texto de la pregunta.
+ * @param answer Texto de la respuesta seleccionada.
+ */
 @Composable
 private fun AnswerSummary(question: String, answer: String) {
     PetHelpCard(

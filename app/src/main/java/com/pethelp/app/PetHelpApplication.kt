@@ -1,3 +1,10 @@
+/**
+ * Clase Application de PetHelp.
+ *
+ * @HiltAndroidApp inicializa el grafo de dependencias de Hilt.
+ * También configura Firebase App Check con Play Integrity y
+ * aplica el idioma preferido del usuario al inicio de la app.
+ */
 package com.pethelp.app
 
 import android.app.Application

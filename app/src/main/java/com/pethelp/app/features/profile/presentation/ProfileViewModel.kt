@@ -1,3 +1,9 @@
+/**
+ * ViewModel principal de la feature de perfil.
+ *
+ * Orquesta la carga y edición de datos de usuario, preferencias de idioma,
+ * modo oscuro y acciones sensibles como cambio de contraseña o eliminar cuenta.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import androidx.lifecycle.ViewModel
@@ -57,18 +63,43 @@ class ProfileViewModel @Inject constructor(
         observeDarkMode()
     }
 
+    // ── Observadores de Preferencias ─────────────────────────────────────────
+    /**
+     * Escucha cambios en el idioma preferido almacenado en DataStore.
+     *
+     * Cada vez que el usuario cambia de idioma en configuración, este flujo
+     * emite el nuevo tag y actualiza [_preferredLanguage] para que la UI
+     * pueda mostrar el idioma actual sin recargar la pantalla.
+     */
     private fun observePreferredLanguage() {
         appLanguageManager.preferredLanguage.onEach { languageTag ->
             _preferredLanguage.value = languageTag
         }.launchIn(viewModelScope)
     }
 
+    /**
+     * Escucha cambios en la preferencia de modo oscuro almacenada en DataStore.
+     *
+     * Mantiene sincronizado el estado [_isDarkMode] con la preferencia local
+     * para que los composables del perfil reaccionen inmediatamente.
+     */
     private fun observeDarkMode() {
         userPreferencesRepository.isDarkMode.onEach { darkModeEnabled ->
             _isDarkMode.value = darkModeEnabled
         }.launchIn(viewModelScope)
     }
 
+    // ── Carga de Perfil ─────────────────────────────────────────────────────
+    /**
+     * Carga el perfil del usuario autenticado desde Firestore.
+     *
+     * **Flujo:**
+     * 1. Emite [ProfileUiState.Loading] mientras llegan los datos.
+     * 2. En éxito, emite [ProfileUiState.Success] con el objeto [User].
+     * 3. En error, emite [ProfileUiState.Error] y un snackbar con el mensaje.
+     *
+     * Se usa un snapshot listener para mantener el perfil actualizado en tiempo real.
+     */
     private fun loadUserProfile() {
         profileRepository.getCurrentUser().onEach { resource ->
             when (resource) {
@@ -89,6 +120,12 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    // ── Actualización de Perfil ─────────────────────────────────────────────
+    /**
+     * Persiste los cambios del perfil del usuario en Firestore.
+     *
+     * @param user Objeto [User] con los campos actualizados.
+     */
     fun updateProfile(user: User) {
         profileRepository.updateProfile(user).onEach { resource ->
              when (resource) {
@@ -109,6 +146,16 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /**
+     * Actualiza las preferencias de notificación del usuario y sincroniza el token FCM.
+     *
+     * **Lógica de FCM:**
+     * - Si se activa push, sincroniza el token actual para que Cloud Functions pueda enviar notificaciones.
+     * - Si se desactiva, marca los tokens del usuario como inactivos en Firestore.
+     *
+     * @param pushEnabled true para recibir notificaciones push.
+     * @param emailEnabled true para recibir alertas por correo.
+     */
     fun updateNotificationPreferences(pushEnabled: Boolean, emailEnabled: Boolean) {
         profileRepository.updateNotificationPreferences(pushEnabled, emailEnabled).onEach { resource ->
             when (resource) {
@@ -151,6 +198,18 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /**
+     * Sube una nueva foto de perfil a Cloudinary y actualiza la URL en Firestore.
+     *
+     * **Pasos:**
+     * 1. Valida que el URI no esté vacío.
+     * 2. Marca el estado como subiendo (`isUploadingPhoto = true`).
+     * 3. Delega la subida al [profileRepository].
+     * 4. En éxito, actualiza la URL en el estado local y emite confirmación.
+     * 5. En error, guarda el mensaje de error para mostrarlo en la UI.
+     *
+     * @param imageUri URI local de la imagen seleccionada por el usuario.
+     */
     fun uploadProfilePhoto(imageUri: String) {
         val currentState = _uiState.value as? ProfileUiState.Success ?: return
 
@@ -198,10 +257,26 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /**
+     * Cierra la sesión del usuario actual.
+     *
+     * Delega la operación a [AuthRepository]; la navegación posterior
+     * a la pantalla de login la maneja la UI observando el estado de autenticación.
+     */
     fun logout() {
         authRepository.logout()
     }
 
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     *
+     * **Validación:** Rechaza el envío si algún campo está en blanco.
+     * **Nota:** Firebase requiere reautenticación reciente para operaciones sensibles;
+     * el repository se encarga de eso internamente.
+     *
+     * @param currentPassword Contraseña actual del usuario.
+     * @param newPassword Nueva contraseña deseada.
+     */
     fun updatePassword(currentPassword: String, newPassword: String) {
         if (currentPassword.isBlank() || newPassword.isBlank()) {
             viewModelScope.launch {
@@ -228,6 +303,15 @@ class ProfileViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /**
+     * Solicita la eliminación permanente de la cuenta del usuario.
+     *
+     * **Advertencia:** Esta acción es irreversible. Eliminara el documento
+     * del usuario en Firestore y su cuenta de Firebase Authentication.
+     *
+     * @param onSuccess Callback opcional que la UI ejecuta tras éxito
+     *                  (tipicamente navega a la pantalla de login).
+     */
     fun deleteAccount(onSuccess: (() -> Unit)? = null) {
          profileRepository.deleteAccount().onEach { resource ->
             when(resource) {
@@ -248,6 +332,14 @@ class ProfileViewModel @Inject constructor(
          }.launchIn(viewModelScope)
     }
 
+    /**
+     * Cambia el idioma de la aplicación si el tag recibido está soportado.
+     *
+     * **Nota:** La UI se actualiza automaticamente porque Compose
+     * recomposa con el nuevo contexto de localizacion.
+     *
+     * @param languageTag Tag BCP-47 del idioma (ej. "es", "en").
+     */
     fun changeAppLanguage(languageTag: String) {
         viewModelScope.launch {
             if (!appLanguageManager.isSupportedLanguage(languageTag)) {
@@ -264,16 +356,34 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Alias de [changeAppLanguage] para compatibilidad con llamadas
+     * desde la capa de presentacion.
+     *
+     * @param languageTag Tag BCP-47 del idioma.
+     */
     fun setLanguage(languageTag: String) {
         changeAppLanguage(languageTag)
     }
 
+    /**
+     * Activa o desactiva el modo oscuro de la aplicación.
+     *
+     * Persiste la preferencia en DataStore para que sobreviva reinicios de la app.
+     *
+     * @param enabled true para modo oscuro, false para modo claro.
+     */
     fun toggleDarkMode(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setDarkMode(enabled)
         }
     }
 
+    /**
+     * Retorna la lista de idiomas soportados por la aplicación, ordenados alfabeticamente.
+     *
+     * @return Lista de tags BCP-47 (ej. ["en", "es"]).
+     */
     fun getSupportedLanguages(): List<String> {
         return AppLanguageManager.supportedLanguages.toList().sorted()
     }

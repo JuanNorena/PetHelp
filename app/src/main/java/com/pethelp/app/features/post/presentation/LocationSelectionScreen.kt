@@ -1,3 +1,12 @@
+/**
+ * Paso de selección de ubicación durante la creación de una publicación.
+ *
+ * Permite elegir coordenadas en un mapa de Google Maps y completar
+ * la dirección textual (calle, barrio, ciudad) antes de avanzar al
+ * siguiente paso de detalles de la mascota.
+ *
+ * Usa [MapViewModel] para gestionar el estado del mapa y la ubicación.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.compose.foundation.BorderStroke

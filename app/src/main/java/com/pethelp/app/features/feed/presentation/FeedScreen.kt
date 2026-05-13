@@ -1,3 +1,13 @@
+/**
+ * Pantalla principal de Feed (muro de publicaciones) de PetHelp.
+ *
+ * Muestra la lista de publicaciones verificadas ordenadas por fecha,
+ * con filtros por categoría, búsqueda por texto, y acciones de
+ * favorito, voto y navegación al detalle de cada post.
+ *
+ * La lista se carga desde Firestore usando snapshot listeners para
+ * mantener los datos actualizados en tiempo real.
+ */
 package com.pethelp.app.features.feed.presentation
 
 import androidx.compose.foundation.BorderStroke
@@ -83,6 +93,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Pantalla principal de Feed (muro de publicaciones).
+ *
+ * Muestra la lista de publicaciones verificadas ordenadas por fecha,
+ * con filtros por categoría, búsqueda por texto, y acciones de
+ * favorito, voto y navegación al detalle de cada post.
+ *
+ * La lista se carga desde Firestore usando snapshot listeners para
+ * mantener los datos actualizados en tiempo real.
+ *
+ * @param navController Controlador de navegación para transiciones entre pantallas.
+ * @param viewModel ViewModel que gestiona el estado del feed y favoritos.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
@@ -258,6 +281,12 @@ fun FeedScreen(
     }
 }
 
+/**
+ * Avatar del usuario autenticado mostrado en la parte superior del feed.
+ *
+ * @param authState Estado de autenticación del usuario.
+ * @param onClick Acción al pulsar el avatar.
+ */
 @Composable
 private fun FeedProfileAvatar(
     authState: AuthUiState,
@@ -295,6 +324,13 @@ private fun FeedProfileAvatar(
     }
 }
 
+/**
+ * Tarjeta individual de publicación mostrada en el feed principal.
+ *
+ * @param post Datos de la publicación.
+ * @param isFavorite Indica si está en favoritos.
+ * @param onFavoriteClick Acción al alternar favorito.
+ */
 @Composable
 private fun FeedPostCard(
     post: Post,
@@ -423,6 +459,9 @@ private fun FeedPostCard(
     }
 }
 
+/**
+ * Placeholder shimmer para las tarjetas de publicación mientras se cargan.
+ */
 @Composable
 private fun FeedShimmerCard() {
     PetHelpCard(modifier = Modifier.fillMaxWidth()) {
@@ -446,6 +485,13 @@ private fun FeedShimmerCard() {
     }
 }
 
+/**
+ * Chip de filtro por categoría en la barra superior del feed.
+ *
+ * @param label Texto del chip.
+ * @param selected Indica si está activo.
+ * @param onClick Acción al pulsar el chip.
+ */
 @Composable
 private fun FilterChipUI(
     label: String,
@@ -475,6 +521,12 @@ private fun FilterChipUI(
     }
 }
 
+/**
+ * Convierte una categoría de dominio a su nombre legible localizado.
+ *
+ * @param category Categoría del post.
+ * @return Nombre traducido de la categoría.
+ */
 @Composable
 private fun categoryToDisplayName(category: PostCategory): String {
     return when (category) {
@@ -486,6 +538,12 @@ private fun categoryToDisplayName(category: PostCategory): String {
     }
 }
 
+/**
+ * Convierte un género animal a su nombre legible localizado.
+ *
+ * @param gender Género del animal.
+ * @return Nombre traducido del género.
+ */
 @Composable
 private fun genderToDisplayName(gender: AnimalGender): String {
     return when (gender) {
@@ -495,6 +553,12 @@ private fun genderToDisplayName(gender: AnimalGender): String {
     }
 }
 
+/**
+ * Convierte un tamaño animal a su nombre legible localizado.
+ *
+ * @param size Tamaño del animal.
+ * @return Nombre traducido del tamaño.
+ */
 @Composable
 private fun sizeToDisplayName(size: AnimalSize): String {
     return when (size) {
@@ -504,6 +568,12 @@ private fun sizeToDisplayName(size: AnimalSize): String {
     }
 }
 
+/**
+ * Formatea un timestamp a fecha legible "dd/MM/yyyy HH:mm".
+ *
+ * @param timestamp Timestamp en milisegundos.
+ * @return Fecha formateada o "-" si es inválido.
+ */
 private fun formatDate(timestamp: Long): String {
     if (timestamp <= 0L) return "-"
     return SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))

@@ -1,3 +1,9 @@
+/**
+ * Implementación de [AuthRepository] usando Firebase Authentication.
+ *
+ * Gestiona registro, login, recuperación de contraseña, cierre de sesión
+ * y observación del estado de autenticación del usuario actual.
+ */
 package com.pethelp.app.features.auth.data.repository
 
 import com.google.firebase.FirebaseNetworkException

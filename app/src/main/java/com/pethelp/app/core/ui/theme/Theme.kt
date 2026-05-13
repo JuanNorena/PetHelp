@@ -1,3 +1,9 @@
+/**
+ * Configuración central del tema visual de PetHelp.
+ *
+ * Orquesta Material Design 3 con la paleta de colores, tipografía y formas
+ * definidas en el design system. Gestiona automáticamente modo claro/oscuro.
+ */
 package com.pethelp.app.core.ui.theme
 
 import android.app.Activity

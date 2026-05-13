@@ -1,3 +1,8 @@
+/**
+ * Interfaz concreta del repositorio de publicaciones.
+ * Define las operaciones de lectura, creación, actualización, eliminación
+ * y moderación de publicaciones, todas retornando `Flow<Resource<T>>`.
+ */
 package com.pethelp.app.features.post.domain.repository
 
 import com.pethelp.app.core.common.Resource

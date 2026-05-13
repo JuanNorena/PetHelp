@@ -1,3 +1,9 @@
+/**
+ * Estados de interfaz para el flujo de autenticación.
+ *
+ * Representa los estados posibles de carga, éxito y error
+ * durante login, registro y recuperación de contraseña.
+ */
 package com.pethelp.app.features.auth.presentation
 
 import com.pethelp.app.core.domain.model.User

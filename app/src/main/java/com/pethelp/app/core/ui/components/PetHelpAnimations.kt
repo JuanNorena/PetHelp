@@ -1,3 +1,10 @@
+/**
+ * Utilidades de animación reutilizables para toda la aplicación PetHelp.
+ *
+ * Proporciona animaciones de entrada/salida estandarizadas (fade, scale, slide)
+ * y constantes de duración para mantener consistencia visual en todas las
+ * transiciones de pantallas y elementos de la UI.
+ */
 package com.pethelp.app.core.ui.components
 
 import androidx.compose.animation.AnimatedVisibility

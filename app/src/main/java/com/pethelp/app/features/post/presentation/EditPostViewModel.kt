@@ -1,3 +1,9 @@
+/**
+ * ViewModel para editar una publicación existente.
+ *
+ * Carga el post desde Firestore, mantiene cambios locales del formulario
+ * y persiste la actualización cuando el usuario confirma.
+ */
 package com.pethelp.app.features.post.presentation
 
 import androidx.lifecycle.SavedStateHandle
@@ -135,50 +141,64 @@ class EditPostViewModel @Inject constructor(
         }
     }
 
-    /** Actualiza el titulo editable. */
+    // ── Actualizadores de Campos ──────────────────────────────────────────
+    /** Actualiza el título editable en el estado local. */
     fun onTitleChange(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
     }
 
-    /** Actualiza la descripcion editable aplicando limite de 500 caracteres. */
+    /**
+     * Actualiza la descripción editable, limitando a 500 caracteres.
+     *
+     * @param newDescription Nueva descripción ingresada por el usuario.
+     */
     fun onDescriptionChange(newDescription: String) {
         if (newDescription.length <= 500) {
             _uiState.update { it.copy(description = newDescription) }
         }
     }
 
+    /** @param type Nuevo tipo de animal. */
     fun onAnimalTypeChange(type: String) {
         _uiState.update { it.copy(animalType = type) }
     }
 
+    /** @param age Nuevo rango de edad. */
     fun onAgeChange(age: AnimalAge) {
         _uiState.update { it.copy(age = age) }
     }
 
+    /** @param gender Nuevo sexo del animal. */
     fun onGenderChange(gender: AnimalGender) {
         _uiState.update { it.copy(gender = gender) }
     }
 
+    /** @param size Nuevo tamaño del animal. */
     fun onSizeChange(size: AnimalSize) {
         _uiState.update { it.copy(size = size) }
     }
 
+    /** @param status Nuevo estado de la publicación. */
     fun onStatusChange(status: PostStatus) {
         _uiState.update { it.copy(status = status) }
     }
 
+    /** @param value true si está vacunado. */
     fun onVaccinatedChange(value: Boolean) {
         _uiState.update { it.copy(vaccinated = value) }
     }
 
+    /** @param value true si está desparasitado. */
     fun onDewormedChange(value: Boolean) {
         _uiState.update { it.copy(dewormed = value) }
     }
 
+    /** @param value true si está esterilizado. */
     fun onSterilizedChange(value: Boolean) {
         _uiState.update { it.copy(sterilized = value) }
     }
 
+    /** @param value true si requiere cuidados especiales. */
     fun onSpecialCaresChange(value: Boolean) {
         _uiState.update { it.copy(specialCares = value) }
     }

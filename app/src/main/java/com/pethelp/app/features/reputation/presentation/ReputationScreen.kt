@@ -1,3 +1,13 @@
+/**
+ * Pantalla de reputación y logros del usuario.
+ *
+ * Muestra los puntos acumulados, el nivel actual y el progreso hacia
+ * el siguiente nivel. También lista las insignias obtenidas en el
+ * sistema de gamificación de PetHelp.
+ *
+ * Datos en construcción: actualmente muestra valores de ejemplo;
+ * en futuras fases se conectará con [GamificationViewModel].
+ */
 package com.pethelp.app.features.reputation.presentation
 
 import androidx.compose.foundation.layout.*

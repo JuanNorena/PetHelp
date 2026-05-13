@@ -1,4 +1,10 @@
-﻿package com.pethelp.app.core.common
+﻿/**
+ * Wrapper reactivo para estados de operaciones asíncronas.
+ *
+ * Patrón sealed class usado en ViewModels para exponer estados
+ * Loading, Success y Error a la capa de presentación.
+ */
+package com.pethelp.app.core.common
 
 /**
  * Representa el estado de una operación asíncrona en la aplicación.

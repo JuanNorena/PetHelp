@@ -1,3 +1,13 @@
+/**
+ * Pantalla principal de configuración de la aplicación.
+ *
+ * Agrupa accesos a submenús de idioma, tema oscuro, notificaciones,
+ * privacidad, seguridad, visibilidad y guía de uso. También permite
+ * cerrar sesión y acceder al centro de ayuda.
+ *
+ * Coordina con [ProfileViewModel] para aplicar cambios de configuración
+ * y gestionar el estado de la sesión del usuario.
+ */
 package com.pethelp.app.features.profile.presentation
 
 import android.Manifest
@@ -240,6 +250,11 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * Título de sección dentro de la pantalla de configuración.
+ *
+ * @param title Texto del título.
+ */
 @Composable
 fun SettingsSectionTitle(title: String) {
     Text(
@@ -252,6 +267,11 @@ fun SettingsSectionTitle(title: String) {
     )
 }
 
+/**
+ * Contenedor de tarjeta estilizada para agrupar opciones de configuración.
+ *
+ * @param content Contenido composable a renderizar dentro de la tarjeta.
+ */
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     PetHelpCard(
@@ -263,6 +283,15 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
+/**
+ * Item de configuración con icono, título y valor opcional.
+ *
+ * @param icon Icono vectorial.
+ * @param iconColor Color del icono.
+ * @param title Título de la opción.
+ * @param value Valor actual mostrado a la derecha (puede ser null).
+ * @param onClick Acción al pulsar el item.
+ */
 @Composable
 fun SettingsItem(
     icon: ImageVector,
@@ -301,6 +330,15 @@ fun SettingsItem(
     }
 }
 
+/**
+ * Item de configuración con interruptor (toggle) para activar/desactivar.
+ *
+ * @param icon Icono vectorial.
+ * @param iconColor Color del icono.
+ * @param title Título de la opción.
+ * @param checked Estado actual del interruptor.
+ * @param onCheckedChange Callback al cambiar el estado.
+ */
 @Composable
 fun SettingsToggleItem(
     icon: ImageVector,

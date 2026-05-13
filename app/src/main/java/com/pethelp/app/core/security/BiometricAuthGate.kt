@@ -1,3 +1,10 @@
+/**
+ * Utilidad de seguridad para gestionar autenticación biométrica.
+ *
+ * Abstrae BiometricPrompt y BiometricManager para proporcionar
+ * una interfaz sencilla de verificación por huella, rostro o PIN
+ * sobre acciones sensibles de la aplicación.
+ */
 package com.pethelp.app.core.security
 
 import android.content.Context
