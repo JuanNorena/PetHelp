@@ -51,6 +51,10 @@ import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.*
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpTagChip
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -241,18 +245,11 @@ fun PostReviewScreen(
                 }
 
                 // Card Principal de Datos
-                Card(
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                PetHelpCard(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors =
-                                CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surface
-                                ),
-                        border =
-                                BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                )
+                        shape =RoundedCornerShape(24.dp),
+                        borderAlpha = 0.4f
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         // SECCIÓN: Datos principales
@@ -284,43 +281,37 @@ fun PostReviewScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Tag(
-                                            text =
+                                    PetHelpTagChip(
+                                            label =
                                                     UiText.fromCategory(
                                                                     PostCategory.valueOf(
                                                                             postData.category
                                                                     )
                                                             )
                                                             .asString()
-                                                            .uppercase(),
-                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                            textColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                            .uppercase()
                                     )
-                                    Tag(
-                                            text = postData.animalType.uppercase(),
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    PetHelpTagChip(
+                                            label = postData.animalType.uppercase()
                                     )
                                 }
-                                Tag(
-                                        text =
+                                PetHelpTagChip(
+                                        label =
                                                 UiText.fromSize(AnimalSize.valueOf(postData.size))
                                                         .asString()
-                                                        .uppercase(),
-                                        color = MaterialTheme.colorScheme.surfaceVariant,
-                                        textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        .uppercase()
                                 )
                             }
                         }
 
-                        Surface(
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        PetHelpCard(
+                                modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                borderAlpha = 0.3f,
+                                contentPadding = PaddingValues(12.dp)
                         ) {
                             Text(
                                     text = postData.description,
-                                    modifier = Modifier.padding(12.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -415,17 +406,16 @@ fun PostReviewScreen(
                                     verticalAlignment = Alignment.CenterVertically
                             ) {
                                 postData.behavior.forEach { b ->
-                                    Tag(
-                                            text =
+                                    PetHelpTagChip(
+                                            label =
                                                     UiText.fromBehavior(PetBehavior.valueOf(b))
-                                                            .asString(),
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            .asString()
                                     )
                                 }
                             }
                         }
                     }
+                }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
             }

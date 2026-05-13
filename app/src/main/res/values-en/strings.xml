@@ -466,6 +466,10 @@ a pet</string>
     >You can continue the adoption from here.</string>
     <string name="chat_sent_success">Message sent</string>
     <string name="chat_error_sending">Error sending: %1$s</string>
+    <string name="chat_notification_title">New message</string>
+    <string name="chat_notification_body">You have %1$d unread message(s)</string>
+    <string name="chat_fallback_last_message">No messages yet.</string>
+    <string name="chat_fallback_subtitle">Adoption chat</string>
 
     <!-- Moderation -->
     <string name="moderation_panel_title">Moderation Panel</string>
@@ -1053,4 +1057,58 @@ a pet</string>
     <string name="user_level_protector">Protector</string>
     <string name="user_level_guardian">Guardian</string>
     <string name="user_level_hero">Pet Hero</string>
+
+    <!-- AI Results -->
+    <string name="ai_results_no_matches_title">No matches</string>
+    <string name="ai_results_no_matches_subtitle">We could not find pets matching your profile. Try adjusting your preferences.</string>
+
+    <!-- Edit Post -->
+    <string name="edit_post_discard_msg">Are you sure you want to exit? Unsaved changes will be lost.</string>
+    <string name="edit_post_photo_limit_error">Maximum 5 photos allowed</string>
+    <string name="edit_post_photo_reorder">Long press to reorder photos</string>
+    <string name="edit_post_status_active_desc">Visible to all users.</string>
+    <string name="edit_post_status_paused_desc">No one will be able to see it temporarily.</string>
+    <string name="edit_post_status_adopted_desc">Will be marked as a happy ending.</string>
+
+    <!-- Map -->
+    <string name="map_coming_soon">Feature coming soon</string>
+    <string name="map_sheet_no_more_nearby">No more pets nearby right now.</string>
+
+    <!-- Moderation -->
+    <string name="moderation_empty_pending_subtitle">All posts have been reviewed. Great job!</string>
+
+    <!-- My Posts -->
+    <string name="my_posts_empty_title">No posts</string>
+
+    <!-- Notifications -->
+    <string name="notifications_empty_title">No notifications</string>
+    <string name="notifications_empty_subtitle">When you have alerts or updates, they will appear here.</string>
+
+    <!-- Post -->
+    <string name="post_breed_placeholder">Ex: Golden Retriever, Mixed, etc.</string>
+    <string name="post_detail_no_comments">No comments yet. Be the first!</string>
+    <string name="post_location_map_instruction">Tap the map to select a location.</string>
+    <string name="post_photo_instruction_prefix">Tap to add up to </string>
+    <string name="post_step_info">Info</string>
+    <string name="post_step_location">Location</string>
+    <string name="post_step_details">Details</string>
+    <string name="post_step_review">Review</string>
+
+    <!-- Profile -->
+    <string name="profile_password_updated">Password updated successfully</string>
+    <string name="profile_photo_update_error">Error updating profile photo</string>
+
+    <!-- Statistics -->
+    <string name="stats_header_title">Your impact on PetHelp</string>
+    <string name="stats_header_subtitle">%1$d posts · %2$d successful adoptions</string>
+    <string name="stats_favorites">Favorites</string>
+    <string name="stats_success_rate">Success rate</string>
+    <string name="stats_adoptions_helped">Pets you helped rehome</string>
+    <string name="stats_recent_activity">Recent activity</string>
+    <string name="stats_activity_post_created">Post created</string>
+    <string name="stats_activity_post_created_sub">New pet for adoption</string>
+    <string name="stats_activity_badge_earned">Badge unlocked</string>
+    <string name="stats_activity_badge_earned_sub">Pet hero!</string>
+    <string name="stats_activity_adoption_complete">Adoption completed</string>
+    <string name="stats_activity_adoption_complete_sub">A pet found a home</string>
 </resources>

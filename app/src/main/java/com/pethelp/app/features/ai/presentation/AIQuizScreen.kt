@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,7 +46,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pethelp.app.R
-
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 data class QuizQuestion(
     val id: String,
     val question: String,
@@ -187,43 +191,51 @@ fun AIQuizScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     item {
-                        QuizIntroHeader(
-                            currentQuestion = currentQuestionIndex + 1,
-                            totalQuestions = totalQuestions
-                        )
+                        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                            QuizIntroHeader(
+                                currentQuestion = currentQuestionIndex + 1,
+                                totalQuestions = totalQuestions
+                            )
+                        }
                     }
 
                     item {
-                        QuizProgressBar(
-                            progress = (currentQuestionIndex + 1).toFloat() / totalQuestions
-                        )
+                        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+                            QuizProgressBar(
+                                progress = (currentQuestionIndex + 1).toFloat() / totalQuestions
+                            )
+                        }
                     }
 
                     item {
-                        QuestionCard(
-                            question = currentQuestion,
-                            selectedAnswer = selectedAnswer,
-                            onAnswerSelected = { answer ->
-                                viewModel.updateQuizAnswer(currentQuestion.id, answer)
-                            }
-                        )
-                    }
-
-                    item {
-                        QuizActions(
-                            canGoBack = currentQuestionIndex > 0,
-                            canContinue = !selectedAnswer.isNullOrBlank(),
-                            isLastQuestion = currentQuestionIndex == totalQuestions - 1,
-                            error = uiState.error,
-                            onBack = viewModel::goToPreviousQuestion,
-                            onNext = {
-                                if (currentQuestionIndex == totalQuestions - 1) {
-                                    viewModel.submitQuiz()
-                                } else {
-                                    viewModel.goToNextQuestion(totalQuestions)
+                        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
+                            QuestionCard(
+                                question = currentQuestion,
+                                selectedAnswer = selectedAnswer,
+                                onAnswerSelected = { answer ->
+                                    viewModel.updateQuizAnswer(currentQuestion.id, answer)
                                 }
-                            }
-                        )
+                            )
+                        }
+                    }
+
+                    item {
+                        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 3)) {
+                            QuizActions(
+                                canGoBack = currentQuestionIndex > 0,
+                                canContinue = !selectedAnswer.isNullOrBlank(),
+                                isLastQuestion = currentQuestionIndex == totalQuestions - 1,
+                                error = uiState.error,
+                                onBack = viewModel::goToPreviousQuestion,
+                                onNext = {
+                                    if (currentQuestionIndex == totalQuestions - 1) {
+                                        viewModel.submitQuiz()
+                                    } else {
+                                        viewModel.goToNextQuestion(totalQuestions)
+                                    }
+                                }
+                            )
+                        }
                     }
 
                     if (answeredQuestions > 0) {
@@ -399,14 +411,12 @@ private fun QuestionCard(
     selectedAnswer: String?,
     onAnswerSelected: (String) -> Unit
 ) {
-    Surface(
+    PetHelpCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
-        shadowElevation = 3.dp
+        contentPadding = PaddingValues(20.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column {
             Text(
                 text = question.question,
                 fontWeight = FontWeight.Bold,
@@ -468,21 +478,27 @@ private fun QuestionCard(
 
 @Composable
 private fun AnswerSummary(question: String, answer: String) {
-    Column(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        borderAlpha = 0.35f,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Text(
-            text = question,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = answer,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.primary
-        )
+        Column {
+            Text(
+                text = question,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = answer,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }

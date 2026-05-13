@@ -13,21 +13,41 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.pethelp.app.MainActivity
 import com.pethelp.app.R
+import com.pethelp.app.core.common.Constants
 import com.pethelp.app.core.navigation.Screen
 
 /**
@@ -68,18 +88,93 @@ import com.pethelp.app.core.navigation.Screen
  * @see Screen para ver las rutas disponibles.
  * @see NavBarItem para el diseño de cada opción individual.
  */
+private fun showChatLocalNotification(context: Context, unreadCount: Int) {
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            Constants.NOTIFICATION_CHANNEL_ID,
+            Constants.NOTIFICATION_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) return
+    }
+
+    val intent = Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+    val pendingIntent = PendingIntent.getActivity(
+        context,
+        System.currentTimeMillis().toInt(),
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val notification = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
+        .setSmallIcon(R.mipmap.ic_launcher)
+        .setContentTitle(context.getString(R.string.chat_notification_title))
+        .setContentText(context.getString(R.string.chat_notification_body, unreadCount))
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setContentIntent(pendingIntent)
+        .setAutoCancel(true)
+        .build()
+
+    notificationManager.notify(2001, notification)
+}
+
 @Composable
 fun PetHelpBottomNavBar(
     navController: NavController,
     unreadChatCount: Int = 0
 ) {
-    // PASO 1: Obtenemos el estado de la navegación actual para saber en qué pantalla estamos.
+    val context = LocalContext.current
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry.value?.destination
 
-    // PASO 2: Definimos el contenedor base. Usamos un Box para poder superponer el FAB central.
-    // ⭐ MIGRACIÓN A SEMÁNTICA: Usando MaterialTheme.colorScheme.scrim en lugar de Color.Black
-    // Esto permite que la sombra se adapte automáticamente en Dark Mode (más clara) y Light Mode (más oscura)
+    val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    var globalUnreadCount by remember { mutableIntStateOf(unreadChatCount) }
+    var previousUnreadCount by remember { mutableIntStateOf(0) }
+
+    DisposableEffect(uid) {
+        if (uid.isBlank()) {
+            onDispose { }
+        } else {
+            val listener = FirebaseFirestore.getInstance()
+                .collection("threads")
+                .whereArrayContains("participants", uid)
+                .addSnapshotListener { snap, _ ->
+                    val count = snap?.documents?.sumOf { doc ->
+                        val unreadByUser = doc.get("unreadByUser") as? Map<*, *>
+                        val ownUnread = unreadByUser?.get(uid)
+                        when (ownUnread) {
+                            is Long -> ownUnread.toInt()
+                            is Double -> ownUnread.toInt()
+                            is Int -> ownUnread
+                            else -> (doc.getLong("unreadCount") ?: 0L).toInt()
+                        }
+                    } ?: 0
+                    globalUnreadCount = count
+
+                    if (count > previousUnreadCount) {
+                        val onChatScreen = currentDestination?.hasRoute<Screen.Chat>() == true
+                                || currentDestination?.hasRoute<Screen.ChatThread>() == true
+                        if (!onChatScreen) {
+                            showChatLocalNotification(context, count)
+                        }
+                    }
+                    previousUnreadCount = count
+                }
+            onDispose { listener.remove() }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,7 +245,7 @@ fun PetHelpBottomNavBar(
                 icon = Icons.Filled.ChatBubble,
                 label = stringResource(R.string.nav_chat),
                 selected = currentDestination?.hasRoute<Screen.Chat>() == true,
-                badgeCount = unreadChatCount,
+                badgeCount = globalUnreadCount,
                 onClick = {
                     if (currentDestination?.hasRoute<Screen.Chat>() != true) {
                         navController.navigate(Screen.Chat) {

@@ -127,8 +127,7 @@ class ModerationViewModel @Inject constructor(
      */
     fun loadDashboardData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            loadPendingPosts()
+            loadPendingPosts(forceRefresh = true)
             loadModeratedPostsToday()
             loadGlobalMetrics()
         }

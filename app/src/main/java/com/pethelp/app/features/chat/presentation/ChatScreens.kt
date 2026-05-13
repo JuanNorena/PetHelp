@@ -67,6 +67,12 @@ import com.google.firebase.firestore.SetOptions
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
+import com.pethelp.app.core.ui.components.pethelpSlideUpFadeIn
 
 private data class ConversationPreview(
     val id: String,
@@ -113,7 +119,7 @@ fun ChatScreen(navController: NavController) {
                 }
 
                 val previews = snap?.documents
-                    ?.map { it.toConversationPreview(uid, context.getString(R.string.chat_thread_title)) }
+                    ?.map { it.toConversationPreview(context, uid, context.getString(R.string.chat_thread_title)) }
                     ?.sortedByDescending { it.updatedAtMillis }
                     .orEmpty()
 
@@ -214,14 +220,26 @@ fun ChatScreen(navController: NavController) {
 
             if (visibleConversations.isEmpty()) {
                 item {
-                    EmptyConversationState()
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                        PetHelpEmptyState(
+                            title = stringResource(R.string.chat_empty_title),
+                            subtitle = stringResource(R.string.chat_empty_subtitle),
+                            icon = Icons.Default.Pets
+                        )
+                    }
                 }
             } else {
                 items(visibleConversations, key = { it.id }) { conversation ->
-                    ConversationCard(
-                        conversation = conversation,
-                        onClick = { navController.navigate(Screen.ChatThread(conversation.id)) }
-                    )
+                    val index = visibleConversations.indexOf(conversation)
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = true,
+                        enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)
+                    ) {
+                        ConversationCard(
+                            conversation = conversation,
+                            onClick = { navController.navigate(Screen.ChatThread(conversation.id)) }
+                        )
+                    }
                 }
             }
         }
@@ -271,58 +289,20 @@ private fun ChatIntroCard() {
 }
 
 @Composable
-private fun EmptyConversationState() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Pets,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = stringResource(R.string.chat_empty_title),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.chat_empty_subtitle),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
 private fun ConversationCard(
     conversation: ConversationPreview,
     onClick: () -> Unit
 ) {
-    Card(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (conversation.unreadCount > 0)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.26f)
-            else
-                MaterialTheme.colorScheme.surface
-        ),
-        border = CardDefaults.outlinedCardBorder()
+        borderAlpha = if (conversation.unreadCount > 0) 0.7f else 0.35f,
+        contentPadding = PaddingValues(14.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -553,7 +533,8 @@ fun ChatThreadScreen(
                 }
 
                 items(messages, key = { it.id }) { message ->
-                    MessageBubble(message = message)
+                    val msgIndex = messages.indexOf(message)
+                    MessageBubble(message = message, index = msgIndex)
                 }
             }
 
@@ -633,31 +614,64 @@ fun ChatThreadScreen(
 }
 
 @Composable
-private fun MessageBubble(message: ChatMessage) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Start
-    ) {
-        Surface(
-            shape = RoundedCornerShape(22.dp),
-            color = if (message.isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-            tonalElevation = 1.dp,
-            modifier = Modifier.widthIn(max = 300.dp)
+private fun MessageBubble(message: ChatMessage, index: Int = 0) {
+    val bubbleEnter = if (message.isMine) {
+        pethelpFadeScaleIn(delay = index * 30)
+    } else {
+        pethelpSlideUpFadeIn(delay = index * 30)
+    }
+    androidx.compose.animation.AnimatedVisibility(visible = true, enter = bubbleEnter) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Start
         ) {
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                Text(
-                    text = message.text,
-                    color = if (message.isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                    fontSize = 15.sp
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = message.timeLabel,
-                    color = if (message.isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.align(if (message.isMine) Alignment.End else Alignment.Start)
-                )
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = if (message.isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                tonalElevation = 1.dp,
+                modifier = Modifier.widthIn(max = 300.dp)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    Text(
+                        text = message.text,
+                        color = if (message.isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 15.sp
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = message.timeLabel,
+                        color = if (message.isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.align(if (message.isMine) Alignment.End else Alignment.Start)
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun TypingIndicator() {
+    Row(
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(3) { dotIndex ->
+            val dotAlpha by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (dotIndex == 0) 1f else if (dotIndex == 1) 0.6f else 0.3f,
+                animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                    animation = androidx.compose.animation.core.tween(600, delayMillis = dotIndex * 150),
+                    repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                ),
+                label = "typing_dot"
+            )
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = dotAlpha))
+            )
         }
     }
 }
@@ -709,17 +723,17 @@ private fun sendChatMessage(
         .addOnFailureListener { onFailure(it) }
 }
 
-private fun DocumentSnapshot.toConversationPreview(currentUserId: String, fallbackTitle: String): ConversationPreview {
+private fun DocumentSnapshot.toConversationPreview(context: android.content.Context, currentUserId: String, fallbackTitle: String): ConversationPreview {
     val updatedAt = get("updatedAt").toMillis()
     val lastMessage = getString("lastMessage")
         ?.takeIf { it.isNotBlank() }
-        ?: "Aun no hay mensajes."
+        ?: context.getString(R.string.chat_fallback_last_message)
     val title = getString("title")
         ?.takeIf { it.isNotBlank() }
         ?: fallbackTitle
     val subtitle = getString("subtitle")
         ?.takeIf { it.isNotBlank() }
-        ?: "Chat de adopcion"
+        ?: context.getString(R.string.chat_fallback_subtitle)
     val tag = getString("tag")
         ?.takeIf { it.isNotBlank() }
         ?.replaceFirstChar { it.uppercase() }

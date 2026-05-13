@@ -71,6 +71,7 @@ import com.pethelp.app.features.post.domain.model.AdoptionRequestStatus
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.PetHelpStepIndicator
 import com.pethelp.app.R
 import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.*
@@ -1727,10 +1728,10 @@ fun CreatePostScreen(
                             color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = (-0.5).sp
                         )
-                        Text(
-                            text = stringResource(R.string.post_step_1_of_4),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        PetHelpStepIndicator(
+                            currentStep = 1,
+                            totalSteps = 4,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                     Spacer(Modifier.weight(1f))

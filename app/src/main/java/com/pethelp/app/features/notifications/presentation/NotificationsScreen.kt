@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -35,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,6 +49,9 @@ import androidx.navigation.NavController
 import com.pethelp.app.core.domain.model.PetNotification
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -112,13 +120,17 @@ fun NotificationsScreen(
     ) { padding ->
         when {
             uiState.isLoading -> {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
+                        .padding(padding)
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CircularProgressIndicator()
+                    Spacer(Modifier.height(8.dp))
+                    repeat(6) {
+                        LoadingNotificationItem()
+                    }
                 }
             }
 
@@ -129,10 +141,10 @@ fun NotificationsScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = uiState.errorMessage?.asString() ?: stringResource(R.string.error_generic),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
+                    PetHelpEmptyState(
+                        title = stringResource(R.string.error_generic),
+                        subtitle = uiState.errorMessage?.asString() ?: "",
+                        icon = Icons.Filled.Warning
                     )
                 }
             }
@@ -144,10 +156,10 @@ fun NotificationsScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.notifications_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    PetHelpEmptyState(
+                        title = stringResource(R.string.notifications_empty_title),
+                        subtitle = stringResource(R.string.notifications_empty_subtitle),
+                        icon = Icons.Filled.Notifications
                     )
                 }
             }
@@ -185,21 +197,15 @@ private fun NotificationRow(
 ) {
     val formatter = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
 
-    Card(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) {
-                MaterialTheme.colorScheme.surface
-            } else {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
-            }
-        )
+        contentPadding = PaddingValues(14.dp),
+        borderAlpha = if (notification.isRead) 0.35f else 0.6f
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!notification.isRead) {
                     Box(
@@ -236,11 +242,28 @@ private fun NotificationRow(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+    }
+}
 
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 10.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+@Composable
+private fun LoadingNotificationItem() {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            PetHelpShimmerLoading(
+                modifier = Modifier.size(40.dp).clip(CircleShape),
+                shape = CircleShape
             )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                PetHelpShimmerLoading(
+                    modifier = Modifier.fillMaxWidth(0.6f).height(16.dp)
+                )
+                Spacer(Modifier.height(6.dp))
+                PetHelpShimmerLoading(
+                    modifier = Modifier.fillMaxWidth(0.85f).height(12.dp)
+                )
+            }
         }
     }
 }

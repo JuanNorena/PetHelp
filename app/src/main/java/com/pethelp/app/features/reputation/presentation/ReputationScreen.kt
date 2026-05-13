@@ -11,6 +11,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 /**
  * Pantalla de reputación y logros del usuario.
@@ -44,26 +48,39 @@ fun ReputationScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.reputation_points, "—"),
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.reputation_level_label, stringResource(R.string.level_friend)),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                PetHelpCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    borderAlpha = 0.35f
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.reputation_points, "—"),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.reputation_level_label, stringResource(R.string.level_friend)),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
-            Text(
-                text = stringResource(R.string.reputation_badges_title),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.reputation_badges_empty),
-                style = MaterialTheme.typography.bodySmall
-            )
+
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+                PetHelpEmptyState(
+                    title = stringResource(R.string.reputation_badges_title),
+                    subtitle = stringResource(R.string.reputation_badges_empty)
+                )
+            }
         }
     }
 }

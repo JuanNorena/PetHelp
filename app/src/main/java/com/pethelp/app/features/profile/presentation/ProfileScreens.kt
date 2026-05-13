@@ -54,6 +54,10 @@ import com.pethelp.app.core.domain.model.UserLevel
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import com.pethelp.app.core.ui.theme.*
 import com.pethelp.app.features.gamification.domain.model.GamificationStats
 import com.pethelp.app.features.gamification.domain.model.GamificationStreak
@@ -437,33 +441,37 @@ private fun StatsGrid2x2Section(user: User) {
         modifier = Modifier.padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard2(
-                modifier = Modifier.weight(1f),
-                iconTint = MaterialTheme.colorScheme.primary, iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                value = "$levelNum", label = stringResource(R.string.profile_stats_level),
-                icon = Icons.Filled.Star
-            )
-            StatCard2(
-                modifier = Modifier.weight(1f),
-                iconTint = MaterialTheme.colorScheme.primary, iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                value = memberSince, label = stringResource(R.string.profile_stats_member_since),
-                icon = Icons.Filled.CalendarToday, smallValue = true
-            )
+        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatCard2(
+                    modifier = Modifier.weight(1f),
+                    iconTint = MaterialTheme.colorScheme.primary, iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    value = "$levelNum", label = stringResource(R.string.profile_stats_level),
+                    icon = Icons.Filled.Star
+                )
+                StatCard2(
+                    modifier = Modifier.weight(1f),
+                    iconTint = MaterialTheme.colorScheme.primary, iconBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    value = memberSince, label = stringResource(R.string.profile_stats_member_since),
+                    icon = Icons.Filled.CalendarToday, smallValue = true
+                )
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard2(
-                modifier = Modifier.weight(1f),
-                iconTint = MaterialTheme.colorScheme.secondary, iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                value = "$badgeCount", label = stringResource(R.string.profile_stats_badges),
-                icon = Icons.Filled.EmojiEvents
-            )
-            StatCard2(
-                modifier = Modifier.weight(1f),
-                iconTint = MaterialTheme.colorScheme.secondary, iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                value = "$prefCount", label = stringResource(R.string.profile_stats_preferences),
-                icon = Icons.Filled.Favorite
-            )
+        androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatCard2(
+                    modifier = Modifier.weight(1f),
+                    iconTint = MaterialTheme.colorScheme.secondary, iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                    value = "$badgeCount", label = stringResource(R.string.profile_stats_badges),
+                    icon = Icons.Filled.EmojiEvents
+                )
+                StatCard2(
+                    modifier = Modifier.weight(1f),
+                    iconTint = MaterialTheme.colorScheme.secondary, iconBg = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                    value = "$prefCount", label = stringResource(R.string.profile_stats_preferences),
+                    icon = Icons.Filled.Favorite
+                )
+            }
         }
     }
 }
@@ -592,8 +600,10 @@ private fun MissionsSection(missions: List<Mission>) {
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ordered.forEach { mission ->
-                MissionCard(mission)
+            ordered.forEachIndexed { index, mission ->
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)) {
+                    MissionCard(mission)
+                }
             }
         }
     }
@@ -604,11 +614,10 @@ private fun MissionCard(mission: Mission) {
     val progress = if (mission.targetCount == 0) 0f
     else (mission.currentCount.toFloat() / mission.targetCount).coerceIn(0f, 1f)
 
-    Card(
+    PetHelpCard(
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        borderAlpha = 0.4f
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(
@@ -705,7 +714,10 @@ private fun BadgesSection(badges: List<BadgeDisplay>) {
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(badges) { badge ->
-                BadgeCard(badge)
+                val index = badges.indexOf(badge)
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)) {
+                    BadgeCard(badge)
+                }
             }
         }
     }
@@ -723,11 +735,10 @@ private fun BadgeCard(badge: BadgeDisplay) {
         else -> Icons.Filled.EmojiEvents
     }
 
-    Card(
+    PetHelpCard(
         modifier = Modifier.width(150.dp).height(130.dp).alpha(alpha),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        borderAlpha = 0.4f
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(14.dp),
@@ -793,33 +804,37 @@ private fun ActivityStatsSection(stats: GamificationStats) {
             modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActivityStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.Pets,
-                    value = stats.postsCreated,
-                    label = stringResource(R.string.profile_activity_posts)
-                )
-                ActivityStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.ChatBubble,
-                    value = stats.commentsAdded,
-                    label = stringResource(R.string.profile_activity_comments)
-                )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ActivityStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.Pets,
+                        value = stats.postsCreated,
+                        label = stringResource(R.string.profile_activity_posts)
+                    )
+                    ActivityStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.ChatBubble,
+                        value = stats.commentsAdded,
+                        label = stringResource(R.string.profile_activity_comments)
+                    )
+                }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActivityStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.Mail,
-                    value = stats.adoptionRequests,
-                    label = stringResource(R.string.profile_activity_requests)
-                )
-                ActivityStatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.Favorite,
-                    value = stats.votesGiven,
-                    label = stringResource(R.string.profile_activity_votes)
-                )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ActivityStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.Mail,
+                        value = stats.adoptionRequests,
+                        label = stringResource(R.string.profile_activity_requests)
+                    )
+                    ActivityStatCard(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.Favorite,
+                        value = stats.votesGiven,
+                        label = stringResource(R.string.profile_activity_votes)
+                    )
+                }
             }
         }
     }
@@ -832,12 +847,10 @@ private fun ActivityStatCard(
     value: Int,
     label: String
 ) {
-    Card(
+    PetHelpCard(
         modifier = modifier.height(120.dp),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        borderAlpha = 0.4f
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Box(

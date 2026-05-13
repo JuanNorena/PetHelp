@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,50 +73,60 @@ fun UserGuideScreen(navController: NavController) {
             Spacer(Modifier.height(16.dp))
 
             // CARD 1: BIENVENIDA
-            GuideWelcomeCard(
-                title = stringResource(R.string.user_guide_welcome_title),
-                body = stringResource(R.string.user_guide_welcome_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                GuideWelcomeCard(
+                    title = stringResource(R.string.user_guide_welcome_title),
+                    body = stringResource(R.string.user_guide_welcome_body)
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
             // CARD 2: CÓMO EMPEZAR
-            GuideStepCard(
-                icon = Icons.Default.PersonAdd,
-                iconColor = MaterialTheme.colorScheme.primary,
-                title = stringResource(R.string.user_guide_start_title),
-                body = stringResource(R.string.user_guide_start_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+                GuideStepCard(
+                    icon = Icons.Default.PersonAdd,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    title = stringResource(R.string.user_guide_start_title),
+                    body = stringResource(R.string.user_guide_start_body)
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
             // CARD 3: ADOPTAR
-            GuideStepCard(
-                icon = Icons.Default.FavoriteBorder,
-                iconColor = MaterialTheme.colorScheme.secondary,
-                title = stringResource(R.string.user_guide_adopt_title),
-                body = stringResource(R.string.user_guide_adopt_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
+                GuideStepCard(
+                    icon = Icons.Default.FavoriteBorder,
+                    iconColor = MaterialTheme.colorScheme.secondary,
+                    title = stringResource(R.string.user_guide_adopt_title),
+                    body = stringResource(R.string.user_guide_adopt_body)
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
             // CARD 4: PUBLICAR
-            GuideStepCard(
-                icon = Icons.Default.CameraAlt,
-                iconColor = MaterialTheme.colorScheme.tertiary,
-                title = stringResource(R.string.user_guide_publish_title),
-                body = stringResource(R.string.user_guide_publish_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 3)) {
+                GuideStepCard(
+                    icon = Icons.Default.CameraAlt,
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    title = stringResource(R.string.user_guide_publish_title),
+                    body = stringResource(R.string.user_guide_publish_body)
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
             // CARD 5: SEGURIDAD
-            GuideStepCard(
-                icon = Icons.Default.Shield,
-                iconColor = MaterialTheme.colorScheme.primary,
-                title = stringResource(R.string.user_guide_security_title),
-                body = stringResource(R.string.user_guide_security_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 4)) {
+                GuideStepCard(
+                    icon = Icons.Default.Shield,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    title = stringResource(R.string.user_guide_security_title),
+                    body = stringResource(R.string.user_guide_security_body)
+                )
+            }
 
             Spacer(Modifier.height(32.dp))
         }
@@ -122,11 +135,10 @@ fun UserGuideScreen(navController: NavController) {
 
 @Composable
 fun GuideWelcomeCard(title: String, body: String) {
-    Card(
+    PetHelpCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        borderAlpha = 0.35f
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
@@ -153,11 +165,10 @@ fun GuideStepCard(
     title: String,
     body: String
 ) {
-    Card(
+    PetHelpCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        borderAlpha = 0.35f
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

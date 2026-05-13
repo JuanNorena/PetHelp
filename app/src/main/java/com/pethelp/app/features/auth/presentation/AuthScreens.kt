@@ -69,6 +69,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -77,6 +79,9 @@ import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.pethelpSlideUpFadeIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 
@@ -478,9 +483,10 @@ fun LoginScreen(
             Spacer(Modifier.height(32.dp))
 
             // PASO 4: Campos de entrada (Correo y Contraseña).
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 100)) {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
                 placeholder = {
                     Text(
                         text = stringResource(R.string.email_hint),
@@ -518,11 +524,14 @@ fun LoginScreen(
                     )
             )
 
+            }
+
             Spacer(Modifier.height(20.dp))
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 200)) {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
                 placeholder = {
                     Text(
                         text = stringResource(R.string.password_hint),
@@ -572,29 +581,36 @@ fun LoginScreen(
                     )
             )
 
+            }
+
             Spacer(Modifier.height(4.dp))
 
             // Enlace de recuperación de contraseña.
-            Text(
-                text = stringResource(R.string.forgot_password_link),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .clickable { navController.navigate(Screen.ForgotPassword) }
-                    .padding(vertical = 4.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = stringResource(R.string.forgot_password_link),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { navController.navigate(Screen.ForgotPassword) }
+                        .padding(vertical = 4.dp)
+                )
+            }
 
             Spacer(Modifier.height(32.dp))
 
             // PASO 5: Botón de acción principal.
-            Button(
-                onClick = {
-                    viewModel.login(email.trim(), password)
-                },
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 300)) {
+                Button(
+                    onClick = {
+                        viewModel.login(email.trim(), password)
+                    },
                 enabled = email.isNotBlank() && password.isNotBlank()
                         && uiState !is AuthUiState.Loading,
                 shape = RoundedCornerShape(50),
@@ -631,6 +647,7 @@ fun LoginScreen(
                         )
                     )
                 }
+            }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -806,20 +823,24 @@ fun RegisterScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     // Título y encabezado.
-                    Text(
-                        text = stringResource(R.string.register_heading),
-                        style = MaterialTheme.typography.displaySmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 32.sp,
-                            lineHeight = 38.sp,
-                            letterSpacing = (-0.5).sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 0)) {
+                        Text(
+                            text = stringResource(R.string.register_heading),
+                            style = MaterialTheme.typography.displaySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 32.sp,
+                                lineHeight = 38.sp,
+                                letterSpacing = (-0.5).sp
+                            ),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
 
                     Spacer(Modifier.height(32.dp))
 
                     // Inputs del formulario.
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 100)) {
+                        Column {
                     AuthTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -851,13 +872,16 @@ fun RegisterScreen(
                         onTogglePassword = { passwordVisible = !passwordVisible }
                     )
 
-                    // Indicador de fortaleza de contraseña.
-                    Spacer(Modifier.height(8.dp))
-                    PasswordStrengthIndicator(password)
+                        // Indicador de fortaleza de contraseña.
+                        Spacer(Modifier.height(8.dp))
+                        PasswordStrengthIndicator(password)
+                    }
+                    }
 
                     Spacer(Modifier.height(24.dp))
 
                     // PASO 7: Aceptación de términos.
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 300)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -888,10 +912,12 @@ fun RegisterScreen(
                             modifier = Modifier.clickable { showTermsDialog = true }
                         )
                     }
+                    }
 
                     Spacer(Modifier.height(32.dp))
 
                     // PASO 8: Botón de acción principal con validación de formulario.
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 400)) {
                     val isFormValid = name.isNotBlank() && email.isNotBlank()
                             && password.length >= 6 && termsAccepted
                     Button(
@@ -929,6 +955,7 @@ fun RegisterScreen(
                                 )
                             )
                         }
+                    }
                     }
                 }
             }
@@ -1042,6 +1069,8 @@ fun ForgotPasswordScreen(
             ) {
                 Spacer(Modifier.weight(0.15f))
 
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 0)) {
+                    Column(horizontalAlignment = Alignment.Start) {
                 // Icono ilustrativo central (Llave + Pata).
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -1073,11 +1102,15 @@ fun ForgotPasswordScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                    }
+                }
 
                 Spacer(Modifier.height(32.dp))
 
                 if (!resetEmailSent) {
                     // PASO 5: Estado Inicial - Formulario para ingresar el correo electrónico.
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 200)) {
+                        Column {
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -1089,8 +1122,9 @@ fun ForgotPasswordScreen(
                     Spacer(Modifier.height(32.dp))
 
                     // Botón para disparar la solicitud de recuperación a Firebase.
-                    Button(
-                        onClick = { viewModel.sendPasswordReset(email.trim()) },
+                    androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpSlideUpFadeIn(delay = 300)) {
+                        Button(
+                            onClick = { viewModel.sendPasswordReset(email.trim()) },
                         enabled = email.isNotBlank() && uiState !is AuthUiState.Loading,
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -1127,6 +1161,9 @@ fun ForgotPasswordScreen(
                             )
                         }
                     }
+                    }
+                    }
+                }
                 } else {
                     // PASO 6: Estado de Éxito - Muestra la confirmación de envío.
                     Spacer(Modifier.height(16.dp))
@@ -1541,12 +1578,21 @@ private fun TermsAndConditionsDialog(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 // ── PASO 2: Contenido legal scrolleable ──
-                Text(
-                    text = stringResource(R.string.terms_dialog_content),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        lineHeight = 22.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                val termsContent = stringResource(R.string.terms_dialog_content)
+                val textColor = MaterialTheme.colorScheme.onSurfaceVariant
+                AndroidView(
+                    factory = { context ->
+                        android.widget.TextView(context).apply {
+                            setTextColor(textColor.toArgb())
+                            textSize = 16f
+                        }
+                    },
+                    update = { textView ->
+                        textView.text = androidx.core.text.HtmlCompat.fromHtml(
+                            termsContent,
+                            androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+                        )
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .verticalScroll(rememberScrollState())

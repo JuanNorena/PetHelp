@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,11 +92,11 @@ fun ProfileVisibilityScreen(
                 letterSpacing = 0.5.sp
             )
 
-            Card(
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+            PetHelpCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                borderAlpha = 0.35f
             ) {
                 Column {
                     VisibilityOptionItem(
@@ -136,10 +139,12 @@ fun ProfileVisibilityScreen(
                     )
                 }
             }
+            }
 
             Spacer(Modifier.height(32.dp))
 
             // SECCIÓN 2: DETALLES ESPECÍFICOS
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
             Text(
                 text = stringResource(R.string.visibility_details_section),
                 fontSize = 13.sp,
@@ -148,12 +153,13 @@ fun ProfileVisibilityScreen(
                 modifier = Modifier.padding(start = 4.dp, bottom = 12.dp),
                 letterSpacing = 0.5.sp
             )
+            }
 
-            Card(
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
+            PetHelpCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                borderAlpha = 0.35f
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     VisibilityDetailToggle(
@@ -179,6 +185,7 @@ fun ProfileVisibilityScreen(
                         }
                     )
                 }
+            }
             }
             
             Spacer(Modifier.height(32.dp))

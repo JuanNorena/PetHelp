@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,6 +50,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.PetHelpTagChip
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import androidx.compose.runtime.remember
 import com.pethelp.app.core.domain.model.AnimalGender
 import com.pethelp.app.core.domain.model.AnimalSize
@@ -151,12 +160,9 @@ fun AIResultsScreen(
             }
 
             item {
-                Card(
+                PetHelpCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     RecommendationContent(recommendations = recommendations)
                 }
@@ -214,11 +220,11 @@ fun AIResultsScreen(
 
             if (isLoadingPosts) {
                 item {
-                    Text(
-                        text = stringResource(R.string.ai_results_searching_matches),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(Modifier.height(8.dp))
+                    repeat(3) {
+                        AIResultShimmerCard()
+                        Spacer(Modifier.height(12.dp))
+                    }
                 }
             } else if (matchedPosts.isNotEmpty()) {
                 item {
@@ -231,34 +237,24 @@ fun AIResultsScreen(
                 }
 
                 items(matchedPosts, key = { it.id }) { post ->
-                    CompatiblePostCard(
-                        post = post,
-                        onClick = { navController.navigate(Screen.PostDetail(post.id)) }
-                    )
+                    val index = matchedPosts.indexOf(post)
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = true,
+                        enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)
+                    ) {
+                        CompatiblePostCard(
+                            post = post,
+                            onClick = { navController.navigate(Screen.PostDetail(post.id)) }
+                        )
+                    }
                 }
             } else {
                 item {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.ai_results_no_matches),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    PetHelpEmptyState(
+                        title = stringResource(R.string.ai_results_no_matches_title),
+                        subtitle = stringResource(R.string.ai_results_no_matches_subtitle),
+                        icon = Icons.Default.Pets
+                    )
                 }
             }
         }
@@ -329,14 +325,10 @@ private fun RecommendationBlock(title: String, items: List<String>) {
 
 @Composable
 private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
-    Card(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            .clickable(onClick = onClick)
     ) {
         Column {
             Box(
@@ -362,21 +354,12 @@ private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
                     )
                 }
 
-                Surface(
+                PetHelpTagChip(
+                    label = categoryToDisplayName(post.category),
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(12.dp),
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.94f)
-                ) {
-                    Text(
-                        text = categoryToDisplayName(post.category),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                        .padding(12.dp)
+                )
             }
 
             Column(
@@ -399,8 +382,8 @@ private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ResultTagChip(label = genderToDisplayName(post.gender))
-                    ResultTagChip(label = sizeToDisplayName(post.size))
+                    PetHelpTagChip(label = genderToDisplayName(post.gender))
+                    PetHelpTagChip(label = sizeToDisplayName(post.size))
                 }
                 if (post.locationName.isNotBlank()) {
                     Row(
@@ -435,18 +418,23 @@ private fun CompatiblePostCard(post: Post, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ResultTagChip(label: String) {
-    Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
+private fun AIResultShimmerCard() {
+    PetHelpCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            PetHelpShimmerLoading(
+                modifier = Modifier.fillMaxWidth().height(168.dp),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            )
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.65f).height(18.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.9f).height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PetHelpShimmerLoading(modifier = Modifier.width(60.dp).height(24.dp), shape = RoundedCornerShape(10.dp))
+                    PetHelpShimmerLoading(modifier = Modifier.width(60.dp).height(24.dp), shape = RoundedCornerShape(10.dp))
+                }
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.5f).height(12.dp))
+            }
+        }
     }
 }
 

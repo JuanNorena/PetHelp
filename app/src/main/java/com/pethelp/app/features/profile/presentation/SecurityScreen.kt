@@ -32,6 +32,9 @@ import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.security.BiometricAuthGate
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,6 +144,7 @@ fun SecurityScreen(
             Spacer(Modifier.height(16.dp))
 
             // CONTRASEÑA
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
             SecuritySectionHeader(Icons.Outlined.Key, stringResource(R.string.security_password_section), MaterialTheme.colorScheme.primary)
             SecurityCard {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -195,6 +199,7 @@ fun SecurityScreen(
                         Text(stringResource(R.string.security_update_password), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
+            }
             }
 
             // DIALOGO DE CONFIRMACIÓN DE CONTRASEÑA
@@ -265,6 +270,7 @@ fun SecurityScreen(
             Spacer(Modifier.height(24.dp))
 
             // AUTENTICACIÓN
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
             SecuritySectionHeader(Icons.Default.Shield, stringResource(R.string.security_auth_section), MaterialTheme.colorScheme.secondary)
             SecurityCard {
                 val uiState = viewModel.uiState.collectAsState().value
@@ -293,10 +299,12 @@ fun SecurityScreen(
                     )
                 }
             }
+            }
 
             Spacer(Modifier.height(24.dp))
 
             // DISPOSITIVOS
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
             SecuritySectionHeader(Icons.Outlined.Smartphone, stringResource(R.string.security_devices_section), MaterialTheme.colorScheme.primary)
             SecurityCard {
                 val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
@@ -310,6 +318,7 @@ fun SecurityScreen(
                     icon = Icons.Default.Smartphone,
                     isCurrent = true
                 )
+            }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -348,6 +357,7 @@ fun SecurityScreen(
                 )
             }
 
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 3)) {
             SecurityCard(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -376,6 +386,7 @@ fun SecurityScreen(
                     }
                 }
             }
+            }
 
             Spacer(Modifier.height(32.dp))
         }
@@ -402,14 +413,24 @@ fun SecurityCard(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-    ) {
-        Column(content = content)
+    if (containerColor == MaterialTheme.colorScheme.surface) {
+        PetHelpCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            borderAlpha = 0.4f
+        ) {
+            Column(content = content)
+        }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Column(content = content)
+        }
     }
 }
 

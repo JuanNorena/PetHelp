@@ -35,6 +35,9 @@ import com.google.maps.android.compose.*
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,12 +236,12 @@ fun LocationSelectionScreen(
                 )
 
                 // MAPA
-                Surface(
+                PetHelpCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp),
                     shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    borderAlpha = 0.4f
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         GoogleMap(

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
@@ -67,6 +69,14 @@ import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.PetHelpCategoryBadge
+import com.pethelp.app.core.ui.components.PetHelpTagChip
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
+import com.pethelp.app.core.ui.components.pethelpHeartbeatSpec
 import com.pethelp.app.features.auth.presentation.AuthUiState
 import com.pethelp.app.features.auth.presentation.AuthViewModel
 import java.text.SimpleDateFormat
@@ -169,13 +179,17 @@ fun FeedScreen(
     ) { padding ->
         when {
             uiState.isLoading && uiState.allPublicPosts.isEmpty() -> {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
+                        .padding(padding)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CircularProgressIndicator()
+                    Spacer(Modifier.height(8.dp))
+                    repeat(4) {
+                        FeedShimmerCard()
+                    }
                 }
             }
 
@@ -186,20 +200,13 @@ fun FeedScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = uiState.error?.asString().orEmpty(),
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 24.dp)
-                        )
-                        Button(onClick = { viewModel.loadPublicPosts() }) {
-                            Text(text = stringResource(R.string.common_retry))
-                        }
-                    }
+                    PetHelpEmptyState(
+                        title = stringResource(R.string.error_generic),
+                        subtitle = uiState.error?.asString().orEmpty(),
+                        icon = Icons.Default.Warning,
+                        actionLabel = stringResource(R.string.common_retry),
+                        onAction = { viewModel.loadPublicPosts() }
+                    )
                 }
             }
 
@@ -210,35 +217,15 @@ fun FeedScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Pets,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Text(
-                            text = if (uiState.selectedCategory == null) {
-                                stringResource(R.string.feed_empty_posts_title)
-                            } else {
-                                stringResource(R.string.feed_empty_filtered)
-                            },
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 24.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.feed_empty_posts_subtitle),
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    PetHelpEmptyState(
+                        title = if (uiState.selectedCategory == null) {
+                            stringResource(R.string.feed_empty_posts_title)
+                        } else {
+                            stringResource(R.string.feed_empty_filtered)
+                        },
+                        subtitle = stringResource(R.string.feed_empty_posts_subtitle),
+                        icon = Icons.Default.Pets
+                    )
                 }
             }
 
@@ -252,12 +239,18 @@ fun FeedScreen(
                 ) {
                     items(uiState.filteredPosts, key = { it.id }) { post ->
                         val isFavorite = uiState.favoritesSet.contains(post.id)
-                        FeedPostCard(
-                            post = post,
-                            isFavorite = isFavorite,
-                            onFavoriteClick = { viewModel.toggleFavorite(post.id) },
-                            onClick = { navController.navigate(Screen.PostDetail(post.id)) }
-                        )
+                        val index = uiState.filteredPosts.indexOf(post)
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = true,
+                            enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)
+                        ) {
+                            FeedPostCard(
+                                post = post,
+                                isFavorite = isFavorite,
+                                onFavoriteClick = { viewModel.toggleFavorite(post.id) },
+                                onClick = { navController.navigate(Screen.PostDetail(post.id)) }
+                            )
+                        }
                     }
                 }
             }
@@ -309,126 +302,145 @@ private fun FeedPostCard(
     onFavoriteClick: () -> Unit = {},
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.48f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(196.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                if (post.imageUrls.isNotEmpty()) {
-                    AsyncImage(
-                        model = post.imageUrls.first(),
-                        contentDescription = post.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Pets,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(44.dp)
-                    )
-                }
+    val heartScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isFavorite) 1.2f else 1f,
+        animationSpec = if (isFavorite) pethelpHeartbeatSpec() else androidx.compose.animation.core.tween(150),
+        label = "heart_scale"
+    )
 
-                Surface(
+    PetHelpCard(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.clickable(onClick = onClick)) {
+                Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(10.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                    shadowElevation = 2.dp
+                        .fillMaxWidth()
+                        .height(196.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
                 ) {
-                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(40.dp)) {
+                    if (post.imageUrls.isNotEmpty()) {
+                        AsyncImage(
+                            model = post.imageUrls.first(),
+                            contentDescription = post.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
                         Icon(
-                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
-                            tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                            imageVector = Icons.Default.Pets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(44.dp)
                         )
                     }
+
+                    PetHelpCategoryBadge(
+                        label = categoryToDisplayName(post.category),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                    )
                 }
 
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp),
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.94f)
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = categoryToDisplayName(post.category),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = post.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                if (post.description.isNotBlank()) {
-                    Text(
-                        text = post.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        text = post.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TagChip(label = genderToDisplayName(post.gender))
-                    TagChip(label = sizeToDisplayName(post.size))
-                }
-
-                if (post.locationName.isNotBlank()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    if (post.description.isNotBlank()) {
                         Text(
-                            text = post.locationName,
-                            style = MaterialTheme.typography.bodySmall,
+                            text = post.description,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                }
 
-                Text(
-                    text = formatDate(post.createdAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PetHelpTagChip(label = genderToDisplayName(post.gender))
+                        PetHelpTagChip(label = sizeToDisplayName(post.size))
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = post.locationName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Text(
+                            text = formatDate(post.createdAt),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                shadowElevation = 2.dp
+            ) {
+                IconButton(onClick = onFavoriteClick, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Quitar favorito" else "Agregar favorito",
+                        tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp * heartScale)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeedShimmerCard() {
+    PetHelpCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            PetHelpShimmerLoading(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(196.dp),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            )
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.7f).height(18.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.9f).height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PetHelpShimmerLoading(modifier = Modifier.width(60.dp).height(24.dp), shape = RoundedCornerShape(10.dp))
+                    PetHelpShimmerLoading(modifier = Modifier.width(60.dp).height(24.dp), shape = RoundedCornerShape(10.dp))
+                }
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.5f).height(12.dp))
             }
         }
     }
@@ -459,22 +471,6 @@ private fun FilterChipUI(
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 13.sp
-        )
-    }
-}
-
-@Composable
-private fun TagChip(label: String) {
-    Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.58f)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Medium
         )
     }
 }

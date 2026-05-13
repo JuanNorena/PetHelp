@@ -56,6 +56,11 @@ import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.components.PetHelpBottomNavBar
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpTagChip
+import com.pethelp.app.core.ui.components.pethelpSlideUpFadeIn
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import com.pethelp.app.core.ui.theme.*
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.launch
@@ -746,14 +751,13 @@ fun NearbyPetsSheetContent(
         }
 
         // Tarjeta principal de la mascota seleccionada
-        Surface(
+        PetHelpCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            borderAlpha = 0.4f,
+            contentPadding = PaddingValues(12.dp)
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
@@ -829,59 +833,46 @@ fun NearbyPetsSheetContent(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         } else {
-            otherPosts.forEach { post ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { onPostClick(post) },
-                    verticalAlignment = Alignment.CenterVertically
+            otherPosts.forEachIndexed { index, post ->
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = true,
+                    enter = pethelpFadeScaleIn(delay = index * PETHELP_STAGGER_DELAY)
                 ) {
-                    AsyncImage(
-                        model = post.imageUrls.firstOrNull(),
-                        contentDescription = null,
+                    PetHelpCard(
                         modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 12.dp)
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                            .clickable { onPostClick(post) },
+                        shape = RoundedCornerShape(16.dp),
+                        borderAlpha = 0.3f
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(post.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
-                            Text("  ${post.breed}", fontSize = 12.sp, color = secondaryTextColor)
-                        }
-                        Text(
-                            text = getDistanceLabel(post.latitude, post.longitude),
-                            fontSize = 12.sp, 
-                            color = secondaryTextColor
-                        )
-                    }
-
-                    // Badge de categoría
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = when(post.category) {
-                            PostCategory.ADOPTION -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            PostCategory.LOST -> MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
-                            else -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
-                        }
-                    ) {
-                        Text(
-                            text = UiText.fromCategory(post.category).asString(),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = when(post.category) {
-                                PostCategory.ADOPTION -> MaterialTheme.colorScheme.primary
-                                PostCategory.LOST -> MaterialTheme.colorScheme.error
-                                else -> MaterialTheme.colorScheme.secondary
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = post.imageUrls.firstOrNull(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 12.dp)
+                            ) {
+                                Text(post.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
+                                Text("${post.breed} • ${getDistanceLabel(post.latitude, post.longitude)}", fontSize = 12.sp, color = secondaryTextColor)
                             }
-                        )
+
+                            // Badge de categoría
+                            PetHelpTagChip(
+                                label = UiText.fromCategory(post.category).asString()
+                            )
+                        }
                     }
                 }
             }

@@ -158,6 +158,10 @@
     <string name="post_add_images">Agregar imágenes</string>
     <string name="post_step_1_of_4">Paso 1 de 4</string>
     <string name="post_step_2_of_4">Paso 2 de 4</string>
+    <string name="post_step_info">Info</string>
+    <string name="post_step_location">Ubicación</string>
+    <string name="post_step_details">Detalles</string>
+    <string name="post_step_review">Revisar</string>
     <string
         name="post_location_instruction"
     >Indica dónde se encuentra el peludo para que personas cercanas puedan verlo.</string>
@@ -290,6 +294,7 @@
     <string
         name="my_posts_empty_resolved"
     >No tienes publicaciones finalizadas</string>
+    <string name="my_posts_empty_title">Sin publicaciones</string>
     <string name="status_active_caps">ACTIVA</string>
     <string name="status_pending_caps">EN REVISIÓN</string>
     <string name="status_rejected_caps">RECHAZADA</string>
@@ -331,6 +336,7 @@
     <string
         name="moderation_empty_pending"
     >No hay publicaciones pendientes por moderar.</string>
+    <string name="moderation_empty_pending_subtitle">Todas las publicaciones han sido revisadas. ¡Buen trabajo!</string>
     <string name="moderation_today_summary">Resumen de hoy</string>
     <string name="moderation_global_metrics_title">Métricas globales</string>
     <string name="moderation_stat_pending">Pendientes</string>
@@ -430,6 +436,18 @@
     <string name="stats_active">Publicaciones activas</string>
     <string name="stats_finished">Publicaciones finalizadas</string>
     <string name="stats_pending">Pendientes de verificación</string>
+    <string name="stats_favorites">Favoritos</string>
+    <string name="stats_success_rate">Tasa de éxito</string>
+    <string name="stats_adoptions_helped">Mascotas que ayudaste a reubicar</string>
+    <string name="stats_recent_activity">Actividad reciente</string>
+    <string name="stats_header_title">Tu impacto en PetHelp</string>
+    <string name="stats_header_subtitle">%1$d publicaciones · %2$d adopciones exitosas</string>
+    <string name="stats_activity_post_created">Publicación creada</string>
+    <string name="stats_activity_post_created_sub">Nueva mascota en adopción</string>
+    <string name="stats_activity_badge_earned">Insignia desbloqueada</string>
+    <string name="stats_activity_badge_earned_sub">¡Héroe de las mascotas!</string>
+    <string name="stats_activity_adoption_complete">Adopción completada</string>
+    <string name="stats_activity_adoption_complete_sub">Una mascota encontró hogar</string>
 
     <!-- ── Reputación ─────────────────────────────────────── -->
     <string name="reputation_title">Mi Reputación</string>
@@ -447,6 +465,8 @@
     <string
         name="notifications_empty"
     >No tienes notificaciones por ahora</string>
+    <string name="notifications_empty_title">Sin notificaciones</string>
+    <string name="notifications_empty_subtitle">Cuando tengas alertas o actualizaciones, aparecerán aquí.</string>
     <string name="notification_channel_name">PetHelp Alertas</string>
     <string name="notifications_mark_all_read">Marcar todas como leídas</string>
     <string
@@ -482,6 +502,10 @@
     >Recuerda que puedes continuar la adopción desde aquí.</string>
     <string name="chat_sent_success">Mensaje enviado</string>
     <string name="chat_error_sending">Error al enviar: %1$s</string>
+    <string name="chat_notification_title">Nuevo mensaje</string>
+    <string name="chat_notification_body">Tienes %1$d mensaje(s) sin leer</string>
+    <string name="chat_fallback_last_message">Aun no hay mensajes.</string>
+    <string name="chat_fallback_subtitle">Chat de adopción</string>
 
     <!-- ── Errores generales ──────────────────────────────── -->
     <string
@@ -615,6 +639,8 @@
     <string name="ai_results_available_title">Mascotas disponibles en la comunidad</string>
     <string name="ai_results_view_post">Ver publicación</string>
     <string name="ai_results_no_matches">No hay mascotas disponibles que coincidan con tus preferencias por ahora</string>
+    <string name="ai_results_no_matches_title">Sin coincidencias</string>
+    <string name="ai_results_no_matches_subtitle">No encontramos mascotas que coincidan con tu perfil. Intenta ajustar tus preferencias.</string>
     <string name="profile_quick_access_title">Accesos rápidos</string>
     <string name="profile_avatar_desc">Foto de perfil</string>
     <string name="common_retry">Reintentar</string>

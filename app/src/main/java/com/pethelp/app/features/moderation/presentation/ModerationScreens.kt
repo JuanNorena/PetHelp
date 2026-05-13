@@ -42,6 +42,12 @@ import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.domain.model.UserRole
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpStatusBadge
+import com.pethelp.app.core.ui.components.PetHelpStatus
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import com.pethelp.app.core.ui.theme.*
 import com.pethelp.app.features.ai.domain.repository.ModerationAiAnalysis
 import com.pethelp.app.features.ai.domain.repository.ModerationRiskLevel
@@ -261,12 +267,13 @@ fun ModeratorPanelScreen(
                             )
 
                             if (uiState.pendingPosts.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.moderation_empty_pending),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(vertical = 16.dp)
-                                )
+                                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
+                                    PetHelpEmptyState(
+                                        title = stringResource(R.string.moderation_empty_pending),
+                                        subtitle = stringResource(R.string.moderation_empty_pending_subtitle),
+                                        icon = Icons.Default.CheckCircle
+                                    )
+                                }
                             } else {
                                 // Mostramos solo los primeros 5 para el dashboard rápido.
                                 uiState.pendingPosts.take(5).forEach { post ->
@@ -1172,16 +1179,15 @@ private fun PendingPostCard(
     post: Post,
     onClick: () -> Unit
 ) {
-    Card(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, BorderDefault),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        borderAlpha = 0.4f,
+        contentPadding = PaddingValues(16.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),

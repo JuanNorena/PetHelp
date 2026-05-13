@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpSectionHeader
 import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,12 +151,12 @@ fun HelpCenterScreen(navController: NavController) {
             Spacer(Modifier.height(32.dp))
 
             // CARD DE SOPORTE (BANNER VERDE)
-            Card(
+            PetHelpCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 32.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                borderAlpha = 0f
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp)
@@ -200,13 +202,12 @@ fun HelpCategoryCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Card(
+    PetHelpCard(
         modifier = modifier
             .height(110.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        borderAlpha = 0.35f
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -241,13 +242,12 @@ fun FAQItem(
 ) {
     val rotation by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
 
-    Card(
+    PetHelpCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        borderAlpha = 0.35f
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(

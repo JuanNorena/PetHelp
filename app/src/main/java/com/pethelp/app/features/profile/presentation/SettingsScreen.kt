@@ -35,6 +35,8 @@ import androidx.navigation.NavController
 import androidx.core.content.ContextCompat
 import com.pethelp.app.R
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpSectionHeader
 import com.pethelp.app.core.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -252,11 +254,10 @@ fun SettingsSectionTitle(title: String) {
 
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(
+    PetHelpCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        borderAlpha = 0.35f
     ) {
         Column(content = content)
     }

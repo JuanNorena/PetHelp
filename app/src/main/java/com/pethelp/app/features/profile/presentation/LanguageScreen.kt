@@ -29,6 +29,9 @@ import androidx.navigation.NavController
 import com.pethelp.app.R
 import com.pethelp.app.core.preferences.AppLanguageManager
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,12 +96,11 @@ fun LanguageScreen(
             Spacer(Modifier.height(16.dp))
 
             // Card de Idiomas
-            Card(
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+            PetHelpCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                borderAlpha = 0.35f
             ) {
                 Column {
                     LanguageItem(
@@ -119,9 +121,11 @@ fun LanguageScreen(
                     )
                 }
             }
+            }
 
             Spacer(Modifier.height(24.dp))
 
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
             // Texto informativo inferior
             Text(
                 text = stringResource(R.string.settings_language_info),
@@ -130,6 +134,7 @@ fun LanguageScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+            }
         }
     }
 }

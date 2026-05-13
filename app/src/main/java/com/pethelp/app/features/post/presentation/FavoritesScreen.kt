@@ -35,6 +35,10 @@ import com.pethelp.app.core.common.UiText
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.PetHelpTagChip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,11 +102,29 @@ fun FavoritesScreen(
             )
 
             if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Spacer(Modifier.height(8.dp))
+                    repeat(4) {
+                        FavoriteShimmerCard()
+                    }
                 }
             } else if (displayPosts.isEmpty()) {
-                EmptyFavorites()
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    PetHelpEmptyState(
+                        title = stringResource(R.string.favorites_empty_title),
+                        subtitle = stringResource(R.string.favorites_empty_desc),
+                        icon = Icons.Default.FavoriteBorder,
+                        actionLabel = stringResource(R.string.favorites_explore_btn),
+                        onAction = {
+                            navController.navigate(Screen.Feed) {
+                                popUpTo(Screen.Favorites) { inclusive = true }
+                            }
+                        }
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -511,30 +533,16 @@ private fun ExploreBanner(onExploreClick: () -> Unit) {
 }
 
 @Composable
-private fun EmptyFavorites() {
-    Box(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.FavoriteBorder,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.favorites_empty_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.favorites_empty_desc),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+private fun FavoriteShimmerCard() {
+    PetHelpCard(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            PetHelpShimmerLoading(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp)))
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.6f).height(16.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.4f).height(12.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.3f).height(12.dp))
+            }
         }
     }
 }

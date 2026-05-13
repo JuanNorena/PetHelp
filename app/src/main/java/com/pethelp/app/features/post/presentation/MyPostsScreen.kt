@@ -34,6 +34,13 @@ import coil.compose.AsyncImage
 import com.pethelp.app.core.domain.model.Post
 import com.pethelp.app.core.domain.model.PostStatus
 import com.pethelp.app.core.navigation.Screen
+import com.pethelp.app.core.ui.components.PetHelpCard
+import com.pethelp.app.core.ui.components.PetHelpEmptyState
+import com.pethelp.app.core.ui.components.PetHelpShimmerLoading
+import com.pethelp.app.core.ui.components.PetHelpStatusBadge
+import com.pethelp.app.core.ui.components.PetHelpStatus
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -101,8 +108,14 @@ fun MyPostsScreen(
 
             when {
                 uiState.isLoading && uiState.allPosts.isEmpty() -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Spacer(Modifier.height(8.dp))
+                        repeat(4) {
+                            MyPostShimmerCard()
+                        }
                     }
                 }
                 uiState.error != null && uiState.allPosts.isEmpty() -> {
@@ -122,24 +135,11 @@ fun MyPostsScreen(
                         MyPostsTab.RESOLVED  -> stringResource(R.string.my_posts_empty_resolved)
                     }
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Pets,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                            )
-                            Text(
-                                text = message,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 32.dp)
-                            )
-                        }
+                        PetHelpEmptyState(
+                            title = stringResource(R.string.my_posts_empty_title),
+                            subtitle = message,
+                            icon = Icons.Default.Pets
+                        )
                     }
                 }
                 else -> {
@@ -276,13 +276,13 @@ private fun MyPostCard(
     onResolvedClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    PetHelpCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        borderAlpha = 0.4f,
+        contentPadding = PaddingValues(12.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             // ── Fila principal: imagen + datos ────────────────────────────────
             Row(verticalAlignment = Alignment.Top) {
                 // Miniatura
@@ -406,37 +406,13 @@ private fun MyPostCard(
 
 @Composable
 private fun PostStatusBadge(status: PostStatus) {
-    val (bgColor, textColor) = when (status) {
-        PostStatus.VERIFIED, PostStatus.ACTIVE -> Pair(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-            MaterialTheme.colorScheme.primary
-        )
-        PostStatus.PENDING -> Pair(
-            MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
-            MaterialTheme.colorScheme.secondary
-        )
-        PostStatus.REJECTED -> Pair(
-            MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
-            MaterialTheme.colorScheme.error
-        )
-        PostStatus.RESOLVED, PostStatus.ADOPTED, PostStatus.PAUSED -> Pair(
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-            MaterialTheme.colorScheme.outline
-        )
+    val (petStatus, label) = when (status) {
+        PostStatus.VERIFIED, PostStatus.ACTIVE -> PetHelpStatus.SUCCESS to UiText.fromStatus(status).asString()
+        PostStatus.PENDING -> PetHelpStatus.WARNING to UiText.fromStatus(status).asString()
+        PostStatus.REJECTED -> PetHelpStatus.ERROR to UiText.fromStatus(status).asString()
+        PostStatus.RESOLVED, PostStatus.ADOPTED, PostStatus.PAUSED -> PetHelpStatus.INFO to UiText.fromStatus(status).asString()
     }
-    Box(
-        modifier = Modifier
-            .background(bgColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = UiText.fromStatus(status).asString(),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            color = textColor,
-            letterSpacing = 0.5.sp
-        )
-    }
+    PetHelpStatusBadge(label = label, status = petStatus)
 }
 
 @Composable
@@ -606,6 +582,21 @@ private fun DeleteConfirmationDialog(
             }
         }
     )
+}
+
+@Composable
+private fun MyPostShimmerCard() {
+    PetHelpCard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+            PetHelpShimmerLoading(modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)))
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.4f).height(14.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.7f).height(16.dp))
+                PetHelpShimmerLoading(modifier = Modifier.fillMaxWidth(0.5f).height(12.dp))
+            }
+        }
+    }
 }
 
 private fun formatPostDate(timestampMillis: Long): String =

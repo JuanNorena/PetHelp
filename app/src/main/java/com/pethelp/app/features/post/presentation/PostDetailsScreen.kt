@@ -36,6 +36,8 @@ import com.pethelp.app.core.domain.model.PetBehavior
 import com.pethelp.app.core.domain.model.PostCategory
 import com.pethelp.app.core.navigation.Screen
 import com.pethelp.app.core.ui.theme.*
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 /**
  * Paso de detalles de mascota en el flujo de publicacion.
@@ -208,6 +210,7 @@ fun PostDetailsScreen(
             ) {
 
                 // Edad Aproximada
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         stringResource(R.string.post_approx_age),
@@ -244,8 +247,10 @@ fun PostDetailsScreen(
                         }
                     }
                 }
+                }
 
                 // Sexo
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         stringResource(R.string.post_gender),
@@ -281,8 +286,10 @@ fun PostDetailsScreen(
                         }
                     }
                 }
+                }
 
                 // Estado de Salud
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -328,8 +335,10 @@ fun PostDetailsScreen(
                         onToggle = { sterilized = it }
                     )
                 }
+                }
 
                 // Comportamiento
+                androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 3)) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -394,6 +403,7 @@ fun PostDetailsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
                     )
+                }
                 }
             }
 

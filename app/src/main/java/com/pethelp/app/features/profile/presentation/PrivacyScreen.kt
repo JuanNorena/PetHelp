@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pethelp.app.R
+import com.pethelp.app.core.ui.components.pethelpFadeScaleIn
+import com.pethelp.app.core.ui.components.PETHELP_STAGGER_DELAY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,16 +85,20 @@ fun PrivacyScreen(navController: NavController) {
             Spacer(Modifier.height(32.dp))
 
             // 1. Introducción
-            PrivacySection(
-                title = stringResource(R.string.privacy_intro_title),
-                body = stringResource(R.string.privacy_intro_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = 0)) {
+                PrivacySection(
+                    title = stringResource(R.string.privacy_intro_title),
+                    body = stringResource(R.string.privacy_intro_body)
+                )
+            }
 
             // 2. Información que recopilamos
-            PrivacySection(
-                title = stringResource(R.string.privacy_data_collect_title),
-                body = stringResource(R.string.privacy_data_collect_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY)) {
+                PrivacySection(
+                    title = stringResource(R.string.privacy_data_collect_title),
+                    body = stringResource(R.string.privacy_data_collect_body)
+                )
+            }
             
             BulletPoint(stringResource(R.string.privacy_data_item_profile))
             BulletPoint(stringResource(R.string.privacy_data_item_contact))
@@ -101,22 +107,28 @@ fun PrivacyScreen(navController: NavController) {
             Spacer(Modifier.height(24.dp))
 
             // 3. Uso de la información
-            PrivacySection(
-                title = stringResource(R.string.privacy_usage_title),
-                body = stringResource(R.string.privacy_usage_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 2)) {
+                PrivacySection(
+                    title = stringResource(R.string.privacy_usage_title),
+                    body = stringResource(R.string.privacy_usage_body)
+                )
+            }
 
             // 4. Compartir información
-            PrivacySection(
-                title = stringResource(R.string.privacy_share_title),
-                body = stringResource(R.string.privacy_share_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 3)) {
+                PrivacySection(
+                    title = stringResource(R.string.privacy_share_title),
+                    body = stringResource(R.string.privacy_share_body)
+                )
+            }
 
             // 5. Tus derechos
-            PrivacySection(
-                title = stringResource(R.string.privacy_rights_title),
-                body = stringResource(R.string.privacy_rights_body)
-            )
+            androidx.compose.animation.AnimatedVisibility(visible = true, enter = pethelpFadeScaleIn(delay = PETHELP_STAGGER_DELAY * 4)) {
+                PrivacySection(
+                    title = stringResource(R.string.privacy_rights_title),
+                    body = stringResource(R.string.privacy_rights_body)
+                )
+            }
 
             Spacer(Modifier.height(40.dp))
             
