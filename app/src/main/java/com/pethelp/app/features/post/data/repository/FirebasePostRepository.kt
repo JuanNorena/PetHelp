@@ -460,6 +460,7 @@ class FirebasePostRepository @Inject constructor(
             val voteDoc = mapOf(
                 "postId" to postId,
                 "userId" to userId,
+                "type" to "VOTE",
                 "createdAt" to System.currentTimeMillis()
             )
             votesCollection.document(voteId).set(voteDoc).await()
@@ -556,6 +557,7 @@ class FirebasePostRepository @Inject constructor(
                 val voteDoc = mapOf(
                     "postId" to postId,
                     "userId" to userId,
+                    "type" to "FAVORITE",
                     "createdAt" to System.currentTimeMillis()
                 )
                 votesCollection.document("${postId}_${userId}").set(voteDoc).await()

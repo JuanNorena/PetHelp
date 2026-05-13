@@ -103,5 +103,20 @@ enum class NotificationType {
     /**
      * La solicitud de adopcion del usuario fue rechazada por el autor del post.
      */
-    ADOPTION_REQUEST_REJECTED
+    ADOPTION_REQUEST_REJECTED,
+
+    /**
+     * Alguien voto positivamente una publicacion del usuario.
+     */
+    NEW_VOTE,
+
+    /**
+     * Alguien guardo una publicacion del usuario en favoritos.
+     */
+    NEW_FAVORITE,
+
+    /**
+     * La mascota del usuario fue adoptada exitosamente.
+     */
+    ADOPTION_COMPLETED
 }

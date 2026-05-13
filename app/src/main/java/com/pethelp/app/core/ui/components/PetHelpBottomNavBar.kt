@@ -1,12 +1,40 @@
 ﻿/**
- * Barra de navegación inferior personalizada de PetHelp.
+ * Barra de navegación inferior premium de PetHelp con diseño glassmorphism.
  *
- * Muestra las pestañas principales (Inicio, Mapa, Chat, Perfil) con
- * indicadores de selección, badges de notificación para mensajes no leídos
- * y un botón flotante central para crear publicaciones.
+ * **Responsabilidad Principal:**
+ * Proporcionar acceso rápido y visualmente atractivo a las secciones clave de la app
+ * (Inicio, Mapa, Chat, Perfil), junto con un FAB central integrado para crear publicaciones.
+ * La barra observa en tiempo real los mensajes no leídos de chat y lanza notificaciones
+ * locales cuando el usuario no está en la pantalla de chat.
  *
- * Se integra con [PetHelpNavGraph] para mantener la navegación sincronizada
- * con el estado actual de la ruta.
+ * **Diseño Visual (Rediseño Premium):**
+ * - **Glassmorphism:** Contenedor [Surface] semitransparente (`alpha = 0.72f`) con sombra
+ *   difusa de 8dp que se funde con el contenido de la pantalla subyacente.
+ * - **Notch central:** Círculo del color de fondo de la app que simula una muesca en la barra
+ *   donde encaja el FAB, eliminando el hueco vacío de diseños tradicionales.
+ * - **FAB circular con gradiente:** Botón de 60dp con degradado horizontal
+ *   `primary` (turquesa) → `secondary` (naranja), borde blanco semitransparente y
+ *   sombra pronunciada de 16dp con tinte secundario.
+ * - **Borde superior sutil:** Línea de 1dp con color primario al 15% de opacidad que define
+ *   el límite superior sin ser agresivo.
+ *
+ * **Arquitectura de Componentes:**
+ * - [PetHelpBottomNavBar]: Contenedor principal que orquesta el glassmorphism, notch y FAB.
+ * - [NavBarItem]: Componente individual con iconos outline/filled, glow animado,
+ *   indicador de punto, etiquetas con opacidad animada y badges de notificación.
+ *
+ * **Navegación:**
+ * Se integra con [PetHelpNavGraph] y usa [currentBackStackEntryAsState] para sincronizar
+ * el ítem seleccionado con la ruta activa. Todas las navegaciones usan `launchSingleTop`
+ * para evitar pilas de pantallas infinitas.
+ *
+ * **Notificaciones de Chat:**
+ * Mediante [DisposableEffect] escucha la colección `threads` de Firestore en tiempo real.
+ * Si hay nuevos mensajes no leídos y el usuario no está en [Screen.Chat] o [Screen.ChatThread],
+ * lanza una notificación local mediante [showChatLocalNotification].
+ *
+ * @see PetHelpNavGraph Grafo de navegación principal que consume esta barra.
+ * @see NavBarItem Diseño detallado de cada ítem de navegación con animaciones.
  */
 package com.pethelp.app.core.ui.components
 
@@ -123,6 +151,35 @@ private fun showChatLocalNotification(context: Context, unreadCount: Int) {
     notificationManager.notify(2001, notification)
 }
 
+/**
+ * Composable principal que renderiza la barra de navegación inferior premium.
+ *
+ * **Lógica de Funcionamiento (Paso a Paso):**
+ * 1. **Estado de Navegación:** Obtiene el destino actual mediante
+ *    [navController.currentBackStackEntryAsState] para resaltar el ítem activo.
+ * 2. **Sincronización de Chat:** Mediante [DisposableEffect] escucha la colección
+ *    `threads` de Firestore en tiempo real y actualiza [globalUnreadCount].
+ * 3. **Notificaciones Locales:** Si el conteo de no leídos aumenta y el usuario
+ *    no está en [Screen.Chat] o [Screen.ChatThread], dispara
+ *    [showChatLocalNotification].
+ * 4. **Contenedor Principal:** Un [Box] con `Alignment.TopCenter` que aloja tres
+ *    capas superpuestas:
+ *    - La barra glassmórfica [Surface] con los cuatro [NavBarItem].
+ *    - El círculo del notch que simula la muesca central.
+ *    - El FAB circular con gradiente `primary → secondary`.
+ * 5. **Navegación Segura:** Cada ítem usa `launchSingleTop` y `popUpTo<Screen.Feed>`
+ *    para evitar duplicados en el back stack.
+ *
+ * **Pantallas que consumen esta barra:**
+ * - [FeedScreen]
+ * - [MapScreen]
+ * - [ChatScreens]
+ * - [ProfileScreens]
+ *
+ * @param navController Controlador de navegación vinculado al [NavHost].
+ * @param unreadChatCount Valor inicial de mensajes no leídos (se sincroniza
+ *                        en tiempo real con Firestore).
+ */
 @Composable
 fun PetHelpBottomNavBar(
     navController: NavController,
@@ -327,8 +384,37 @@ fun PetHelpBottomNavBar(
 }
 
 /**
- * Ítem individual de la barra de navegación con animaciones de escala,
- * indicador de punto y etiquetas con opacidad animada.
+ * Representa un ítem individual (botón con icono y texto) dentro de la barra de navegación.
+ *
+ * **Responsabilidad Principal:**
+ * Renderizar una opción de menú con sus estados visuales: normal, seleccionado y con notificaciones.
+ *
+ * **Lógica de UI (Paso a Paso):**
+ * 1. **Contenedor Vertical:** Alinea el icono arriba y el texto abajo mediante un [Column].
+ * 2. **Glow de selección:** Si `selected` es verdadero, dibuja un círculo semitransparente
+ *    `primary.copy(alpha = 0.10f)` detrás del icono como halo sutil.
+ * 3. **Iconografía animada:** Cambia el icono dinámicamente entre `unselectedIcon` (outline)
+ *    y `selectedIcon` (filled), con transición de color animada `onSurfaceVariant → primary`.
+ * 4. **Escala del icono:** Al seleccionar, el icono escala de 1.0x a 1.15x con
+ *    [spring] (`stiffness = 300f`, `dampingRatio = 0.6f`) para efecto de "pop".
+ * 5. **Sistema de Insignias (Badges):** Si `badgeCount > 0`, dibuja un círculo rojo de 18.dp
+ *    con sombra de 2.dp, borde `surface` y número blanco en la esquina superior derecha.
+ * 6. **Indicador de punto:** Círculo de 4.dp `primary` debajo del icono seleccionado,
+ *    animado con `fadeIn` + `expandVertically`.
+ * 7. **Etiqueta con opacidad animada:** El texto siempre es visible pero con opacidad
+ *    0.6 (no seleccionado) → 1.0 (seleccionado), cambiando de tamaño y peso.
+ *
+ * **Ejemplo de Uso:**
+ * ```kotlin
+ * NavBarItem(
+ *     unselectedIcon = Icons.Outlined.Home,
+ *     selectedIcon = Icons.Filled.Home,
+ *     label = "Inicio",
+ *     selected = true,
+ *     badgeCount = 0,
+ *     onClick = { /* Navegar */ }
+ * )
+ * ```
  *
  * @param unselectedIcon Icono en estado no seleccionado (outline).
  * @param selectedIcon Icono en estado seleccionado (filled).

@@ -16,6 +16,7 @@ const COLLECTIONS = {
   users: "users",
   fcmTokens: "fcmTokens",
   adoptionRequests: "adoptionRequests",
+  votes: "votes",
 } as const;
 
 type NotificationType =
@@ -26,7 +27,12 @@ type NotificationType =
   | "POST_REJECTED"
   | "ADOPTION_REQUEST_RECEIVED"
   | "ADOPTION_REQUEST_ACCEPTED"
-  | "ADOPTION_REQUEST_REJECTED";
+  | "ADOPTION_REQUEST_REJECTED"
+  | "NEW_VOTE"
+  | "NEW_FAVORITE"
+  | "NEW_BADGE"
+  | "LEVEL_UP"
+  | "ADOPTION_COMPLETED";
 
 async function createNotification(params: {
   userId: string;
@@ -347,6 +353,33 @@ export const onAdoptionRequestUpdated = onDocumentUpdated(
       relatedPostId: postId,
       notificationId,
     });
+
+    // Notificar al autor del post que su mascota fue adoptada
+    if (accepted) {
+      const postOwnerId = String(after.postAuthorId ?? "");
+      if (postOwnerId && postOwnerId !== requesterId) {
+        const completedTitle = `¡${postTitle} encontró un hogar!`;
+        const completedBody = `Tu mascota fue adoptada exitosamente.`;
+        const completedNotificationId = await createNotification({
+          userId: postOwnerId,
+          type: "ADOPTION_COMPLETED",
+          title: completedTitle,
+          body: completedBody,
+          relatedPostId: postId,
+          metadata: {
+            requestId,
+            requesterId,
+          },
+        });
+        await sendPushIfEnabled({
+          userId: postOwnerId,
+          title: completedTitle,
+          body: completedBody,
+          relatedPostId: postId,
+          notificationId: completedNotificationId,
+        });
+      }
+    }
   },
 );
 
@@ -394,6 +427,188 @@ export const onPostModerationChanged = onDocumentUpdated(
       title,
       body,
       relatedPostId: postId,
+      notificationId,
+    });
+  },
+);
+
+export const onVoteCreated = onDocumentCreated(
+  `${COLLECTIONS.votes}/{voteId}`,
+  async (event) => {
+    const vote = event.data?.data();
+    if (!vote) return;
+
+    const voteType = String(vote.type ?? "");
+    if (voteType !== "VOTE") return;
+
+    const postId = String(vote.postId ?? "");
+    const voterId = String(vote.userId ?? "");
+    if (!postId || !voterId) return;
+
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    if (!postSnap.exists) return;
+
+    const post = postSnap.data() ?? {};
+    const postOwnerId = String(post.authorId ?? "");
+    if (!postOwnerId || postOwnerId === voterId) return;
+
+    const postTitle = String(post.title ?? "tu publicación");
+    const title = "Nuevo voto en tu publicación";
+    const body = `Alguien votó positivamente \"${postTitle}\".`;
+
+    const notificationId = await createNotification({
+      userId: postOwnerId,
+      type: "NEW_VOTE",
+      title,
+      body,
+      relatedPostId: postId,
+      metadata: {
+        voteId: event.params.voteId,
+        voterId,
+      },
+    });
+
+    await sendPushIfEnabled({
+      userId: postOwnerId,
+      title,
+      body,
+      relatedPostId: postId,
+      notificationId,
+    });
+  },
+);
+
+export const onFavoriteCreated = onDocumentCreated(
+  `${COLLECTIONS.votes}/{voteId}`,
+  async (event) => {
+    const vote = event.data?.data();
+    if (!vote) return;
+
+    const voteType = String(vote.type ?? "");
+    if (voteType !== "FAVORITE") return;
+
+    const postId = String(vote.postId ?? "");
+    const favoriterId = String(vote.userId ?? "");
+    if (!postId || !favoriterId) return;
+
+    const postSnap = await db.collection(COLLECTIONS.posts).doc(postId).get();
+    if (!postSnap.exists) return;
+
+    const post = postSnap.data() ?? {};
+    const postOwnerId = String(post.authorId ?? "");
+    if (!postOwnerId || postOwnerId === favoriterId) return;
+
+    const postTitle = String(post.title ?? "tu publicación");
+    const title = "Nuevo favorito";
+    const body = `Alguien guardó \"${postTitle}\" en favoritos.`;
+
+    const notificationId = await createNotification({
+      userId: postOwnerId,
+      type: "NEW_FAVORITE",
+      title,
+      body,
+      relatedPostId: postId,
+      metadata: {
+        voteId: event.params.voteId,
+        favoriterId,
+      },
+    });
+
+    await sendPushIfEnabled({
+      userId: postOwnerId,
+      title,
+      body,
+      relatedPostId: postId,
+      notificationId,
+    });
+  },
+);
+
+export const onBadgeEarned = onDocumentUpdated(
+  `${COLLECTIONS.users}/{userId}`,
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+
+    const beforeBadges = Array.isArray(before.badges) ? before.badges : [];
+    const afterBadges = Array.isArray(after.badges) ? after.badges : [];
+
+    const newBadges = afterBadges.filter(
+      (b: unknown) =>
+        !beforeBadges.some(
+          (old: unknown) =>
+            (old as Record<string, unknown>)?.id ===
+            (b as Record<string, unknown>)?.id,
+        ),
+    );
+
+    if (newBadges.length === 0) return;
+
+    const userId = String(event.params.userId ?? "");
+    if (!userId) return;
+
+    for (const badge of newBadges) {
+      const badgeName = String(
+        (badge as Record<string, unknown>)?.name ?? "nueva insignia",
+      );
+      const title = "¡Nueva insignia desbloqueada!";
+      const body = `Obtuviste la insignia \"${badgeName}\". ¡Felicitaciones!`;
+
+      const notificationId = await createNotification({
+        userId,
+        type: "NEW_BADGE",
+        title,
+        body,
+        metadata: {
+          badgeId: String(
+            (badge as Record<string, unknown>)?.id ?? "",
+          ),
+        },
+      });
+
+      await sendPushIfEnabled({
+        userId,
+        title,
+        body,
+        notificationId,
+      });
+    }
+  },
+);
+
+export const onLevelUp = onDocumentUpdated(
+  `${COLLECTIONS.users}/{userId}`,
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+
+    const beforeLevel = String(before.level ?? "");
+    const afterLevel = String(after.level ?? "");
+    if (!afterLevel || beforeLevel === afterLevel) return;
+
+    const userId = String(event.params.userId ?? "");
+    if (!userId) return;
+
+    const title = "¡Subiste de nivel!";
+    const body = `Ahora eres nivel \"${afterLevel}\". ¡Sigue así!`;
+
+    const notificationId = await createNotification({
+      userId,
+      type: "LEVEL_UP",
+      title,
+      body,
+      metadata: {
+        previousLevel: beforeLevel,
+        newLevel: afterLevel,
+      },
+    });
+
+    await sendPushIfEnabled({
+      userId,
+      title,
+      body,
       notificationId,
     });
   },
