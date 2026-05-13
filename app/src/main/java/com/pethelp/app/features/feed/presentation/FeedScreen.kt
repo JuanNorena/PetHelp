@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -150,14 +149,6 @@ fun FeedScreen(
                             Icon(
                                 imageVector = Icons.Filled.ChatBubbleOutline,
                                 contentDescription = stringResource(R.string.feed_messages_desc),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        IconButton(onClick = { navController.navigate(Screen.Notifications) }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Notifications,
-                                contentDescription = stringResource(R.string.feed_notifications_desc),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

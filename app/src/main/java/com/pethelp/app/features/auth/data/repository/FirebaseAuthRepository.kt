@@ -184,6 +184,7 @@ class FirebaseAuthRepository @Inject constructor(
                 level = UserLevel.FRIEND,
                 badges = emptyList(),
                 notificationRadiusKm = 10.0,
+                pushNotificationsEnabled = true,
                 createdAt = System.currentTimeMillis()
             )
 
@@ -338,6 +339,7 @@ class FirebaseAuthRepository @Inject constructor(
         role = UserRole.USER,
         points = 0,
         level = UserLevel.FRIEND,
+        pushNotificationsEnabled = true,
         createdAt = System.currentTimeMillis()
     )
 

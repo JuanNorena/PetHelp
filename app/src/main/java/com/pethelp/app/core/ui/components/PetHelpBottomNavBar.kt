@@ -140,7 +140,7 @@ private fun showChatLocalNotification(context: Context, unreadCount: Int) {
     )
 
     val notification = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle(context.getString(R.string.chat_notification_title))
         .setContentText(context.getString(R.string.chat_notification_body, unreadCount))
         .setPriority(NotificationCompat.PRIORITY_HIGH)
